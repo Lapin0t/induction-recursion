@@ -1,9 +1,9 @@
 module iir where
 
 open import Function using (_∘_)
-open import Level using (Lift; lift; _⊔_; zero; suc)
+open import Level using (Lift; lift)
 open import Data.Product using (Σ; _,_)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; subst)
 
 open Σ renaming (proj₁ to π₀; proj₂ to π₁)
 
@@ -14,6 +14,7 @@ data ⊤ : Set where
   tt : ⊤
 
 module slices where
+  open import Level using (_⊔_; zero; suc)
 
   slice : ∀ {α} → Set α → Set (α ⊔ suc zero)
   slice X = Σ Set (λ A → A → X)
@@ -69,7 +70,7 @@ module dybjer-setzer {I : Set} where
   decode γ i ⟨ x ⟩ = ⟦ γ i ⟧₁ (μD γ) x
 
 
-module polynomial {I : Set} where
+module irish {I : Set} where
 
   data poly (D : I → Set₁) : Set₁
   info : ∀ {D} → poly D → Set₁
@@ -88,9 +89,6 @@ module polynomial {I : Set} where
   PN : (I → Set₁) → Set₁ → Set₁
   PN D E = Σ (poly D) (λ c → info c → E)
 
-  iPN : (I → Set₁) → (I → Set₁) → Set₁
-  iPN D E = (i : I) → PN D (E i)
-
   ⟦_⟧₀ : ∀ {D} → poly D → obj D → Set
   ⟦_⟧₁ : ∀ {D} → (γ : poly D) → (G : obj D) → ⟦ γ ⟧₀ G → info γ
 
@@ -104,25 +102,28 @@ module polynomial {I : Set} where
   ⟦ σ S f ⟧₁ G (s , γ) = (⟦ S ⟧₁ G s , ⟦ f (⟦ S ⟧₁ G s) ⟧₁ G γ)
   ⟦ π P f ⟧₁ G γ = λ p → ⟦ f p ⟧₁ G (γ p)
 
-  ⟦_⟧ : ∀ {D E} → iPN D E → obj D → obj E
-  ⟦ γ ⟧ G i = (⟦ π₀ (γ i) ⟧₀ G , π₁ (γ i) ∘ ⟦ π₀ (γ i) ⟧₁ G)
+  module _ {J : Set} where
+
+    iPN : (I → Set₁) → (J → Set₁) → Set₁
+    iPN D E = (j : J) → PN D (E j)
+
+    ⟦_⟧ : ∀ {D E} → iPN D E → obj D → obj E
+    ⟦ γ ⟧ G j = ⟦ π₀ (γ j) ⟧₀ G , π₁ (γ j) ∘ ⟦ π₀ (γ j) ⟧₁ G
 
   module fix where
 
-    μD : ∀ {D} → iPN D D → obj D
-
+    μ-dec : ∀ {D} → iPN D D → obj D
     {-# NO_POSITIVITY_CHECK #-}
     data μ {D} (γ : iPN D D) (i : I) : Set
-
     {-# TERMINATING #-}
-    decode : ∀ {D} → (γ : iPN D D) → (i : I) → μ γ i → D i
+    dec : ∀ {D} → (γ : iPN D D) → (i : I) → μ γ i → D i
 
-    μD γ i = (μ γ i , decode γ i)
+    μ-dec γ i = (μ γ i , dec γ i)
 
     data μ γ i where
-      ⟨_⟩ : ⟦ π₀ (γ i) ⟧₀ (μD γ) → μ γ i
+      ⟨_⟩ : ⟦ π₀ (γ i) ⟧₀ (μ-dec γ) → μ γ i
 
-    decode γ i ⟨ x ⟩ = π₁ (γ i) (⟦ π₀ (γ i) ⟧₁ (μD γ) x)
+    dec γ i ⟨ x ⟩ = π₁ (γ i) (⟦ π₀ (γ i) ⟧₁ (μ-dec γ) x)
 
   module comp where
 
@@ -147,5 +148,56 @@ module polynomial {I : Set} where
     σ S f / R = (S / R) >>= (λ s → f s / R)
     π P f / R = pow P (λ p → f p / R)
 
-    _⊙_ : ∀ {C D E} → iPN D E → iPN C D → iPN C E
+    _⊙_ : ∀ {J C D} {E : J → _} → iPN D E → iPN C D → iPN C E
     (γ ⊙ R) i = π₁ (γ i) <$> (π₀ (γ i) / R)
+
+module palmgren where
+
+    open import Level using (Level) renaming (zero to ℓz; suc to ℓs)
+    open import Data.Nat renaming (_⊔_ to _⊔ℕ_; zero to zz; suc to ss)
+    open import Data.Fin renaming (inject₁ to inj)
+
+    O : ∀ {n} → (i : Fin n) → Set₁
+    F : ∀ {n} → (i : Fin n) → Set₁
+
+    O zero = Set
+    O (suc i) = F i → F i
+    F i = Σ Set (λ A → A → O i)
+
+    inj-eq : ∀ {n} → (i : Fin n) → O (inj i) ≡ O i
+    inj-eq zero = refl
+    inj-eq (suc i) = cong (λ e → Σ Set (λ A → A → e) → Σ Set (λ A → A → e)) (inj-eq i)
+
+    inj-aux : ∀ {n} {i : Fin n} → O (inj i) → O i
+    inj-aux {i = i} x = subst (λ s → s) (inj-eq i) x
+
+
+
+    module _ {n : ℕ} {A : Fin (ss n) → Set} {B : (i : Fin (ss n)) → A i → O i} where
+
+      Nn Nsn : _
+      Nn = Fin n
+      Nsn = Fin (ss n)
+
+      data U : Nsn → Set
+      ⟦_⟧ : {i : Nsn} → U i → O i
+
+      data U where
+        top : U zero
+        σ : (x : U zero) → (⟦ x ⟧ → U zero) → U zero
+        π : (x : U zero) → (⟦ x ⟧ → U zero) → U zero
+
+        Ȧ : Nsn → U zero
+        Ḃ : (i : Nsn) → A i → U i
+        ap₀ : (i : Nn) → U (suc i) → (a : U zero) → (⟦ a ⟧ → U (inj i)) → U zero
+        ap₁ : (i : Nn) → (f : U (suc i)) → (a : U zero) → (b : ⟦ a ⟧ → U (inj i)) → π₀ (⟦ f ⟧ (⟦ a ⟧ , inj-aux ∘ ⟦_⟧ ∘ b)) → U (inj i)
+
+
+      ⟦_⟧ {i} x = ?
+      {-⟦ top ⟧ = ⊤
+      ⟦ σ x f ⟧ = Σ ⟦ x ⟧ λ s → ⟦ f s ⟧
+      ⟦ π x f ⟧ = (s : ⟦ x ⟧) → ⟦ f s ⟧
+      ⟦ Ȧ i ⟧ = A i
+      ⟦ Ḃ i a ⟧ = B i a
+      ⟦_⟧ {zero} (ap₀ i f a b) = π₀ (⟦ f ⟧ (⟦ a ⟧ , ({!inj-aux ∘ ⟦_⟧ ∘ b  !})))
+      ⟦_⟧ {?} (ap₁ i f a b x) = π₁ (⟦ {!  f !} ⟧ {!   !}) ?-}
