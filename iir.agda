@@ -3,7 +3,7 @@ module iir where
 open import Function using (_∘_)
 open import Level using (Lift; lift)
 open import Data.Product using (Σ; _,_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; subst; sym)
 
 open Σ renaming (proj₁ to π₀; proj₂ to π₁)
 
@@ -166,38 +166,45 @@ module palmgren where
 
     inj-eq : ∀ {n} → (i : Fin n) → O (inj i) ≡ O i
     inj-eq zero = refl
-    inj-eq (suc i) = cong (λ e → Σ Set (λ A → A → e) → Σ Set (λ A → A → e)) (inj-eq i)
+    inj-eq (suc i) = cong (λ e → (λ x → x → x) (Σ Set (λ A → A → e))) (inj-eq i)
 
-    inj-aux : ∀ {n} {i : Fin n} → O (inj i) → O i
-    inj-aux {i = i} x = subst (λ s → s) (inj-eq i) x
+    ↓ : ∀ {n} {i : Fin n} → O (inj i) → O i
+    ↓ {i = i} x = subst (λ s → s) (inj-eq i) x
 
+    ↑ : ∀ {n} {i : Fin n} → O i → O (inj i)
+    ↑ {i = i} x = subst (λ s → s) (sym (inj-eq i)) x
 
+    data W (A : Set) (B : A → Set) : Set where
+      sup : (a : A) → (B a → W A B) → W A B
 
     module _ {n : ℕ} {A : Fin (ss n) → Set} {B : (i : Fin (ss n)) → A i → O i} where
 
-      Nn Nsn : _
-      Nn = Fin n
-      Nsn = Fin (ss n)
-
-      data U : Nsn → Set
-      ⟦_⟧ : {i : Nsn} → U i → O i
+      data U : Fin (ss n) → Set
+      ⟦_⟧ : {i : Fin (ss n)} → U i → O i
 
       data U where
-        top : U zero
-        σ : (x : U zero) → (⟦ x ⟧ → U zero) → U zero
-        π : (x : U zero) → (⟦ x ⟧ → U zero) → U zero
+        nat : U zero
+        σ : (a : U zero) → (⟦ a ⟧ → U zero) → U zero
+        π : (a : U zero) → (⟦ a ⟧ → U zero) → U zero
+        w : (a : U zero) → (⟦ a ⟧ → U zero) → U zero
 
-        Ȧ : Nsn → U zero
-        Ḃ : (i : Nsn) → A i → U i
-        ap₀ : (i : Nn) → U (suc i) → (a : U zero) → (⟦ a ⟧ → U (inj i)) → U zero
-        ap₁ : (i : Nn) → (f : U (suc i)) → (a : U zero) → (b : ⟦ a ⟧ → U (inj i)) → π₀ (⟦ f ⟧ (⟦ a ⟧ , inj-aux ∘ ⟦_⟧ ∘ b)) → U (inj i)
+        Ȧ : Fin (ss n) → U zero
+        Ḃ : (i : Fin (ss n)) → A i → U i
+        ap₀ : (i : Fin n) → U (suc i) → (a : U zero) → (⟦ a ⟧ → U (inj i)) → U zero
+        ap₁ : (i : Fin n) → (f : U (suc i)) → (a : U zero) → (b : ⟦ a ⟧ → U (inj i)) → ⟦ ap₀ i f a b ⟧ → U (inj i)
 
 
-      ⟦_⟧ {i} x = ?
-      {-⟦ top ⟧ = ⊤
-      ⟦ σ x f ⟧ = Σ ⟦ x ⟧ λ s → ⟦ f s ⟧
-      ⟦ π x f ⟧ = (s : ⟦ x ⟧) → ⟦ f s ⟧
+      ⟦ nat ⟧ = ℕ
+      ⟦ σ a b ⟧ = Σ ⟦ a ⟧ λ x → ⟦ b x ⟧
+      ⟦ π a b ⟧ = (x : ⟦ a ⟧) → ⟦ b x ⟧
+      ⟦ w a b ⟧ = W ⟦ a ⟧ λ x → ⟦ b x ⟧
       ⟦ Ȧ i ⟧ = A i
       ⟦ Ḃ i a ⟧ = B i a
-      ⟦_⟧ {zero} (ap₀ i f a b) = π₀ (⟦ f ⟧ (⟦ a ⟧ , ({!inj-aux ∘ ⟦_⟧ ∘ b  !})))
-      ⟦_⟧ {?} (ap₁ i f a b x) = π₁ (⟦ {!  f !} ⟧ {!   !}) ?-}
+      ⟦ ap₀ i f a b ⟧ = π₀ (⟦ f ⟧ (⟦ a ⟧ , λ x → ↓ ⟦ b x ⟧))
+      ⟦ ap₁ i f a b x ⟧ = ↑ (π₁ (⟦ f ⟧ (⟦ a ⟧ , λ x → ↓ ⟦ b x ⟧)) x)
+
+
+      c : Fin (ss n) → irish.poly (O {ss n})
+      c zero = {!   !}
+      c (suc i) = {!   !}
+
