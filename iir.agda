@@ -13,7 +13,6 @@ open Σ renaming (proj₁ to π₀; proj₂ to π₁)
 data ⊤ : Set where
   tt : ⊤
 
-
 module slices where
 
   slice : ∀ {α} → Set α → Set (α ⊔ suc zero)
@@ -33,7 +32,7 @@ module slices where
 open slices
 
 
-module dybjer-setzer {I J : Set} where
+module dybjer-setzer {I : Set} where
 
   data DS (D : I → Set₁) (E : Set₁) : Set₁ where
     ι : (e : E) → DS D E
@@ -70,19 +69,19 @@ module dybjer-setzer {I J : Set} where
   decode γ i ⟨ x ⟩ = ⟦ γ i ⟧₁ (μD γ) x
 
 
-module polynomial {I J : Set} where
+module polynomial {I : Set} where
 
   data poly (D : I → Set₁) : Set₁
   info : ∀ {D} → poly D → Set₁
 
   data poly D where
     ι : poly D
-    k : (A : Set) → poly D
-    --σ : (S : poly D) → (i : info S → I) → (f : info S → poly D) → poly D
+    k : (A : I → Set) → poly D
+    σ : (S : poly D) → (f : info S → poly D) → poly D
 
   info {D} ι = (i : I) → D i
-  info (k A) = Lift A
-  --info (σ S i f) = {!Σ (info S) λ x → info (f x)!}
+  info (k A) = Lift ((i : I) → A i)
+  info (σ S f) = Σ (info S) λ x → info (f x)
 
   PN : (I → Set₁) → Set₁ → Set₁
   PN D E = Σ (poly D) (λ c → info c → E)
@@ -91,12 +90,12 @@ module polynomial {I J : Set} where
   ⟦_⟧₁ : ∀ {D} → (γ : poly D) → (G : obj D) → ⟦ γ ⟧₀ G → info γ
 
   ⟦ ι ⟧₀ G = (i : I) → π₀ (G i)
-  ⟦ k A ⟧₀ G = A
-  --⟦ σ S i f ⟧₀ G = Σ (⟦ S ⟧₀ G) λ s → ⟦ f (⟦ S ⟧₁ G s) ⟧₀ G
+  ⟦ k A ⟧₀ G = (i : I) → A i
+  ⟦ σ S f ⟧₀ G = Σ (⟦ S ⟧₀ G) λ s → ⟦ f (⟦ S ⟧₁ G s) ⟧₀ G
 
   ⟦ ι ⟧₁ G γ = λ i → π₁ (G i) (γ i)
-  ⟦ k A ⟧₁ G a = lift a
-  --⟦ σ S f ⟧₁ G (s , x) = ⟦ S ⟧₁ G s , ⟦ f (⟦ S ⟧₁ G s) ⟧₁ G x
+  ⟦ k A ⟧₁ G a = lift (λ i → a i)
+  ⟦ σ S f ⟧₁ G (s , γ) = ⟦ S ⟧₁ G s , ⟦ f (⟦ S ⟧₁ G s) ⟧₁ G γ
 
 
   ⟦_⟧ : ∀ {D E} → ((i : I) → PN D (E i)) → obj D → obj E
