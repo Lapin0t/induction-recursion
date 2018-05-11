@@ -125,6 +125,8 @@ module irish {I : Set} where
 
     dec γ i ⟨ x ⟩ = π₁ (γ i) (⟦ π₀ (γ i) ⟧₁ (μ-dec γ) x)
 
+  open fix public
+
   module comp where
 
     pow : ∀ {D} → (A : Set) → {E : A → Set₁} → ((a : A) → PN D (E a)) → PN D ((a : A) → E a)
@@ -133,14 +135,14 @@ module irish {I : Set} where
     η : ∀ {D E} → E → PN D E
     η e = (k ⊤ , λ _ → e)
 
-    μ : ∀ {D E} → PN D (PN D E) → PN D E
-    μ (c , α) = (σ c (λ z → π₀ (α z))) , λ { (c' , α') → π₁ (α c') α' }
+    μ' : ∀ {D E} → PN D (PN D E) → PN D E
+    μ' (c , α) = (σ c (λ z → π₀ (α z))) , λ { (c' , α') → π₁ (α c') α' }
 
     _<$>_ : ∀ {D E F} → (E → F) → PN D E → PN D F
     f <$> c = (π₀ c , f ∘ (π₁ c))
 
     _>>=_ : ∀ {C D E} → PN C D → ((x : D) → PN C (E x)) → PN C (Σ D E)
-    (c , α) >>= h = μ (c , λ x → (π₀ (h (α x)) , λ y → (α x , π₁ (h (α x)) y)))
+    (c , α) >>= h = μ' (c , λ x → (π₀ (h (α x)) , λ y → (α x , π₁ (h (α x)) y)))
 
     _/_ : ∀ {D E} → (c : poly E) → iPN D E → PN D (info c)
     ι i / R = R i
@@ -150,6 +152,8 @@ module irish {I : Set} where
 
     _⊙_ : ∀ {J C D} {E : J → _} → iPN D E → iPN C D → iPN C E
     (γ ⊙ R) i = π₁ (γ i) <$> (π₀ (γ i) / R)
+
+open irish
 
 module palmgren where
 
@@ -179,32 +183,44 @@ module palmgren where
 
     module _ {n : ℕ} {A : Fin (ss n) → Set} {B : (i : Fin (ss n)) → A i → O i} where
 
-      data U : Fin (ss n) → Set
-      ⟦_⟧ : {i : Fin (ss n)} → U i → O i
+      pattern nn = zero
+      pattern σσ = suc zero
+      pattern ππ = suc (suc zero)
+      pattern ww = suc (suc (suc zero))
+      pattern Ȧ = suc (suc (suc (suc zero)))
+      pattern Ḃ = suc (suc (suc (suc (suc zero))))
+      pattern ap₀ = suc (suc (suc (suc (suc (suc zero)))))
+      pattern ap₁ = suc (suc (suc (suc (suc (suc (suc zero))))))
+      pattern abs = suc (suc (suc (suc (suc (suc (suc (suc ())))))))
 
-      data U where
-        nat : U zero
-        σ : (a : U zero) → (⟦ a ⟧ → U zero) → U zero
-        π : (a : U zero) → (⟦ a ⟧ → U zero) → U zero
-        w : (a : U zero) → (⟦ a ⟧ → U zero) → U zero
+      ~U : Fin (ss n) → poly (O {ss n})
+      ~T : (i : Fin (ss n)) → info (~U i) → O i
 
-        Ȧ : Fin (ss n) → U zero
-        Ḃ : (i : Fin (ss n)) → A i → U i
-        ap₀ : (i : Fin n) → U (suc i) → (a : U zero) → (⟦ a ⟧ → U (inj i)) → U zero
-        ap₁ : (i : Fin n) → (f : U (suc i)) → (a : U zero) → (b : ⟦ a ⟧ → U (inj i)) → ⟦ ap₀ i f a b ⟧ → U (inj i)
+      ~U i = σ (k (Fin 8)) aux
+        where
+          aux : Lift (Fin 8) → poly O
+          aux (lift nn) = k (i ≡ zero)
+          aux (lift σσ) = σ (k (i ≡ zero)) λ _ → σ (ι zero) λ a → π a λ _ → ι zero
+          aux (lift ππ) = σ (k (i ≡ zero)) λ _ → σ (ι zero) λ a → π a λ _ → ι zero
+          aux (lift ww) = σ (k (i ≡ zero)) λ _ → σ (ι zero) λ a → π a λ _ → ι zero
+          aux (lift Ȧ) = σ (k (i ≡ zero)) λ _ → k (Fin (ss n))
+          aux (lift Ḃ) = k (A i)
+          aux (lift ap₀) = σ (k (i ≡ zero)) λ _ → σ (k (Fin n)) λ { (lift j) → σ (ι (suc j)) λ f → σ (ι zero) λ a → π a λ _ → ι (inj j)}
+          aux (lift ap₁) = σ (k (Fin n)) λ { (lift j) → σ (k (i ≡ inj j)) λ _ → σ (ι (suc j)) λ f → σ (ι zero) λ a → σ (π a λ _ → ι (inj j)) λ b → k (π₀ (f (a , λ x → ↓ (b x)))) }
+          aux (lift abs)
 
+      ~T i (lift nn , lift refl) = ℕ
+      ~T i (lift σσ , (lift refl , (a , b))) = Σ a b
+      ~T i (lift ππ , (lift refl , (a , b))) = (x : a) → b x
+      ~T i (lift ww , (lift refl , (a , b))) = W a b
+      ~T i (lift Ȧ , (lift refl , lift j)) = A j
+      ~T i (lift Ḃ , (lift a)) = B i a
+      ~T i (lift ap₀ , (lift refl , (lift j , (f , (a , b))))) = π₀ (f (a , λ x → ↓ (b x)))
+      ~T i (lift ap₁ , (lift j , (lift refl , (f , (a , (b , lift x)))))) = ↑ (π₁ (f (a , λ x → ↓ (b x))) x)
+      ~T i (lift abs , _)
 
-      ⟦ nat ⟧ = ℕ
-      ⟦ σ a b ⟧ = Σ ⟦ a ⟧ λ x → ⟦ b x ⟧
-      ⟦ π a b ⟧ = (x : ⟦ a ⟧) → ⟦ b x ⟧
-      ⟦ w a b ⟧ = W ⟦ a ⟧ λ x → ⟦ b x ⟧
-      ⟦ Ȧ i ⟧ = A i
-      ⟦ Ḃ i a ⟧ = B i a
-      ⟦ ap₀ i f a b ⟧ = π₀ (⟦ f ⟧ (⟦ a ⟧ , λ x → ↓ ⟦ b x ⟧))
-      ⟦ ap₁ i f a b x ⟧ = ↑ (π₁ (⟦ f ⟧ (⟦ a ⟧ , λ x → ↓ ⟦ b x ⟧)) x)
+      U : Fin (ss n) → Set
+      U = μ (λ i → ~U i , ~T i)
 
-
-      c : Fin (ss n) → irish.poly (O {ss n})
-      c zero = {!   !}
-      c (suc i) = {!   !}
-
+      T : (i : Fin (ss n)) → U i → O i
+      T = dec (λ i → ~U i , ~T i)
