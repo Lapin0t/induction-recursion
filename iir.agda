@@ -1,226 +1,110 @@
-module iir where
+module iir {I : Set} where
 
-open import Function using (_∘_)
-open import Level using (Lift; lift)
-open import Data.Product using (Σ; _,_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; subst; sym)
+open import utils
 
-open Σ renaming (proj₁ to π₀; proj₂ to π₁)
 
+------------------------------------------------------------------------
+-- Codes.
 
--- Utilities
+data poly (D : I → Set₁) : Set₁
+info : ∀ {D} → poly D → Set₁
 
-data ⊤ : Set where
-  tt : ⊤
+data poly D where
+  ι : I → poly D
+  k : (A : Set) → poly D
+  σ : (S : poly D) → (f : info S → poly D) → poly D
+  π : (P : Set) → (f : P → poly D) → poly D
 
-module slices where
-  open import Level using (_⊔_; zero; suc)
+info {D} (ι i) = D i
+info (k A) = Lift A
+info (σ S f) = Σ (info S) λ x → info (f x)
+info (π P f) = (p : P) → info (f p)
 
-  slice : ∀ {α} → Set α → Set (α ⊔ suc zero)
-  slice X = Σ Set (λ A → A → X)
 
-  infix 30 _⁻¹
+σ′ : ∀ {D} → (S : poly D) → (f : info S → poly D) → poly D
+σ′ = σ
+σ″ : ∀ {D} → (A : Set) → (f : A → poly D) → poly D
+σ″ a b = σ (k a) (b ∘ Lift.lower)
+π′ : ∀ {D} → (P : Set) → (f : P → poly D) → poly D
+π′ = π
 
-  _⁻¹ : ∀ {X} → slice X → (X → Set)
-  (A , f)⁻¹ = λ x → Σ A (λ a → f a ≡ x)
+syntax σ a (λ x → b) = ⟨ x ∶ a ⟩× b
+syntax σ′ a (λ _ → b) = ⟨ a ⟩× b
+syntax σ″ a (λ x → b ) = ⟨k x ∶ a ⟩× b
+syntax π a (λ x → b) = ⟨ x ∶ a ⟩⇒ b
+syntax π′ a (λ _ → b) = ⟨ a ⟩⇒ b
 
-  ∃_ : ∀ {X} → (X → Set) → slice X
-  ∃_ {X} F = (Σ X F) , π₀
 
-  obj : {I : Set} → (I → Set₁) → Set₁
-  obj {I} X = (i : I) → slice (X i)
+------------------------------------------------------------------------
+-- Expression of FCT definitions as a functors.
 
-open slices
 
+FCT* : (I → Set₁) → Set₁ → Set₁
+FCT* D E = Σ (poly D) (λ c → info c → E)
 
-module dybjer-setzer {I : Set} where
+FCT : {J : Set} → (I → Set₁) → (J → Set₁) → Set₁
+FCT {J} D E = (j : J) → FCT* D (E j)
 
-  data DS (D : I → Set₁) (E : Set₁) : Set₁ where
-    ι : (e : E) → DS D E
-    σ : (S : Set) → (K : S → DS D E) → DS D E
-    δ : (P : Set) → (i : P → I) → (K : ((p : P) → D (i p)) → DS D E) → DS D E
+⟦_⟧₀ : ∀ {D} → poly D → obj D → Set
+⟦_⟧₁ : ∀ {D} → (γ : poly D) → (G : obj D) → ⟦ γ ⟧₀ G → info γ
 
-  ⟦_⟧₀ : ∀ {D E} → DS D E → obj D → Set
-  ⟦_⟧₁ : ∀ {D E} → (c : DS D E) → (G : obj D) → ⟦ c ⟧₀ G → E
+⟦ ι i ⟧₀ G = π₀ (G i)
+⟦ k A ⟧₀ G = A
+⟦ σ S f ⟧₀ G = Σ (⟦ S ⟧₀ G) λ s → ⟦ f (⟦ S ⟧₁ G s) ⟧₀ G
+⟦ π P f ⟧₀ G = (p : P) → ⟦ f p ⟧₀ G
 
-  ⟦ ι e ⟧₀ G = ⊤
-  ⟦ σ S K ⟧₀ G = Σ S λ s → ⟦ K s ⟧₀ G
-  ⟦ δ P i K ⟧₀ G = Σ ((p : P) → π₀ (G (i p))) λ g → ⟦ K (λ p → π₁ (G (i p)) (g p)) ⟧₀ G
+⟦ ι i ⟧₁ G γ = π₁ (G i) γ
+⟦ k A ⟧₁ G γ = lift γ
+⟦ σ S f ⟧₁ G (s , γ) = (⟦ S ⟧₁ G s , ⟦ f (⟦ S ⟧₁ G s) ⟧₁ G γ)
+⟦ π P f ⟧₁ G γ = λ p → ⟦ f p ⟧₁ G (γ p)
 
-  ⟦ ι e ⟧₁ G tt = e
-  ⟦ σ S K ⟧₁ G (s , x) = ⟦ K s ⟧₁ G x
-  ⟦ δ P i K ⟧₁ G (g , x) = ⟦ K (λ p → π₁ (G (i p)) (g p)) ⟧₁ G x
+⟦_⟧ : ∀ {J D E} → FCT D E → obj D → obj {J} E
+⟦ γ ⟧ G j = ⟦ π₀ (γ j) ⟧₀ G , π₁ (γ j) ∘ ⟦ π₀ (γ j) ⟧₁ G
 
-  ⟦_⟧ : ∀ {D E} → ((i : I) → DS D (E i)) → obj D → obj E
-  ⟦ γ ⟧ G i = ⟦ γ i ⟧₀ G , ⟦ γ i ⟧₁ G
 
-  μD : ∀ {D} → ((i : I) → DS D (D i)) → obj D
+------------------------------------------------------------------------
+-- Composition of codes
 
-  {-# NO_POSITIVITY_CHECK #-}
-  data μ {D} (γ : (i : I) → DS D (D i)) (i : I) : Set
+pow : ∀ {D} (A : Set) {E : A → Set₁} → ((a : A) → FCT* D (E a)) → FCT* D ((a : A) → E a)
+pow A f = (π A (π₀ ∘ f) , λ z a → π₁ (f a) (z a))
 
-  {-# TERMINATING #-}
-  decode : ∀ {D} → (γ : (i : I) → DS D (D i)) → (i : I) → μ γ i → D i
+η : ∀ {D E} → E → FCT* D E
+η e = (k ⊤ , λ _ → e)
 
-  μD γ i = (μ γ i , decode γ i)
+μ' : ∀ {D E} → FCT* D (FCT* D E) → FCT* D E
+μ' (c , α) = (σ c (λ z → π₀ (α z))) , λ { (c' , α') → π₁ (α c') α' }
 
-  data μ γ i where
-    ⟨_⟩ : ⟦ γ i ⟧₀ (μD γ) → μ γ i
+_<$>_ : ∀ {D E F} → (E → F) → FCT* D E → FCT* D F
+f <$> c = (π₀ c , f ∘ (π₁ c))
 
-  decode γ i ⟨ x ⟩ = ⟦ γ i ⟧₁ (μD γ) x
+_>>=_ : ∀ {C D E} → FCT* C D → ((x : D) → FCT* C (E x)) → FCT* C (Σ D E)
+(c , α) >>= h = μ' (c , λ x → (π₀ (h (α x)) , λ y → (α x , π₁ (h (α x)) y)))
 
+_/_ : ∀ {D E} → (c : poly E) → FCT D E → FCT* D (info c)
+ι i / R = R i
+k A / R = (k A , λ a → a)
+σ S f / R = (S / R) >>= (λ s → f s / R)
+π P f / R = pow P (λ p → f p / R)
 
-module irish {I : Set} where
+_⊙_ : ∀ {J C D} {E : J → _} → FCT D E → FCT C D → FCT C E
+(γ ⊙ R) i = π₁ (γ i) <$> (π₀ (γ i) / R)
 
-  data poly (D : I → Set₁) : Set₁
-  info : ∀ {D} → poly D → Set₁
 
-  data poly D where
-    ι : I → poly D
-    k : (A : Set) → poly D
-    σ : (S : poly D) → (f : info S → poly D) → poly D
-    π : (P : Set) → (f : P → poly D) → poly D
+------------------------------------------------------------------------
+-- Initial algebra and code interpretation
 
-  info {D} (ι i) = D i
-  info (k A) = Lift A
-  info (σ S f) = Σ (info S) λ x → info (f x)
-  info (π P f) = (p : P) → info (f p)
+IIR : (I → Set₁) → Set₁
+IIR D = FCT D D
 
-  PN : (I → Set₁) → Set₁ → Set₁
-  PN D E = Σ (poly D) (λ c → info c → E)
+μ-dec : ∀ {D} → IIR D → obj D
+{-# NO_POSITIVITY_CHECK #-}
+data μ {D} (γ : IIR D) (i : I) : Set
+{-# TERMINATING #-}
+dec : ∀ {D} → (γ : IIR D) → (i : I) → μ γ i → D i
 
-  ⟦_⟧₀ : ∀ {D} → poly D → obj D → Set
-  ⟦_⟧₁ : ∀ {D} → (γ : poly D) → (G : obj D) → ⟦ γ ⟧₀ G → info γ
+μ-dec γ i = (μ γ i , dec γ i)
 
-  ⟦ ι i ⟧₀ G = π₀ (G i)
-  ⟦ k A ⟧₀ G = A
-  ⟦ σ S f ⟧₀ G = Σ (⟦ S ⟧₀ G) λ s → ⟦ f (⟦ S ⟧₁ G s) ⟧₀ G
-  ⟦ π P f ⟧₀ G = (p : P) → ⟦ f p ⟧₀ G
+data μ γ i where
+  ⟨_⟩ : ⟦ π₀ (γ i) ⟧₀ (μ-dec γ) → μ γ i
 
-  ⟦ ι i ⟧₁ G γ = π₁ (G i) γ
-  ⟦ k A ⟧₁ G γ = lift γ
-  ⟦ σ S f ⟧₁ G (s , γ) = (⟦ S ⟧₁ G s , ⟦ f (⟦ S ⟧₁ G s) ⟧₁ G γ)
-  ⟦ π P f ⟧₁ G γ = λ p → ⟦ f p ⟧₁ G (γ p)
-
-  module _ {J : Set} where
-
-    iPN : (I → Set₁) → (J → Set₁) → Set₁
-    iPN D E = (j : J) → PN D (E j)
-
-    ⟦_⟧ : ∀ {D E} → iPN D E → obj D → obj E
-    ⟦ γ ⟧ G j = ⟦ π₀ (γ j) ⟧₀ G , π₁ (γ j) ∘ ⟦ π₀ (γ j) ⟧₁ G
-
-  module fix where
-
-    μ-dec : ∀ {D} → iPN D D → obj D
-    {-# NO_POSITIVITY_CHECK #-}
-    data μ {D} (γ : iPN D D) (i : I) : Set
-    {-# TERMINATING #-}
-    dec : ∀ {D} → (γ : iPN D D) → (i : I) → μ γ i → D i
-
-    μ-dec γ i = (μ γ i , dec γ i)
-
-    data μ γ i where
-      ⟨_⟩ : ⟦ π₀ (γ i) ⟧₀ (μ-dec γ) → μ γ i
-
-    dec γ i ⟨ x ⟩ = π₁ (γ i) (⟦ π₀ (γ i) ⟧₁ (μ-dec γ) x)
-
-  open fix public
-
-  module comp where
-
-    pow : ∀ {D} → (A : Set) → {E : A → Set₁} → ((a : A) → PN D (E a)) → PN D ((a : A) → E a)
-    pow A f = (π A (π₀ ∘ f) , λ z a → π₁ (f a) (z a))
-
-    η : ∀ {D E} → E → PN D E
-    η e = (k ⊤ , λ _ → e)
-
-    μ' : ∀ {D E} → PN D (PN D E) → PN D E
-    μ' (c , α) = (σ c (λ z → π₀ (α z))) , λ { (c' , α') → π₁ (α c') α' }
-
-    _<$>_ : ∀ {D E F} → (E → F) → PN D E → PN D F
-    f <$> c = (π₀ c , f ∘ (π₁ c))
-
-    _>>=_ : ∀ {C D E} → PN C D → ((x : D) → PN C (E x)) → PN C (Σ D E)
-    (c , α) >>= h = μ' (c , λ x → (π₀ (h (α x)) , λ y → (α x , π₁ (h (α x)) y)))
-
-    _/_ : ∀ {D E} → (c : poly E) → iPN D E → PN D (info c)
-    ι i / R = R i
-    k A / R = (k A , λ a → a)
-    σ S f / R = (S / R) >>= (λ s → f s / R)
-    π P f / R = pow P (λ p → f p / R)
-
-    _⊙_ : ∀ {J C D} {E : J → _} → iPN D E → iPN C D → iPN C E
-    (γ ⊙ R) i = π₁ (γ i) <$> (π₀ (γ i) / R)
-
-open irish
-
-module palmgren where
-
-    open import Level using (Level) renaming (zero to ℓz; suc to ℓs)
-    open import Data.Nat renaming (_⊔_ to _⊔ℕ_; zero to zz; suc to ss)
-    open import Data.Fin renaming (inject₁ to inj)
-
-    O : ∀ {n} → (i : Fin n) → Set₁
-    F : ∀ {n} → (i : Fin n) → Set₁
-
-    O zero = Set
-    O (suc i) = F i → F i
-    F i = Σ Set (λ A → A → O i)
-
-    inj-eq : ∀ {n} → (i : Fin n) → O (inj i) ≡ O i
-    inj-eq zero = refl
-    inj-eq (suc i) = cong (λ e → (λ x → x → x) (Σ Set (λ A → A → e))) (inj-eq i)
-
-    ↓ : ∀ {n} {i : Fin n} → O (inj i) → O i
-    ↓ {i = i} x = subst (λ s → s) (inj-eq i) x
-
-    ↑ : ∀ {n} {i : Fin n} → O i → O (inj i)
-    ↑ {i = i} x = subst (λ s → s) (sym (inj-eq i)) x
-
-    data W (A : Set) (B : A → Set) : Set where
-      sup : (a : A) → (B a → W A B) → W A B
-
-    module _ {n : ℕ} {A : Fin (ss n) → Set} {B : (i : Fin (ss n)) → A i → O i} where
-
-      pattern nn = zero
-      pattern σσ = suc zero
-      pattern ππ = suc (suc zero)
-      pattern ww = suc (suc (suc zero))
-      pattern Ȧ = suc (suc (suc (suc zero)))
-      pattern Ḃ = suc (suc (suc (suc (suc zero))))
-      pattern ap₀ = suc (suc (suc (suc (suc (suc zero)))))
-      pattern ap₁ = suc (suc (suc (suc (suc (suc (suc zero))))))
-      pattern abs = suc (suc (suc (suc (suc (suc (suc (suc ())))))))
-
-      ~U : Fin (ss n) → poly (O {ss n})
-      ~T : (i : Fin (ss n)) → info (~U i) → O i
-
-      ~U i = σ (k (Fin 8)) aux
-        where
-          aux : Lift (Fin 8) → poly O
-          aux (lift nn) = k (i ≡ zero)
-          aux (lift σσ) = σ (k (i ≡ zero)) λ _ → σ (ι zero) λ a → π a λ _ → ι zero
-          aux (lift ππ) = σ (k (i ≡ zero)) λ _ → σ (ι zero) λ a → π a λ _ → ι zero
-          aux (lift ww) = σ (k (i ≡ zero)) λ _ → σ (ι zero) λ a → π a λ _ → ι zero
-          aux (lift Ȧ) = σ (k (i ≡ zero)) λ _ → k (Fin (ss n))
-          aux (lift Ḃ) = k (A i)
-          aux (lift ap₀) = σ (k (i ≡ zero)) λ _ → σ (k (Fin n)) λ { (lift j) → σ (ι (suc j)) λ f → σ (ι zero) λ a → π a λ _ → ι (inj j)}
-          aux (lift ap₁) = σ (k (Fin n)) λ { (lift j) → σ (k (i ≡ inj j)) λ _ → σ (ι (suc j)) λ f → σ (ι zero) λ a → σ (π a λ _ → ι (inj j)) λ b → k (π₀ (f (a , λ x → ↓ (b x)))) }
-          aux (lift abs)
-
-      ~T i (lift nn , lift refl) = ℕ
-      ~T i (lift σσ , (lift refl , (a , b))) = Σ a b
-      ~T i (lift ππ , (lift refl , (a , b))) = (x : a) → b x
-      ~T i (lift ww , (lift refl , (a , b))) = W a b
-      ~T i (lift Ȧ , (lift refl , lift j)) = A j
-      ~T i (lift Ḃ , (lift a)) = B i a
-      ~T i (lift ap₀ , (lift refl , (lift j , (f , (a , b))))) = π₀ (f (a , λ x → ↓ (b x)))
-      ~T i (lift ap₁ , (lift j , (lift refl , (f , (a , (b , lift x)))))) = ↑ (π₁ (f (a , λ x → ↓ (b x))) x)
-      ~T i (lift abs , _)
-
-      U : Fin (ss n) → Set
-      U = μ (λ i → ~U i , ~T i)
-
-      T : (i : Fin (ss n)) → U i → O i
-      T = dec (λ i → ~U i , ~T i)
+dec γ i ⟨ x ⟩ = π₁ (γ i) (⟦ π₀ (γ i) ⟧₁ (μ-dec γ) x)
