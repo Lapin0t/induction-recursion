@@ -19,8 +19,8 @@ data inv {α β} {I : Set α} {J : Set β} (e : J → I) : I → Set β where
 obj : {I : Set} → (I → Set₁) → Set₁
 obj {I} X = (i : I) → Σ Set (λ A → A → X i)
 
-_⟶̊_ : {I : Set} → (I → Set₁) → (I → Set₁) → Set₁
-_⟶̊_ {I} X Y = (i : I) → X i → Y i
+_⟶̊_ : ∀ {α β} {I : Set} → (I → Set α) → (I → Set β) → Set (α ⊔ β)
+_⟶̊_ {I = I} X Y = (i : I) → X i → Y i
 
 _⟶̃_ : ∀ {I} {X : I → Set₁} → obj X → obj X → Set₁
 _⟶̃_ {I} {X} a b = (i : I) → Σ (π₀ (a i) → π₀ (b i)) λ h → π₁ (b i) ∘ h ≡ π₁ (a i)
