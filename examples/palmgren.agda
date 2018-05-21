@@ -1,4 +1,4 @@
-module palmgren where
+module examples.palmgren where
 
 open import utils
 open import iir
@@ -39,25 +39,25 @@ module _ {n : ℕ} {A : Fin (suc n) → Set} {B : (i : Fin (suc n)) → A i → 
   pattern ap₁ = suc (suc (suc (suc (suc (suc (suc zero))))))
   pattern abs = suc (suc (suc (suc (suc (suc (suc (suc ())))))))
 
-  code : IIR (O {suc n})
+  code : FCT (O {suc n}) (O {suc n})
   code = λ i → (U i , T i)
     where
       U : Fin (suc n) → poly (O {suc n})
       T : (i : Fin (suc n)) → info (U i) → O i
       u-aux : _ → _
 
-      U i = σ (k (Fin 8)) (u-aux i)
+      U i = σ (κ (Fin 8)) (u-aux i)
 
-      u-aux i (lift nn) = k (i ≡ zero)
-      u-aux i (lift σσ) = ⟨ k (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
-      u-aux i (lift ππ) = ⟨ k (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
-      u-aux i (lift ww) = ⟨ k (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
-      u-aux i (lift Ȧ) =  ⟨ k (i ≡ zero) ⟩× k (Fin (suc n))
-      u-aux i (lift Ḃ) = k (A i)
-      u-aux i (lift ap₀) = ⟨ k (i ≡ zero) ⟩× ⟨k j ∶ Fin n ⟩× ⟨ f ∶ ι (suc j) ⟩×
+      u-aux i (lift nn) = κ (i ≡ zero)
+      u-aux i (lift σσ) = ⟨ κ (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
+      u-aux i (lift ππ) = ⟨ κ (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
+      u-aux i (lift ww) = ⟨ κ (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
+      u-aux i (lift Ȧ) =  ⟨ κ (i ≡ zero) ⟩× κ (Fin (suc n))
+      u-aux i (lift Ḃ) = κ (A i)
+      u-aux i (lift ap₀) = ⟨ κ (i ≡ zero) ⟩× ⟨κ j ∶ Fin n ⟩× ⟨ f ∶ ι (suc j) ⟩×
         ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι (inj j)
-      u-aux i (lift ap₁) = ⟨k j ∶ Fin n ⟩× ⟨ k (i ≡ inj j) ⟩× ⟨ f ∶ ι (suc j) ⟩×
-        ⟨ a ∶ ι zero ⟩× ⟨ b ∶ ⟨ a ⟩⇒ ι (inj j) ⟩× k (π₀ (f (a , λ x → ↓ (b x))))
+      u-aux i (lift ap₁) = ⟨κ j ∶ Fin n ⟩× ⟨ κ (i ≡ inj j) ⟩× ⟨ f ∶ ι (suc j) ⟩×
+        ⟨ a ∶ ι zero ⟩× ⟨ b ∶ ⟨ a ⟩⇒ ι (inj j) ⟩× κ (π₀ (f (a , λ x → ↓ (b x))))
       u-aux i (lift abs)
 
       T i (lift nn , lift refl) = ℕ
