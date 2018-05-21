@@ -1,4 +1,4 @@
-module examples.palmgren where
+module palmgren where
 
 open import utils
 open import iir
