@@ -1,73 +1,69 @@
-module iir {I : Set} where
+module iir where
 
 open import utils
+open import fam using (Fam; Code; decode; _,_; 𝔽; _•_)
 
 
 ------------------------------------------------------------------------
 -- Codes.
 
-data poly (D : I → Set₁) : Set₁
-info : ∀ {D} → poly D → Set₁
 
-data poly D where
-  ι : I → poly D
-  k : (A : Set) → poly D
-  σ : (S : poly D) → (f : info S → poly D) → poly D
-  π : (P : Set) → (f : P → poly D) → poly D
+data poly (X : Fam Set₁) : Set₁
+info : {X : Fam Set₁} → poly X → Set₁
 
-info {D} (ι i) = D i
-info (k A) = Lift A
-info (σ S f) = Σ (info S) λ x → info (f x)
-info (π P f) = (p : P) → info (f p)
+data poly X where
+  ι : Code X → poly X
+  κ : (A : Set) → poly X
+  σ : (A : poly X) → (B : info A → poly X) → poly X
+  π : (A : Set) → (B : A → poly X) → poly X
 
+info {X} (ι i) = decode X i
+info (κ A) = Lift A
+info (σ A B) = Σ (info A) λ x → info (B x)
+info (π A B) = (a : A) → info (B a)
 
-σ′ : ∀ {D} → (S : poly D) → (f : info S → poly D) → poly D
-σ′ = σ
-σ″ : ∀ {D} → (A : Set) → (f : A → poly D) → poly D
-σ″ a b = σ (k a) (b ∘ Lift.lower)
-π′ : ∀ {D} → (P : Set) → (f : P → poly D) → poly D
-π′ = π
-
-syntax σ a (λ x → b) = ⟨ x ∶ a ⟩× b
-syntax σ′ a (λ _ → b) = ⟨ a ⟩× b
-syntax σ″ a (λ x → b ) = ⟨k x ∶ a ⟩× b
-syntax π a (λ x → b) = ⟨ x ∶ a ⟩⇒ b
-syntax π′ a (λ _ → b) = ⟨ a ⟩⇒ b
 
 
 ------------------------------------------------------------------------
 -- Expression of FCT definitions as a functors.
 
 
-FCT* : (I → Set₁) → Set₁ → Set₁
-FCT* D E = Σ (poly D) (λ c → info c → E)
+record FCT (X Y : Fam Set₁) : Set₁ where
+  constructor _,_
+  field
+    node : (y : Code Y) → poly X
+    emit : (y : Code Y) → info (node y) → decode Y y
+open FCT public
 
-FCT : {J : Set} → (I → Set₁) → (J → Set₁) → Set₁
-FCT {J} D E = (j : J) → FCT* D (E j)
+⟦_⟧ᵢ : ∀ {X} → (p : poly X) → 𝔽 X → Fam (info p)
 
-⟦_⟧₀ : ∀ {D} → poly D → obj D → Set
-⟦_⟧₁ : ∀ {D} → (γ : poly D) → (G : obj D) → ⟦ γ ⟧₀ G → info γ
+⟦ ι i ⟧ᵢ F = F i
+⟦ κ A ⟧ᵢ F = (A , lift)
+⟦ σ A B ⟧ᵢ F = fam.σ (⟦ A ⟧ᵢ F) λ a → ⟦ B a ⟧ᵢ F
+⟦ π A B ⟧ᵢ F = fam.π A λ a → ⟦ B a ⟧ᵢ F
 
-⟦ ι i ⟧₀ G = π₀ (G i)
-⟦ k A ⟧₀ G = A
-⟦ σ S f ⟧₀ G = Σ (⟦ S ⟧₀ G) λ s → ⟦ f (⟦ S ⟧₁ G s) ⟧₀ G
-⟦ π P f ⟧₀ G = (p : P) → ⟦ f p ⟧₀ G
+⟦_⟧ : {X Y : Fam Set₁} → (α : FCT X Y) → 𝔽 X → 𝔽 Y
+⟦ node , emit ⟧ F j = emit j • ⟦ node j ⟧ᵢ F
 
-⟦ ι i ⟧₁ G γ = π₁ (G i) γ
-⟦ k A ⟧₁ G γ = lift γ
-⟦ σ S f ⟧₁ G (s , γ) = (⟦ S ⟧₁ G s , ⟦ f (⟦ S ⟧₁ G s) ⟧₁ G γ)
-⟦ π P f ⟧₁ G γ = λ p → ⟦ f p ⟧₁ G (γ p)
-
-⟦_⟧ : ∀ {J D E} → FCT D E → obj D → obj {J} E
-⟦ γ ⟧ G j = ⟦ π₀ (γ j) ⟧₀ G , π₁ (γ j) ∘ ⟦ π₀ (γ j) ⟧₁ G
+--⟦_⟧F : ∀ {X Y} (α : FCT X Y) {F G : 𝔽 X} → (F ⇒ G) → ⟦ α ⟧ F ⇒ ⟦ α ⟧ G
+--⟦ α ⟧F f j = (λ x → {! π₀ (f ?)  !}) , {!   !}
 
 
 ------------------------------------------------------------------------
--- Composition of codes
+-- Composition of Codes
 
-pow : ∀ {D} (A : Set) {E : A → Set₁} → ((a : A) → FCT* D (E a)) → FCT* D ((a : A) → E a)
+--pow : {X Y : Fam Set₁} → ((y : Code Y))
+uncurry : (A : Fam Set₁) → (B : Code A → Fam Set₁) → Fam Set₁
+Code (uncurry A B) = Σ (Code A) (Code ∘ B)
+decode (uncurry A B) (a , b) = decode (B a) b
+
+--pow : ∀ {X} (A : Fam Set₁) {B : Code A → Fam Set₁} → ((a : decode A) ⟶̊ FCT X (B a)) → FCT X (uncurry A B)
+--node (pow A f) (a , b) = node (f a) b
+--emit (pow A f) (a , b) x = emit (f a) b {!   !}
+
+{-pow : ∀ {D} (A : Set) {E : A → Set₁} → ((a : A) → FCT* D (E a)) → FCT* D ((a : A) → E a)
 pow A f = (π A (π₀ ∘ f) , λ z a → π₁ (f a) (z a))
-
+`
 η : ∀ {D E} → E → FCT* D E
 η e = (k ⊤ , λ _ → e)
 
@@ -87,32 +83,38 @@ k A / R = (k A , λ a → a)
 π P f / R = pow P (λ p → f p / R)
 
 _⊙_ : ∀ {J C D} {E : J → _} → FCT D E → FCT C D → FCT C E
-(γ ⊙ R) i = π₁ (γ i) <$> (π₀ (γ i) / R)
+(γ ⊙ R) i = π₁ (γ i) <$> (π₀ (γ i) / R)-}
 
 
 ------------------------------------------------------------------------
--- Initial algebra and code interpretation
+-- Initial algebra and Code interpretation
 
-IIR : (I → Set₁) → Set₁
-IIR D = FCT D D
+μ : ∀ {X} → FCT X X → 𝔽 X
 
-μ-dec : ∀ {D} → IIR D → obj D
 {-# NO_POSITIVITY_CHECK #-}
-data μ {D} (γ : IIR D) (i : I) : Set
+data μ-Code {X} (α : FCT X X) (x : Code X) : Set
+
 {-# TERMINATING #-}
-dec : ∀ {D} → (γ : IIR D) → (i : I) → μ γ i → D i
+μ-dec : ∀ {X} → (α : FCT X X) → (x : Code X) → μ-Code α x → decode X x
 
-μ-dec γ i = (μ γ i , dec γ i)
+Code (μ α x) = μ-Code α x
+decode (μ α x) = μ-dec α x
 
-data μ γ i where
-  ⟨_⟩ : ⟦ π₀ (γ i) ⟧₀ (μ-dec γ) → μ γ i
+data μ-Code α x where
+  ⟨_⟩ : Code (⟦ α ⟧ (μ α) x) → μ-Code α x
 
-dec γ i ⟨ x ⟩ = π₁ (γ i) (⟦ π₀ (γ i) ⟧₁ (μ-dec γ) x)
+μ-dec α x ⟨ c ⟩ = emit α x (decode (⟦ node α x ⟧ᵢ (μ α)) c)
 
 
---fmap : ∀ {D E} {X Y : obj D} (γ : FCT D E) → (X ⟶̃ Y) → ⟦ γ ⟧ X ⟶̃ ⟦ γ ⟧ Y
---fmap γ f i with γ i
---...        | ι i′ , α = π₀ (f i′) , {!   !}
---...        | k A , α = (λ a → a) , {!   !}
---...        | σ A B , α = {!   !} , {!   !}
---...        | π A B , α = (λ f a → {! fmap (B a , ?)  !}) , {!   !}
+{-fmap : ∀ {D E} {X Y : obj D} (γ : FCT D E) → (X ⟶̃ Y) → ⟦ γ ⟧ X ⟶̃ ⟦ γ ⟧ Y
+fmap γ f i with γ i
+...        | ι i′ , α = π₀ (f i′) , cong (_∘_ α) (π₁ (f i′))
+...        | k A , α = (λ a → a) , refl
+...        | σ A B , α = (λ { (a , b) → {! π₀ (fmap ? f a) !} , {!   !} }) , {!   !}
+...        | π A B , α = (λ f a → {! fmap (B a , ?)  !}) , {!   !}-}
+
+--fmap-p : ∀ {D E} {X Y : obj D} (γ : poly D) → (X ⟶̃ Y) → ⟦ γ ⟧₀ X → ⟦ γ ⟧₀ Y
+--fmap-p (ι i) f x = π₀ (f i) x
+--fmap-p (k A) f x = x
+--fmap-p (σ A B) f (a , b) = (fmap-p A f a , fmap-p (B _) f {!   !})
+--fmap-p (π A B) f x = λ a → fmap-p (B a) f (x a)
