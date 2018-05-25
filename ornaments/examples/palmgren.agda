@@ -1,9 +1,9 @@
-module palmgren where
+module ornaments.examples.palmgren where
 
-open import utils
-open import iir
+open import ornaments.prelude
+open import ornaments.iir
 
-open import Relation.Binary.PropositionalEquality using (cong; sym; subst)
+--open import Relation.Binary.PropositionalEquality using (cong; sym; subst)
 open import Data.Nat --renaming (_⊔_ to _⊔ℕ_; zero to zz; suc to suc)
 open import Data.Fin renaming (inject₁ to inj)
 
@@ -29,24 +29,18 @@ data W (A : Set) (B : A → Set) : Set where
 
 module _ {n : ℕ} {A : Fin (suc n) → Set} {B : (i : Fin (suc n)) → A i → O i} where
 
-  pattern nn = zero
-  pattern σσ = suc zero
-  pattern ππ = suc (suc zero)
-  pattern ww = suc (suc (suc zero))
-  pattern Ȧ = suc (suc (suc (suc zero)))
-  pattern Ḃ = suc (suc (suc (suc (suc zero))))
-  pattern ap₀ = suc (suc (suc (suc (suc (suc zero)))))
-  pattern ap₁ = suc (suc (suc (suc (suc (suc (suc zero))))))
-  pattern abs = suc (suc (suc (suc (suc (suc (suc (suc ())))))))
+  data constr : Set where
+    nn σσ ππ ww : constr
+    Ȧ Ḃ ap₀ ap₁ abs : constr
 
-  code : FCT (O {suc n}) (O {suc n})
+  code : IIR (O {suc n}) (O {suc n})
   code = λ i → (U i , T i)
     where
       U : Fin (suc n) → poly (O {suc n})
       T : (i : Fin (suc n)) → info (U i) → O i
       u-aux : _ → _
 
-      U i = σ (κ (Fin 8)) (u-aux i)
+      U i = σ (κ constr) (u-aux i)
 
       u-aux i (lift nn) = κ (i ≡ zero)
       u-aux i (lift σσ) = ⟨ κ (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero

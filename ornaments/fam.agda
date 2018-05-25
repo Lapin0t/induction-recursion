@@ -1,6 +1,6 @@
-module fam where
+module ornaments.fam where
 
-open import prelude
+open import ornaments.prelude
 
 
 record Fam {α} (X : Set α) : Set (lsuc lzero ⊔ α) where
@@ -12,14 +12,18 @@ open Fam public
 
 
 -- Postcomposition
-_•_ : ∀ {α} {X Y : Set α} → (X → Y) → Fam X → Fam Y
-Code (f • F) = Code F
-decode (f • F) = f ∘ decode F
+_>>_ : ∀ {α} {X Y : Set α} → (X → Y) → Fam X → Fam Y
+Code (f >> F) = Code F
+decode (f >> F) = f ∘ decode F
 
 
 -- Morphisms
 _⟶̃_ : ∀ {α} {X : Set α} → Fam X → Fam X → Set α
-(C₀ , d₀) ⟶̃ (C₁ , d₁) = Σ (C₀ → C₁) λ h → d₁ ∘ h ≡ d₀
+(C₀ , d₀) ⟶̃ (C₁ , d₁) = Σ (C₀ → C₁) λ h → ∀ x → d₁ (h x) ≡ d₀ x
+
+_∘̃_ : ∀ {α} {X : Set α} {F G H : Fam X} → G ⟶̃ H → F ⟶̃ G → F ⟶̃ H
+π₀ (f ∘̃ g) = π₀ f ∘ π₀ g
+π₁ (f ∘̃ g) x = trans (π₁ f (π₀ g x)) (π₁ g x)
 
 
 π : (A : Set) {X : A → Set₁} (B : (a : A) → Fam (X a)) → Fam ((a : A) → X a)
@@ -41,14 +45,22 @@ Code (μ (C , d)) = Σ C (Code ∘ d)
 decode (μ (C , d)) (c₀ , c₁) = decode (d c₀) c₁
 
 
+-- Indexed fams
 𝔽 : Fam Set₁ → Set₁
 𝔽 (I , X) = (i : I) → Fam (X i)
 
 _⇒_ : {X : Fam Set₁} → 𝔽 X → 𝔽 X → Set₁
-_⇒_ {(I , _)} F G = (i : I) → F i ⟶̃ G i
+F ⇒ G = (i : _) → F i ⟶̃ G i
 
-η𝔽 : {X : Fam Set₁} → ((i : Code X) → decode X i) → 𝔽 X
-η𝔽 x = λ i → η (x i)
+infixr 20 _⊙_
+
+_⊙_ : ∀ {X} {F G H : 𝔽 X} → G ⇒ H → F ⇒ G → F ⇒ H
+--(f ⊙ g) i = f i ∘̃ g i
+π₀ ((a ⊙ b) i) = π₀ (a i) ∘ π₀ (b i)
+π₁ ((a ⊙ b) i) x = trans (π₁ (a i) (π₀ (b i) x)) (π₁ (b i) x)
+
+η𝔽 : {X : Fam Set₁} {i : Code X} → decode X i → Fam (decode X i)
+η𝔽 x = η x
 
 μ𝔽 : {X : Fam Set₁} → 𝔽 (Code X , λ x → Fam (decode X x)) → 𝔽 X
 μ𝔽 F = λ i → μ (F i)
