@@ -87,23 +87,12 @@ module sized where
   μ-d α i ⟨ c ⟩ = emit α i (decode (⟦ node α i ⟧ᵢ (μ α _)) c)
 
 
-  --inj : ∀ {X i} {α : IIR X X} {s} {t : Size< s} → μ-C t α i → μ-C s α i
-  --inj ⟨ x ⟩ = ⟨ x ⟩
-
-  --inj₂ : ∀ {X i} {α : IIR X X} {s} {t : Size< s} → Code (⟦ node α i ⟧ᵢ (μ t α)) → Code (⟦ node α i ⟧ᵢ (μ s α))
-  --inj₂ x = {!   !}
-
-
-  -- second component of the algebra (μ α , in[ α ])
-  --in[_] : ∀ {X s} (α : IIR X X) → μ s α ⇒ ⟦ α ⟧ (μ s α)
-  --π₀ (in[ α ] i) ⟨ x ⟩ = x
-  --π₁ (in[ α ] i) ⟨ _ ⟩ = ? --refl
-
   -- catamorphism for μ α
-  {-# TERMINATING #-}
   fold : ∀ {X s} (α : IIR X X) {F : 𝔽 X} → (⟦ α ⟧ F ⇒ F) → μ α s ⇒ F
-  --fold α {F} φ = _⊙_ {H = F} φ (_⊙_ {H = ⟦ α ⟧ F} ⟦ α ⟧[ fold α φ ] ?)
-  fold α {F} φ = _⊙_ {H = F} φ (_⊙_ {H = ⟦ α ⟧ F} ⟦ α ⟧[ fold α φ ] ?)
+  π₀ (fold α φ i) ⟨ x ⟩ = π₀ (φ i) (π₀ (⟦ α ⟧[ fold α φ ] i) x)
+  π₁ (fold α φ i) ⟨ x ⟩ = trans (π₁ (φ i) (π₀ rec x)) (π₁ rec x)
+    where rec : _
+          rec = ⟦ α ⟧[ fold α φ ] i
 
 
 ------------------------------------------------------------------------
