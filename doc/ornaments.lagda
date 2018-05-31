@@ -11,7 +11,11 @@
 \begin{document}
 \maketitle
 
+\section{Prelude}
 
-\ExecuteMetaData[test.tex]{fam}
+\ExecuteMetaData[ornaments/prelude.tex]{lift}
+\ExecuteMetaData[ornaments/prelude.tex]{sigma}
+\ExecuteMetaData[ornaments/prelude.tex]{prop}
+\ExecuteMetaData[ornaments/prelude.tex]{equality}
 
 \end{document}
