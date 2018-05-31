@@ -1,0 +1,104 @@
+%if False
+%
+% Permission is granted to include this file (or parts of this file) 
+% literally into other documents, regardless of the conditions or 
+% license applying to these documents.
+%
+%endif
+
+%if not lhs2tex_agda_sty_read
+%let lhs2tex_agda_sty_read = True
+
+%if style /= newcode
+
+\usepackage{polytable}
+\usepackage{fontspec}
+\usepackage[math-style=ISO,sans-style=upright]{unicode-math}
+\setmainfont{Libertinus Serif}
+\setmathfont{Libertinus Math}
+\setsansfont{Libertinus Sans}
+
+\usepackage{xcolor}
+\newcommand{\redFG}[1]{\textcolor[rgb]{0.6,0,0}{#1}}
+\newcommand{\greenFG}[1]{\textcolor[rgb]{0,0.4,0}{#1}}
+\newcommand{\blueFG}[1]{\textcolor[rgb]{0,0,0.8}{#1}}
+\newcommand{\orangeFG}[1]{\textcolor[rgb]{0.8,0.4,0}{#1}}
+\newcommand{\purpleFG}[1]{\textcolor[rgb]{0.4,0,0.4}{#1}}
+\newcommand{\yellowFG}[1]{\textcolor{yellow}{#1}}
+\newcommand{\brownFG}[1]{\textcolor[rgb]{0.5,0.2,0.2}{#1}}
+\newcommand{\blackFG}[1]{\textcolor[rgb]{0,0,0}{#1}}
+\newcommand{\whiteFG}[1]{\textcolor[rgb]{1,1,1}{#1}}
+\newcommand{\yellowBG}[1]{\colorbox[rgb]{1,1,0.2}{#1}}
+\newcommand{\brownBG}[1]{\colorbox[rgb]{1.0,0.7,0.4}{#1}}
+
+
+\makeatletter
+\@@ifundefined{lhs2tex.agda.sty.read}
+  {\@@namedef{lhs2tex.agda.sty.read}{}
+   \newcommand\SkipToFmtEnd{}
+   \newcommand\EndFmtInput{}
+   \long\def\SkipToFmtEnd#1\EndFmtInput{}
+  }\SkipToFmtEnd
+
+\newcommand\ReadOnlyOnce[1]{\@@ifundefined{#1}{\@@namedef{#1}{}}\SkipToFmtEnd}
+
+\newcommand{\Sp}{\hskip.33334em\relax}
+\newlength{\lwidth}\setlength{\lwidth}{4.5cm}
+\newlength{\cwidth}\setlength{\cwidth}{8mm} % 3mm
+
+\newcommand{\VAR}[1]{\purpleFG{\mathit{#1}}}
+\newcommand{\CON}[1]{\redFG{\mathsf{#1}}}
+\newcommand{\KW}[1]{\blackFG{\mathbfsf{#1}}}
+\newcommand{\DATA}[1]{\blueFG{\mathsf{#1}}}
+\newcommand{\FCT}[1]{\greenFG{\mathsf{#1}}}
+\newcommand{\anonymous}{\orangeFG{\kern0.06em \vbox{\hrule\@@width.5em}}}
+
+
+%mathindent has to be defined
+\@@ifundefined{mathindent}{\newdimen\mathindent\mathindent\leftmargini}{}
+
+\def\resethooks{
+  \global\let\SaveRestoreHook\empty
+  \global\let\ColumnHook\empty}
+\newcommand*{\savecolumns}[1][default]
+  {\g@@addto@@macro\SaveRestoreHook{\savecolumns[#1]}}
+\newcommand*{\restorecolumns}[1][default]
+  {\g@@addto@@macro\SaveRestoreHook{\restorecolumns[#1]}}
+\newcommand*{\aligncolumn}[2]
+  {\g@@addto@@macro\ColumnHook{\column{#1}{#2}}}
+
+\resethooks
+\makeatother
+
+%if standardsymbols
+\newcommand{\onelinecommentchars}{\quad--- }
+%else
+\newcommand{\onelinecommentchars}{\quad-{}- }
+%endif
+\newcommand{\commentbeginchars}{\enskip\{-}
+\newcommand{\commentendchars}{-\}\enskip}
+
+\newcommand{\visiblecomments}{
+  \let\onelinecomment=\onelinecommentchars
+  \let\commentbegin=\commentbeginchars
+  \let\commentend=\commentendchars}
+
+\newcommand{\invisiblecomments}{
+  \let\onelinecomment=\empty
+  \let\commentbegin=\empty
+  \let\commentend=\empty}
+
+\visiblecomments
+
+\newlength{\blanklineskip}
+\setlength{\blanklineskip}{0.66084ex}
+
+\newcommand{\hsindent}[1]{\quad}% default is fixed indentation
+\let\hspre\empty
+\let\hspost\empty
+%endif
+\newcommand{\NB}{\textbf{NB}}
+\newcommand{\Todo}[1]{$\langle$\textbf{To do:}~#1$\rangle$}
+
+\EndFmtInput
+%endif
