@@ -31,7 +31,7 @@ module _ {n : ℕ} {A : Fin (suc n) → Set} {B : (i : Fin (suc n)) → A i → 
 
   data constr : Set where
     nn σσ ππ ww : constr
-    Ȧ Ḃ ap₀ ap₁ abs : constr
+    Ȧ Ḃ ap₀ ap₁ : constr
 
   code : IIR (O {suc n}) (O {suc n})
   code = λ i → (U i , T i)
@@ -43,16 +43,15 @@ module _ {n : ℕ} {A : Fin (suc n) → Set} {B : (i : Fin (suc n)) → A i → 
       U i = σ (κ constr) (u-aux i)
 
       u-aux i (lift nn) = κ (i ≡ zero)
-      u-aux i (lift σσ) = ⟨ κ (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
-      u-aux i (lift ππ) = ⟨ κ (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
-      u-aux i (lift ww) = ⟨ κ (i ≡ zero) ⟩× ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι zero
-      u-aux i (lift Ȧ) =  ⟨ κ (i ≡ zero) ⟩× κ (Fin (suc n))
+      u-aux i (lift σσ) = σ (κ (i ≡ zero)) λ _ → ι zero λ a → π a λ _ → ι zero
+      u-aux i (lift ππ) = σ (κ (i ≡ zero)) λ _ → ι zero λ a → π a λ _ → ι zero
+      u-aux i (lift ww) = σ (κ (i ≡ zero)) λ _ → ι zero λ a → π a λ _ → ι zero
+      u-aux i (lift Ȧ) =  ? --⟨ κ (i ≡ zero) ⟩× κ (Fin (suc n))
       u-aux i (lift Ḃ) = κ (A i)
-      u-aux i (lift ap₀) = ⟨ κ (i ≡ zero) ⟩× ⟨κ j ∶ Fin n ⟩× ⟨ f ∶ ι (suc j) ⟩×
-        ⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι (inj j)
-      u-aux i (lift ap₁) = ⟨κ j ∶ Fin n ⟩× ⟨ κ (i ≡ inj j) ⟩× ⟨ f ∶ ι (suc j) ⟩×
-        ⟨ a ∶ ι zero ⟩× ⟨ b ∶ ⟨ a ⟩⇒ ι (inj j) ⟩× κ (π₀ (f (a , λ x → ↓ (b x))))
-      u-aux i (lift abs)
+      u-aux i (lift ap₀) = ? --⟨ κ (i ≡ zero) ⟩× ⟨κ j ∶ Fin n ⟩× ⟨ f ∶ ι (suc j) ⟩×
+        --⟨ a ∶ ι zero ⟩× ⟨ a ⟩⇒ ι (inj j)
+      u-aux i (lift ap₁) = ? --⟨κ j ∶ Fin n ⟩× ⟨ κ (i ≡ inj j) ⟩× ⟨ f ∶ ι (suc j) ⟩×
+        ? --⟨ a ∶ ι zero ⟩× ⟨ b ∶ ⟨ a ⟩⇒ ι (inj j) ⟩× κ (π₀ (f (a , λ x → ↓ (b x))))
 
       T i (lift nn , lift refl) = ℕ
       T i (lift σσ , lift refl , a , b) = Σ a b
@@ -61,12 +60,10 @@ module _ {n : ℕ} {A : Fin (suc n) → Set} {B : (i : Fin (suc n)) → A i → 
       T i (lift Ȧ , lift refl , lift j) = A j
       T i (lift Ḃ , lift a) = B i a
       T i (lift ap₀ , lift refl , lift j , f , a , b) = π₀ (f (a , λ x → ↓ (b x)))
-      T i (lift ap₁ , lift j , lift refl , f , a , b , lift x) =
-        ↑ (π₁ (f (a , λ x → ↓ (b x))) x)
-      T i (lift abs , _)
+      T i (lift ap₁ , lift j , lift refl , f , a , b , lift x) = ↑ (π₁ (f (a , λ x → ↓ (b x))) x)
 
-  U : Fin (suc n) → Set
-  U = μ code
+  U : {s : Size} → Fin (suc n) → Set
+  U {s} = μ-C code s
 
-  T : (i : Fin (suc n)) → U i → O i
-  T = dec code
+  T : {s : Size} → (i : Fin (suc n)) → U {s} i → O i
+  T = μ-d code
