@@ -37,6 +37,7 @@ record IIR (X Y : Fam Set₁) : Set₁ where
     emit : (y : Code Y) → info (node y) → decode Y y
 open IIR public
 
+
 ⟦_⟧ᵢ : ∀ {X} → (p : poly X) → 𝔽 X → Fam (info p)
 
 ⟦ ι i ⟧ᵢ F = F i
@@ -70,29 +71,28 @@ open IIR public
 ------------------------------------------------------------------------
 -- Initial algebra and Code interpretation
 
-module sized where
-  μ : ∀ {X} → IIR X X → Size → 𝔽 X
+μ : ∀ {X} → IIR X X → {_ : Size} → 𝔽 X
 
-  {-# NO_POSITIVITY_CHECK #-}
-  data μ-C {X} (α : IIR X X) (s : Size) (i : Code X) : Set
+{-# NO_POSITIVITY_CHECK #-}
+data μ-C {X} (α : IIR X X) {s : Size} (i : Code X) : Set
 
-  μ-d : ∀ {X} → (α : IIR X X) → {s : Size} → (i : Code X) → μ-C α s i → decode X i
+μ-d : ∀ {X} → (α : IIR X X) → {s : Size} → (i : Code X) → μ-C α {s} i → decode X i
 
-  Code (μ α s i) = μ-C α s i
-  decode (μ α s i) = μ-d α i
+Code (μ α {s} i) = μ-C α {s} i
+decode (μ α i) = μ-d α i
 
-  data μ-C α s i where
-    ⟨_⟩ : ∀ {t : Size< s} → Code (⟦ α ⟧ (μ α t) i) → μ-C α s i
+data μ-C α {s} i where
+  ⟨_⟩ : ∀ {t : Size< s} → Code (⟦ α ⟧ (μ α {t}) i) → μ-C α i
 
-  μ-d α i ⟨ c ⟩ = emit α i (decode (⟦ node α i ⟧ᵢ (μ α _)) c)
+μ-d α i ⟨ c ⟩ = emit α i (decode (⟦ node α i ⟧ᵢ (μ α)) c)
 
-
-  -- catamorphism for μ α
-  fold : ∀ {X s} (α : IIR X X) {F : 𝔽 X} → (⟦ α ⟧ F ⇒ F) → μ α s ⇒ F
-  π₀ (fold α φ i) ⟨ x ⟩ = π₀ (φ i) (π₀ (⟦ α ⟧[ fold α φ ] i) x)
-  π₁ (fold α φ i) ⟨ x ⟩ = trans (π₁ (φ i) (π₀ rec x)) (π₁ rec x)
-    where rec : _
-          rec = ⟦ α ⟧[ fold α φ ] i
+-- catamorphism for μ α
+fold : ∀ {X s} (α : IIR X X) {F : 𝔽 X} → (⟦ α ⟧ F ⇒ F) → μ α {s} ⇒ F
+π₀ (fold α φ i) ⟨ x ⟩ = π₀ (φ i) (π₀ (⟦ α ⟧[ fold α φ ] i) x)
+π₁ (fold α φ i) ⟨ x ⟩ = trans (π₁ (φ i) (π₀ mfold x)) (π₁ mfold x)
+  where
+    mfold : _
+    mfold = ⟦ α ⟧[ fold α φ ] i
 
 
 ------------------------------------------------------------------------

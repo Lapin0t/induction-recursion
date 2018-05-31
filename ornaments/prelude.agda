@@ -1,7 +1,7 @@
 module ornaments.prelude where
 
 open import Agda.Primitive public
-open import Agda.Builtin.Size public
+open import Agda.Builtin.Size hiding (↑_) public
 
 
 -- Datatypes
