@@ -1,0 +1,58 @@
+%%%%%%%%%%%
+%%% Prelude
+
+%format Set = "\DATA{Set}"
+%format Set₁ = "\DATA{Set₁}"
+%format Set₂ = "\DATA{Set₂}"
+%format ⊔ = "\FCT{⊔}"
+%format _⊔_ = _ "\!" ⊔ "\!" _
+%format Size = "\DATA{Size}"
+%format Size< = "\DATA{Size<}"
+
+%format Σ = "\DATA{Σ}"
+%format , = "\CON{,}"
+%format _,_ = _ "\!" , "\!" _
+%format π₀ = "\PRO{π₀}"
+%format π₁ = "\PRO{π₁}"
+%format × = "\DATA{\mathbin{×}}"
+%format _×_ = _ "\!" × "\!" _
+
+%format ⊥ = "\DATA{⊥}"
+%format ⊤ = "\DATA{⊤}"
+%format * = "\CON{*}"
+
+%format ≡ = "\DATA{\mathrel{≡}}"
+%format _≡_ = _ "\!" ≡ "\!" _
+%format refl = "\CON{refl}"
+%format subst = "\FCT{subst}"
+%format subst-elim = "\FCT{subst-elim}"
+%format cong = "\FCT{cong}"
+%format trans = "\FCT{trans}"
+%format sym = "\FCT{sym}"
+
+%format subst₂ = "\FCT{subst₂}"
+%format cong₂ = "\FCT{cong₂}"
+%format cong-Σ = "\FCT{cong-Σ}"
+
+%format funext = "\FCT{funext}"
+%format ∘ = "\FCT{\mathbin{∘}}"
+%format _∘_ = _ "\!" ∘ "\!" _
+%format app = "\FCT{app}"
+%format ⟶̇ = "\FCT{\mathbin{\dot{⟶}}}"  # FIXME
+%format _⟶̇_ = _ "\!" ⟶̇ "\!" _          # FIXME
+
+%%%%%%%%%
+%%% Fam
+
+%format Fam = "\DATA{Fam}"
+%format Code = "\PRO{Code}"
+%format decode = "\PRO{decode}"
+
+%format >> = "\FCT{\mathbin{>\!>}}"
+%format _>>_ = _ "\!" >> "\!" _
+
+%format ⟶̃ = "\DATA{\mathrel{\tilde{⟶}}}"
+%format _⟶̃_ = _ "\!" ⟶̃ "\!" _
+%format ∘̃ = "\FCT{\mathbin{\tilde{∘}}}"
+%format _∘̃_ = _ "\!" ∘̃ "\!" _
+

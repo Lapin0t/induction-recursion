@@ -1,6 +1,6 @@
 PAPER=ornaments
 
-FILES:=ornaments/prelude.lagda
+FILES:=ornaments/prelude.lagda ornaments/fam.lagda
 HIDDEN:=$(patsubst %.lagda,latex/%.hide.lagda,$(FILES))
 FINAL:=$(patsubst %.lagda,latex/%.tex,$(FILES))
 

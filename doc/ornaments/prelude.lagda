@@ -1,12 +1,5 @@
 %include agda.fmt
-
-%format Set = "\DATA{Set}"
-%format Set₁ = "\DATA{Set₁}"
-%format Set₂ = "\DATA{Set₂}"
-%format ⊔ = "\FCT{⊔}"
-%format _⊔_ = _ ⊔ _
-%format Size = "\DATA{Size}"
-%format Size< = "\DATA{Size<}"
+%include ornaments.fmt
 
 \begin{code}
 module ornaments.prelude where
@@ -32,13 +25,6 @@ record Lift {-<-}{α β}{->-} (A : Set α) : Set (α ⊔ β) where
 open Lift public
 \end{code}
 
-%format Σ = "\DATA{Σ}"
-%format , = "\CON{,}"
-%format _,_ = _ , _
-%format π₀ = "\FCT{π₀}"
-%format π₁ = "\FCT{π₁}"
-%format × = "\DATA{\mathbin{×}}"
-
 %<*sigma>
 \begin{code}
 record Σ {-<-}{α β}{->-} (A : Set α) (B : A → Set β) : Set (α ⊔ β) where
@@ -58,9 +44,6 @@ A × B = Σ A λ _ → B
 \end{code}
 
 
-%format ⊥ = "\DATA{⊥}"
-%format ⊤ = "\DATA{⊤}"
-%format * = "\CON{*}"
 %<*prop>
 \begin{code}
 data ⊥ : Set where
@@ -68,14 +51,6 @@ data ⊤ : Set where * : ⊤
 \end{code}
 %</prop>
 
-
-%format ≡ = "\DATA{\mathrel{≡}}"
-%format refl = "\CON{refl}"
-%format subst = "\FCT{subst}"
-%format subst-elim = "\FCT{subst-elim}"
-%format cong = "\FCT{cong}"
-%format trans = "\FCT{trans}"
-%format sym = "\FCT{sym}"
 
 %<*equality>
 \begin{code}
@@ -101,6 +76,8 @@ sym refl = refl
 %</equality>
 
 \begin{code}
+infix 4 _≡_
+
 subst₂ : ∀ {α β γ} {A : Set α} {B : A → Set β} (P : (a : A) → B a → Set γ)
            {x₀ x₁ y₀ y₁} → x₀ ≡ x₁ → y₀ ≡ y₁ → P x₀ y₀ → P x₁ y₁
 subst₂ P refl refl p = p
@@ -110,23 +87,26 @@ cong₂ f refl refl = refl
 
 cong-Σ : ∀ {α β} {A : Set α} {B : A → Set β} {p₀ p₁ : Σ A B} → π₀ p₀ ≡ π₀ p₁ → π₁ p₀ ≡ π₁ p₁ → p₀ ≡ p₁
 cong-Σ refl refl = refl
+\end{code}
 
-infix 4 _≡_
+%<*fcts>
+\begin{code}
 postulate
-  funext : ∀ {α β} {A : Set α} {B : A → Set β} {f g : (x : A) → B x} → ((x : A) → f x ≡ g x) → f ≡ g
+  funext : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} {f g : (x : A) → B x} → ((x : A) → f x ≡ g x) → f ≡ g
 
-
--- Functions
-
-_∘_ : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : {x : A} → B x → Set γ} →
+_∘_ : {-<-}∀ {α β γ} {A : Set α} {B : A → Set β} {C : {x : A} → B x → Set γ} →{->-}
         (∀ {x} → (y : B x) → C y) → (g : (x : A) → B x) → (x : A) → C (g x)
 f ∘ g = λ x → f (g x)
 
-app : ∀ {α β} {A : Set α} {B : A → Set β} (x : A) (f : (a : A) → B a) → B x
+app : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (x : A) (f : (a : A) → B a) → B x
 app x f = f x
 
+_⟶̇_ : {-<-}∀ {α β} {I : Set} →{->-} (I → Set α) → (I → Set β) → Set (α ⊔ β)
+_⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
+\end{code}
+%</fcts>
 
+
+\begin{code}
 infixr 5 _⟶̇_
-_⟶̇_ : ∀ {α β} {I : Set} → (I → Set α) → (I → Set β) → Set (α ⊔ β)
-_⟶̇_ {I = I} X Y = (i : I) → X i → Y i
 \end{code}
