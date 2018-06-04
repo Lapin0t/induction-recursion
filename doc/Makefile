@@ -7,11 +7,11 @@ all: latex/ornaments.pdf
 latex/ornaments.pdf: latex/agda.sty latex/agda.fmt $(OUT)
 	cd latex; latexmk -pdf -xelatex -use-make ornaments.tex
 
-latex/agda.sty latex/agda.fmt: agda.sty agda.fmt
+latex/agda.sty latex/agda.fmt latex/ornaments.fmt: latex/%: %
 	@mkdir -p $(dir $@)
 	cp $< $@
 
-latex/%.tex: latex/%.hide.lagda latex/agda.fmt
+latex/%.tex: latex/%.hide.lagda latex/agda.fmt latex/ornaments.fmt
 	lhs2TeX --agda --poly $< > $@
 
 latex/%.hide.lagda: %.lagda hide
