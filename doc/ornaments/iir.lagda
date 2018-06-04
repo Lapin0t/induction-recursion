@@ -212,22 +212,36 @@ module composition where
 
 \begin{code}
 module induction where
-  all : ∀ {X} (γ : poly X) {D : 𝔽 X} (P : {i : Code X} → Code (D i) → Set) →
-        Code (⟦ γ ⟧ᵢ D) → Set
-  all (ι i) P x = P x
-  all (κ A) P x = ⊤
-  all (σ A B) P (a , b) = Σ (all A P a) λ _ → all (B (decode (⟦ A ⟧ᵢ _) a)) P b
-  all (π A B) P f = (a : A) → all (B a) P (f a)
-
-  everywhere : ∀ {X} (γ : poly X) {D : 𝔽 X} (P : {i : Code X} → Code (D i) → Set) →
-               (∀ {i} (x : Code (D i)) → P x) → (xs : Code (⟦ γ ⟧ᵢ D)) → all γ P xs
-  everywhere (ι i) P p x = p x
-  everywhere (κ A) P _ _ = *
-  everywhere (σ A B) P p (a , b) = everywhere A P p a , everywhere (B (decode (⟦ A ⟧ᵢ _) a)) P p b
-  everywhere (π A B) P p f = λ a → everywhere (B a) P p (f a)
-
-  induction : ∀ {X} (γ : IIR X X) (P : ∀ {s i} → Code (μ γ {s} i) → Set) →
-              (∀ {s} {t : Size< s} {i} (xs : Code (⟦ γ ⟧ (μ γ {t}) i)) → all (node γ i) P xs → P (⟨_⟩ {s = s} xs)) →
-              ∀ {s i} (x : Code (μ γ {s} i)) → P x
-  induction γ P p ⟨ xs ⟩ = p xs (everywhere (node γ _) P (induction γ P p) xs)
 \end{code}
+
+%<*ind-all>
+\begin{code}
+  all :  {-<-} ∀ {X} {->-} (γ : poly X) {-<-}{D : 𝔽 X}{->-} → (P : {-<-}{i : Code X} →{->-} Code (D i) → Set) →
+         Code (⟦ γ ⟧ᵢ D) → Set
+  all (ι i)    P x        = P x
+  all (κ A)    P x        = ⊤
+  all (σ A B)  P (a , b)  = Σ (all A P a) λ _ → all (B (decode (⟦ A ⟧ᵢ _) a)) P b
+  all (π A B)  P f        = (a : A) → all (B a) P (f a)
+\end{code}
+%</ind-all>
+
+%<*ind-everywhere>
+\begin{code}
+  every :  {-<-}∀ {X} {->-}(γ : poly X) {-<-}{D : 𝔽 X}{->-} → (P : {-<-}{i : Code X} →{->-} Code (D i) → Set) →
+           ({-<-}∀ {i}{->-} (x : Code (D i)) → P x) → (xs : Code (⟦ γ ⟧ᵢ D)) → all γ P xs
+  every (ι i)    _ p x        = p x
+  every (κ A)    P _ _        = *
+  every (σ A B)  P p (a , b)  = every A P p a , every (B (decode (⟦ A ⟧ᵢ _) a)) P p b
+  every (π A B)  P p f        = λ a → every (B a) P p (f a)
+\end{code}
+%</ind-everywhere>
+
+
+%<*induction>
+\begin{code}
+  induction :  {-<-}∀ {X} {->-}(γ : IIR X X) (P : {-<-}∀ {s i} →{->-} Code (μ γ {-<-}{s}{->-} i) → Set) →
+               ({-<-}∀ {s} {t : Size< s} {i}{->-} (xs : Code (⟦ γ ⟧ (μ γ {-<-}{t}{->-}) i)) → all (node γ i) P xs → P (⟨_⟩ {-<-}{s = s}{->-} xs)) →
+               {-<-}∀ {s i} {->-}(x : Code (μ γ {-<-}{s}{->-} i)) → P x
+  induction γ P p ⟨ xs ⟩ = p xs (every (node γ _) P (induction γ P p) xs)
+\end{code}
+%</induction>

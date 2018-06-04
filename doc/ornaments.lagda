@@ -55,4 +55,10 @@
 \ExecuteMetaData[ornaments/iir.tex]{iir-subst}
 \ExecuteMetaData[ornaments/iir.tex]{iir-comp}
 
+\subsection{Induction Scheme}
+\ExecuteMetaData[ornaments/iir.tex]{ind-all}
+\ExecuteMetaData[ornaments/iir.tex]{ind-everywhere}
+\ExecuteMetaData[ornaments/iir.tex]{induction}
+
+
 \end{document}

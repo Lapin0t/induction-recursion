@@ -112,3 +112,7 @@
 %format _/_ = _ / _
 %format ⊙' = "\FCT{\mathbin{⊙}}"
 %format _⊙'_ = _ ⊙' _
+
+%format all = "\DATA{all}"
+%format everywhere = "\FCT{everywhere}"
+%format induction = "\FCT{induction}"
