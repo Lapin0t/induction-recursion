@@ -216,8 +216,7 @@ module induction where
 
 %<*ind-all>
 \begin{code}
-  all :  {-<-} ∀ {X} {->-} (γ : poly X) {-<-}{D : 𝔽 X}{->-} → (P : {-<-}{i : Code X} →{->-} Code (D i) → Set) →
-         Code (⟦ γ ⟧ᵢ D) → Set
+  all :  {-<-} ∀ {X} {->-} (γ : poly X) {-<-}{D : 𝔽 X}{->-} → (P : {-<-}{i : Code X} →{->-} Code (D i) → Set) → Code (⟦ γ ⟧ᵢ D) → Set
   all (ι i)    P x        = P x
   all (κ A)    P x        = ⊤
   all (σ A B)  P (a , b)  = Σ (all A P a) λ _ → all (B (decode (⟦ A ⟧ᵢ _) a)) P b
