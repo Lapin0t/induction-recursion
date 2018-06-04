@@ -9,10 +9,6 @@ open import Agda.Builtin.Size hiding (↑_) public
 \end{code}
 
 
-%format Lift = "\DATA{Lift}"
-%format lift = "\CON{lift}"
-%format lower = "\FCT{lower}"
-
 %<*lift>
 \begin{code}
 record Lift {-<-}{α β}{->-} (A : Set α) : Set (α ⊔ β) where
@@ -100,6 +96,9 @@ f ∘ g = λ x → f (g x)
 
 app : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (x : A) (f : (a : A) → B a) → B x
 app x f = f x
+
+S : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : (a : A) → B a → Set γ} (x : (a : A) → (b : B a) → C a b) (y : (a : A) → B a) → (a : A) → C a (y a)
+S x y z = x z (y z)
 
 _⟶̇_ : {-<-}∀ {α β} {I : Set} →{->-} (I → Set α) → (I → Set β) → Set (α ⊔ β)
 _⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
