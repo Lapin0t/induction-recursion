@@ -1,45 +1,54 @@
 %%%%%%%%%%%
 %%% Prelude
 
+%format lzero = "\CON{lzero}"
+%format lsuc = "\CON{lsuc}"
+%format ⊔ = "\FCT{⊔}"
+%format _⊔_ = _ "\!" ⊔ "\!" _
+
+%format Lift = "\DATA{Lift}"
+%format lift = "\CON{lift}"
+%format lower = "\FCT{lower}"
+
+
 %format Set = "\DATA{Set}"
 %format Set₁ = "\DATA{Set₁}"
 %format Set₂ = "\DATA{Set₂}"
-%format ⊔ = "\FCT{⊔}"
-%format _⊔_ = _ "\!" ⊔ "\!" _
+
 %format Size = "\DATA{Size}"
 %format Size< = "\DATA{Size<}"
 
 %format Σ = "\DATA{Σ}"
 %format , = "\CON{,}"
-%format _,_ = _ "\!" , "\!" _
+%format _,_ = _ , _
 %format π₀ = "\PRO{π₀}"
 %format π₁ = "\PRO{π₁}"
 %format × = "\DATA{\mathbin{×}}"
-%format _×_ = _ "\!" × "\!" _
+%format _×_ = _ × _
 
 %format ⊥ = "\DATA{⊥}"
 %format ⊤ = "\DATA{⊤}"
 %format * = "\CON{*}"
 
 %format ≡ = "\DATA{\mathrel{≡}}"
-%format _≡_ = _ "\!" ≡ "\!" _
+%format _≡_ = _ ≡ _
 %format refl = "\CON{refl}"
 %format subst = "\FCT{subst}"
-%format subst-elim = "\FCT{subst-elim}"
+%format subst-elim = "\FCT{subst\!\!-\!\!elim}"
 %format cong = "\FCT{cong}"
 %format trans = "\FCT{trans}"
 %format sym = "\FCT{sym}"
 
 %format subst₂ = "\FCT{subst₂}"
 %format cong₂ = "\FCT{cong₂}"
-%format cong-Σ = "\FCT{cong-Σ}"
+%format cong-Σ = "\FCT{cong\!\!-\!\!Σ}"
 
 %format funext = "\FCT{funext}"
 %format ∘ = "\FCT{\mathbin{∘}}"
-%format _∘_ = _ "\!" ∘ "\!" _
+%format _∘_ = _ ∘ _
 %format app = "\FCT{app}"
 %format ⟶̇ = "\FCT{\mathbin{\dot{⟶}}}"  # FIXME
-%format _⟶̇_ = _ "\!" ⟶̇ "\!" _          # FIXME
+%format _⟶̇_ = _ ⟶̇ _          # FIXME
 
 %%%%%%%%%
 %%% Fam
@@ -49,10 +58,57 @@
 %format decode = "\PRO{decode}"
 
 %format >> = "\FCT{\mathbin{>\!>}}"
-%format _>>_ = _ "\!" >> "\!" _
+%format _>>_ = _ >> _
 
 %format ⟶̃ = "\DATA{\mathrel{\tilde{⟶}}}"
-%format _⟶̃_ = _ "\!" ⟶̃ "\!" _
+%format _⟶̃_ = _ ⟶̃ _
 %format ∘̃ = "\FCT{\mathbin{\tilde{∘}}}"
-%format _∘̃_ = _ "\!" ∘̃ "\!" _
+%format _∘̃_ = _ ∘̃ _
 
+%format 𝔽 = "\DATA{\mathbb{F}}"
+%format ⇒ = "\DATA{\mathrel{⇒}}"
+%format _⇒_ = _ ⇒ _
+
+
+%%%%%%%%%
+%%% IIR
+
+%format poly = "\DATA{poly}"
+%format info = "\DATA{info}"
+%format ι = "\CON{ι}"
+%format κ = "\CON{κ}"
+%format σ = "\CON{σ}"
+%format π = "\CON{π}"
+
+%format IIR = "\DATA{IIR}"
+%format node = "\PRO{node}"
+%format emit = "\PRO{emit}"
+
+%format ⟦ = "\FCT{⟦}"
+%format ⟧ᵢ = "\FCT{⟧ᵢ}"
+%format ⟦_⟧ᵢ = ⟦ _ ⟧ᵢ
+%format ⟧ = "\FCT{⟧}"
+%format ⟦_⟧ = ⟦ _ ⟧
+%format ⟧[ = "\FCT{⟧[}"
+%format ]ᵢ = "\FCT{]ᵢ}"
+%format ⟦_⟧[_]ᵢ = ⟦ _ ⟧[ _ ]ᵢ
+%format ] = "\FCT{]}"
+%format ⟦_⟧[_] = ⟦ _ ⟧[ _ ]
+
+%format μ = "\FCT{μ}"
+%format μ-C = "\DATA{μ\!\!-\!\!C}"
+%format μ-d = "\FCT{μ\!\!-\!\!d}"
+%format ⟨ = "\CON{⟨}"
+%format ⟩ = "\CON{⟩}"
+%format ⟨_⟩ = ⟨ _ ⟩
+
+%format IIR* = "\DATA{IIR^*}"
+%format eta = "\FCT{η}"
+%format mu = "\FCT{μ}"
+%format pow = "\FCT{pow}"
+%format >>= = "\FCT{>\!>\!=}"
+%format _>>=_ = _ >>= _
+%format / = "\FCT{\mathbin{/}}"
+%format _/_ = _ / _
+%format ⊙' = "\FCT{\mathbin{⊙}}"
+%format _⊙'_ = _ ⊙' _
