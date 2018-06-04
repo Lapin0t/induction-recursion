@@ -1,4 +1,6 @@
-FILES:=ornaments.lagda ornaments/prelude.lagda ornaments/fam.lagda ornaments/iir.lagda
+FILES:=ornaments.lagda ornaments/prelude.lagda ornaments/fam.lagda \
+	ornaments/iir.lagda ornaments/orn.lagda
+
 OUT:=$(patsubst %.lagda,latex/%.tex,$(FILES))
 AGDA_OUT:=$(patsubst %.lagda,agda/%.tex,$(FILES))
 
@@ -6,6 +8,9 @@ all: latex/ornaments.pdf
 
 latex/ornaments.pdf: latex/agda.sty latex/agda.fmt $(OUT)
 	cd latex; latexmk -pdf -xelatex -use-make ornaments.tex
+
+agda/ornaments.pdf: agda/agda.sty $(AGDA_OUT)
+	cd agda; latexmk -pdf -use-make -xelatex ornaments.tex
 
 latex/agda.sty latex/agda.fmt latex/ornaments.fmt: latex/%: %
 	@mkdir -p $(dir $@)
@@ -28,10 +33,6 @@ agda/%.tex: %.lagda
 agda/agda.sty: agda_agda.sty
 	@mkdir -p $(dir $@)
 	cp $< $@
-
-agda/ornaments.pdf: agda/agda.sty $(AGDA_OUT)
-	cd agda; latexmk -pdf -use-make -xelatex ornaments.tex
-
 
 clean:
 	rm -rf latex

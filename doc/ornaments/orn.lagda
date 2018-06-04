@@ -1,3 +1,7 @@
+%include agda.fmt
+%include ornaments.fmt
+
+\begin{code}
 module ornaments.orn where
 
 open import ornaments.prelude
@@ -101,3 +105,4 @@ module catholic where
   to-pow : ∀ {X Y} → (E : Code Y → Code X) → (e : (y : Code Y) → decode Y y → decode X (E y)) → pow X
   π₀ (to-pow E e) x = inv E x
   π₁ (to-pow E e) (x , ok y) a = inv (e y) a
+\end{code}
