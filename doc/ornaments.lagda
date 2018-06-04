@@ -60,5 +60,24 @@
 \ExecuteMetaData[ornaments/iir.tex]{ind-everywhere}
 \ExecuteMetaData[ornaments/iir.tex]{induction}
 
+\section{Ornaments}
+
+\ExecuteMetaData[ornaments/orn.tex]{pow}
+\ExecuteMetaData[ornaments/orn.tex]{catholic}
+
+\subsection{Codes}
+\ExecuteMetaData[ornaments/orn.tex]{code-def}
+\ExecuteMetaData[ornaments/orn.tex]{code-impl}
+\ExecuteMetaData[ornaments/orn.tex]{info+-impl}
+\ExecuteMetaData[ornaments/orn.tex]{infodown-impl}
+\ExecuteMetaData[ornaments/orn.tex]{orn}
+
+\subsection{Interpretation}
+\ExecuteMetaData[ornaments/orn.tex]{p-interp}
+\ExecuteMetaData[ornaments/orn.tex]{interp}
+
+\subsection{Forgetful map}
+\ExecuteMetaData[ornaments/orn.tex]{forget}
+
 
 \end{document}

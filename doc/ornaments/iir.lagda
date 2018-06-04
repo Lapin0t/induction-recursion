@@ -178,9 +178,12 @@ module composition where
 \end{code}
 %</iir-mu>
 
+%format pow = "\FCT{pow}"
+
 %<*iir-pow>
 \begin{code}
-  pow : {-<-}∀ {X}{->-} (A : Set) {-<-}{B : A → Set₁}{->-} → ((a : A) → IIR* X (B a)) → IIR* X ((a : A) → B a)
+  pow : {-<-}∀ {X}{->-} (A : Set) {-<-}{B : A → Set₁}{->-} → ((a : A) → IIR* X (B a)) →
+    IIR* X ((a : A) → B a)
   pow A f = π A (π₀ ∘ f) , λ z a → π₁ (f a) (z a)
 \end{code}
 %</iir-pow>
@@ -195,18 +198,18 @@ module composition where
 %<*iir-subst>
 \begin{code}
   _/_ : {-<-}∀ {X Y} →{->-} (p : poly Y) → IIR X Y → IIR* X (info p)
-  ι i / R = (node R i , emit R i)
-  κ A / R = (κ A , λ a → a)
-  σ A B / R = (A / R) >>= (λ a → B a / R)
-  π A B / R = pow A (λ a → B a / R)
+  ι i    / R = (node R i , emit R i)
+  κ A    / R = (κ A , λ a → a)
+  σ A B  / R = (A / R) >>= (λ a → B a / R)
+  π A B  / R = pow A (λ a → B a / R)
 \end{code}
 %</iir-subst>
 
 %<*iir-comp>
 \begin{code}
   _⊙'_ : {-<-}∀ {X Y Z} →{->-} IIR Y Z → IIR X Y → IIR X Z
-  node (γ ⊙' R) j = π₀ (node γ j / R)
-  emit (γ ⊙' R) j = emit γ j ∘ π₁ (node γ j / R)
+  node  (γ ⊙' R) j = π₀ (node γ j / R)
+  emit  (γ ⊙' R) j = emit γ j ∘ π₁ (node γ j / R)
 \end{code}
 %</iir-comp>
 

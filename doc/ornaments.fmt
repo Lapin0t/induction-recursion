@@ -8,7 +8,7 @@
 
 %format Lift = "\DATA{Lift}"
 %format lift = "\CON{lift}"
-%format lower = "\FCT{lower}"
+%format lower = "\PRO{lower}"
 
 
 %format Set = "\DATA{Set}"
@@ -40,6 +40,7 @@
 %format sym = "\FCT{sym}"
 
 %format subst₂ = "\FCT{subst₂}"
+%format subst-≡ = "\FCT{subst\!\!-\!\!≡}"
 %format cong₂ = "\FCT{cong₂}"
 %format cong-Σ = "\FCT{cong\!\!-\!\!Σ}"
 
@@ -105,7 +106,6 @@
 %format IIR* = "\DATA{IIR^*}"
 %format eta = "\FCT{η}"
 %format mu = "\FCT{μ}"
-%format pow = "\FCT{pow}"
 %format >>= = "\FCT{>\!>\!=}"
 %format _>>=_ = _ >>= _
 %format / = "\FCT{\mathbin{/}}"
@@ -116,3 +116,35 @@
 %format all = "\DATA{all}"
 %format every = "\FCT{every}"
 %format induction = "\FCT{induction}"
+
+
+%%%%%%%%%
+%%% IIR
+
+%format pow = "\DATA{pow}"
+%format pow→fam = "\FCT{pow\!\!→\!\!fam}"
+%format poly-orn = "\DATA{poly\!\!-\!\!orn}"
+%format info+ = "\DATA{info\!+}"
+%format info↓ = "\FCT{info\!\!↓}"
+%format add = "\CON{add}"
+%format del = "\CON{del}"
+%format add-κ = "\CON{add\!\!-\!\!κ}"
+%format del-κ = "\CON{del\!\!-\!\!κ}"
+
+%format orn = "\DATA{orn}"
+%format node = "\PRO{node}"
+%format emit = "\PRO{emit}"
+
+%format ⌊ = "\FCT{⌊}"
+%format ⌋₀ = "\FCT{⌋₀}"
+%format ⌊_⌋₀ = ⌊ _ ⌋₀
+%format info↑ = "\FCT{info\!\!↑}"
+%format ⌋ = "\FCT{⌋}"
+
+%format forget = "\FCT{forget}"
+
+%format inv = "\DATA{inv}"
+%format ok = "\CON{ok}"
+%format to-pow = "\FCT{to\!\!-\!\!pow}"
+
+

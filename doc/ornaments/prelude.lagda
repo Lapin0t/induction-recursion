@@ -48,6 +48,10 @@ data ⊤ : Set where * : ⊤
 %</prop>
 
 
+\begin{code}
+infixr 5 _⟶̇_
+\end{code}
+
 %<*equality>
 \begin{code}
 data _≡_ {-<-}{α} {A : Set α}{->-} (x : A) : {-<-}{B : Set α} →{->-} B → Set α where
@@ -71,25 +75,12 @@ sym refl = refl
 \end{code}
 %</equality>
 
-\begin{code}
-infix 4 _≡_
-
-subst₂ : ∀ {α β γ} {A : Set α} {B : A → Set β} (P : (a : A) → B a → Set γ)
-           {x₀ x₁ y₀ y₁} → x₀ ≡ x₁ → y₀ ≡ y₁ → P x₀ y₀ → P x₁ y₁
-subst₂ P refl refl p = p
-
-cong₂ : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : {a : A} → B a → Set γ} (f : (a : A) → (b : B a) → C b) {x₀ x₁ y₀ y₁} → x₀ ≡ x₁ → y₀ ≡ y₁ → f x₀ y₀ ≡ f x₁ y₁
-cong₂ f refl refl = refl
-
-cong-Σ : ∀ {α β} {A : Set α} {B : A → Set β} {p₀ p₁ : Σ A B} → π₀ p₀ ≡ π₀ p₁ → π₁ p₀ ≡ π₁ p₁ → p₀ ≡ p₁
-cong-Σ refl refl = refl
-\end{code}
-
 %<*fcts>
 \begin{code}
 postulate
   funext : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} {f g : (x : A) → B x} → ((x : A) → f x ≡ g x) → f ≡ g
 
+infixl 20 _∘_
 _∘_ : {-<-}∀ {α β γ} {A : Set α} {B : A → Set β} {C : {x : A} → B x → Set γ} →{->-}
         (∀ {x} → (y : B x) → C y) → (g : (x : A) → B x) → (x : A) → C (g x)
 f ∘ g = λ x → f (g x)
@@ -105,7 +96,20 @@ _⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
 \end{code}
 %</fcts>
 
-
 \begin{code}
-infixr 5 _⟶̇_
+infix 4 _≡_
+
+subst₂ : ∀ {α β γ} {A : Set α} {B : A → Set β} (P : (a : A) → B a → Set γ)
+           {x₀ x₁ y₀ y₁} → x₀ ≡ x₁ → y₀ ≡ y₁ → P x₀ y₀ → P x₁ y₁
+subst₂ P refl refl p = p
+
+cong₂ : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : {a : A} → B a → Set γ} (f : (a : A) → (b : B a) → C b) {x₀ x₁ y₀ y₁} → x₀ ≡ x₁ → y₀ ≡ y₁ → f x₀ y₀ ≡ f x₁ y₁
+cong₂ f refl refl = refl
+
+cong-Σ : ∀ {α β} {A : Set α} {B : A → Set β} {p₀ p₁ : Σ A B} → π₀ p₀ ≡ π₀ p₁ → π₁ p₀ ≡ π₁ p₁ → p₀ ≡ p₁
+cong-Σ refl refl = refl
+
+subst-≡ : {A₀ A₁ : Set₁} → {B₀ B₁ : A₁ → Set₁} → (p : A₀ ≡ A₁) → (B₀ ≡ B₁) → B₀ ∘ subst (λ x → x) p ≡ B₁
+subst-≡ refl refl = refl
 \end{code}
+
