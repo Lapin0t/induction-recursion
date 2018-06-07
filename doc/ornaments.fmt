@@ -61,7 +61,7 @@
 %format >> = "\FCT{\mathbin{>\!>}}"
 %format _>>_ = _ >> _
 
-%format ⟶̃ = "\DATA{\mathrel{\tilde{⟶}}}"
+%format ⟶̃ = "\DATA{\mathrel{⇝}}"
 %format _⟶̃_ = _ ⟶̃ _
 %format ∘̃ = "\FCT{\mathbin{\tilde{∘}}}"
 %format _∘̃_ = _ ∘̃ _
@@ -102,6 +102,7 @@
 %format ⟨ = "\CON{⟨}"
 %format ⟩ = "\CON{⟩}"
 %format ⟨_⟩ = ⟨ _ ⟩
+%format fold = "\FCT{fold}"
 
 %format IIR* = "\DATA{IIR^*}"
 %format eta = "\FCT{η}"
