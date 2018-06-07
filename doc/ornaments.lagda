@@ -16,18 +16,31 @@
 
 \ExecuteMetaData[ornaments/prelude.tex]{lift}
 \ExecuteMetaData[ornaments/prelude.tex]{sigma}
+\ExecuteMetaData[ornaments/prelude.tex]{prod}
 \ExecuteMetaData[ornaments/prelude.tex]{prop}
 \ExecuteMetaData[ornaments/prelude.tex]{equality}
+\ExecuteMetaData[ornaments/prelude.tex]{funext}
 
 \section{Fam}
 
 \ExecuteMetaData[ornaments/fam.tex]{fam-def}
-\ExecuteMetaData[ornaments/fam.tex]{post-comp}
+
+Arrows of the $\DATA{Fam}\;\VAR{X}$ category.
 \ExecuteMetaData[ornaments/fam.tex]{morph}
 \ExecuteMetaData[ornaments/fam.tex]{fam-pi}
 \ExecuteMetaData[ornaments/fam.tex]{fam-sg}
+
+
+Functorial structure for $\DATA{Fam}$.
+\ExecuteMetaData[ornaments/fam.tex]{post-comp}
+
+Monadic structure for $\DATA{Fam}$.
 \ExecuteMetaData[ornaments/fam.tex]{monad}
-\ExecuteMetaData[ornaments/fam.tex]{ifam}
+
+Indexed families; our main category from now on:
+\vspace*{1ex}\\
+\parbox[t]{.5\textwidth}{\ExecuteMetaData[ornaments/fam.tex]{ifam}}
+\parbox[t]{.5\textwidth}{\ExecuteMetaData[ornaments/fam.tex]{ifam-arr}}
 
 \section{IIR}
 
@@ -37,8 +50,14 @@
 \subsection{Functor}
 \ExecuteMetaData[ornaments/iir.tex]{iir}
 \ExecuteMetaData[ornaments/iir.tex]{fam-info}
+
+Interpretation of an $\DATA{IIR}\;\VAR{X}\;\VAR{X}$ definition as a functor on
+$\DATA{𝔽}\;\VAR{X}$.
 \ExecuteMetaData[ornaments/iir.tex]{fct-obj}
+
 \ExecuteMetaData[ornaments/iir.tex]{fct-hom-i}
+
+Functorial action on arrows of $\DATA{𝔽}\;\VAR{X}$.
 \ExecuteMetaData[ornaments/iir.tex]{fct-hom}
 
 \subsection{Initial Algebra}

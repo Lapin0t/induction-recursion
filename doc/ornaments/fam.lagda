@@ -79,11 +79,15 @@ decode  (μ (C , d)) (c₀ , c₁)  = decode (d c₀) c₁
 \begin{code}
 𝔽 : Fam Set₁ → Set₁
 𝔽 (I , X) = (i : I) → Fam (X i)
+\end{code}
+%</ifam>
 
+%<*ifam-arr>
+\begin{code}
 _⇒_ : {-<-}{X : Fam Set₁} →{->-} 𝔽 X → 𝔽 X → Set₁
 F ⇒ G = (i : _) → F i ⟶̃ G i
 \end{code}
-%</ifam>
+%</ifam-arr>
 
 % TODO
 

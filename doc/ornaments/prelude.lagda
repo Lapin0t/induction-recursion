@@ -9,9 +9,11 @@ open import Agda.Builtin.Size hiding (↑_) public
 \end{code}
 
 
+%%% LIFTING %%%
+
 %<*lift>
 \begin{code}
-record Lift {-<-}{α β}{->-} (A : Set α) : Set (α ⊔ β) where
+record Lift (A : Set) : Set₁ where
   constructor lift
   field lower : A
 \end{code}
@@ -20,6 +22,9 @@ record Lift {-<-}{α β}{->-} (A : Set α) : Set (α ⊔ β) where
 \begin{code}
 open Lift public
 \end{code}
+
+
+%%% SIGMA %%%
 
 %<*sigma>
 \begin{code}
@@ -34,11 +39,17 @@ record Σ {-<-}{α β}{->-} (A : Set α) (B : A → Set β) : Set (α ⊔ β) wh
 \begin{code}
 infixr 4 _,_
 open Σ public
-
-_×_ : ∀ {α β} (A : Set α) (B : Set β) → Set (α ⊔ β)
-A × B = Σ A λ _ → B
 \end{code}
 
+%<*prod>
+\begin{code}
+_×_ : {-<-}∀ {α β} → {->-}Set α → Set β → Set _
+A × B = Σ A λ _ → B
+\end{code}
+%</prod>
+
+
+%%% SIGMA %%%
 
 %<*prop>
 \begin{code}
@@ -48,14 +59,50 @@ data ⊤ : Set where * : ⊤
 %</prop>
 
 
+%%% FUNCTION UTILITIES %%%
+
 \begin{code}
+infixl 20 _∘_
 infixr 5 _⟶̇_
+
+_∘_ : {-<-}∀ {α β γ} {A : Set α} {B : A → Set β} {C : {x : A} → B x → Set γ} →{->-} (∀ {x} → (y : B x) → C y) → (g : (x : A) → B x) → (x : A) → C (g x)
+f ∘ g = λ x → f (g x)
+
+app : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (x : A) (f : (a : A) → B a) → B x
+app x f = f x
+
+S : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : (a : A) → B a → Set γ} (x : (a : A) → (b : B a) → C a b) (y : (a : A) → B a) → (a : A) → C a (y a)
+S x y z = x z (y z)
+
+_⟶̇_ : {-<-}∀ {α β} {I : Set} →{->-} (I → Set α) → (I → Set β) → Set (α ⊔ β)
+_⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
 \end{code}
+
+
+%%% EQUALITY %%%
 
 %<*equality>
 \begin{code}
-data _≡_ {-<-}{α} {A : Set α}{->-} (x : A) : {-<-}{B : Set α} →{->-} B → Set α where
-  refl : x ≡ x
+data _≡_ {-<-}{α} {A : Set α}{->-} (x : A) : {-<-}{B : Set α} →{->-} B → Set α where refl : x ≡ x
+\end{code}
+%</equality>
+
+\begin{code}
+postulate
+\end{code}
+
+%<*funext>
+\begin{code}
+  funext : {-<-}∀ {α β} {A : Set α} {B : A → Set β} {f g : (x : A) → B x} → {->-}((x : A) → f x ≡ g x) → f ≡ g
+\end{code}
+%</funext>
+
+% utils for equality
+\begin{code}
+infix 4 _≡_
+
+_≡′_ : ∀ {α} {A : Set α} → A → A → Set α
+x ≡′ y = x ≡ y
 
 subst : {-<-}∀ {α β} {A : Set α}{->-} (P : A → Set β) {-<-}{x y} {->-}→ x ≡ y → P x → P y
 subst P refl p = p
@@ -72,33 +119,6 @@ trans refl refl = refl
 sym : {-<-}∀ {α} {A : Set α} {x y : A} →{->-} x ≡ y → y ≡ x
 sym refl = refl
 
-\end{code}
-%</equality>
-
-%<*fcts>
-\begin{code}
-postulate
-  funext : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} {f g : (x : A) → B x} → ((x : A) → f x ≡ g x) → f ≡ g
-
-infixl 20 _∘_
-_∘_ : {-<-}∀ {α β γ} {A : Set α} {B : A → Set β} {C : {x : A} → B x → Set γ} →{->-}
-        (∀ {x} → (y : B x) → C y) → (g : (x : A) → B x) → (x : A) → C (g x)
-f ∘ g = λ x → f (g x)
-
-app : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (x : A) (f : (a : A) → B a) → B x
-app x f = f x
-
-S : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : (a : A) → B a → Set γ} (x : (a : A) → (b : B a) → C a b) (y : (a : A) → B a) → (a : A) → C a (y a)
-S x y z = x z (y z)
-
-_⟶̇_ : {-<-}∀ {α β} {I : Set} →{->-} (I → Set α) → (I → Set β) → Set (α ⊔ β)
-_⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
-\end{code}
-%</fcts>
-
-\begin{code}
-infix 4 _≡_
-
 subst₂ : ∀ {α β γ} {A : Set α} {B : A → Set β} (P : (a : A) → B a → Set γ)
            {x₀ x₁ y₀ y₁} → x₀ ≡ x₁ → y₀ ≡ y₁ → P x₀ y₀ → P x₁ y₁
 subst₂ P refl refl p = p
@@ -112,4 +132,3 @@ cong-Σ refl refl = refl
 subst-≡ : {A₀ A₁ : Set₁} → {B₀ B₁ : A₁ → Set₁} → (p : A₀ ≡ A₁) → (B₀ ≡ B₁) → B₀ ∘ subst (λ x → x) p ≡ B₁
 subst-≡ refl refl = refl
 \end{code}
-

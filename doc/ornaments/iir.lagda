@@ -68,8 +68,8 @@ open IIR public
 \end{code}
 %</fct-obj>
 
-%format Bᵢ = "\VAR{Bᵢ}"
-%format aux-a = "\VAR{aux\!\!-\!\!a}"
+%format Bᵢ = "\FCT{Bᵢ}"
+%format aux-a = "\FCT{aux\!\!-\!\!a}"
 %format aux-b = "\FCT{aux\!\!-\!\!b}"
 %format aux = "\FCT{aux}"
 %<*fct-hom-i>
@@ -138,6 +138,7 @@ data μ-C α {-<-}{s}{->-} i where
 \end{code}
 %</init-alg-impl>
 
+%format mfold = "\FCT{mfold}"
 %<*cata>
 \begin{code}
 fold : {-<-}∀ {X s}{->-} (α : IIR X X) {-<-}{F : 𝔽 X}{->-} → ⟦ α ⟧ F ⇒ F → μ α {-<-}{s}{->-} ⇒ F
