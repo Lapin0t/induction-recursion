@@ -1,2 +1,6 @@
 *.agdai
 *.vim
+*.o
+*.hi
+doc/hide
+doc/latex
