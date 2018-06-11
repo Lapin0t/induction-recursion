@@ -35,7 +35,9 @@ Functorial structure for $\DATA{Fam}$.
 \ExecuteMetaData[ornaments/fam.tex]{post-comp}
 
 Monadic structure for $\DATA{Fam}$.
-\ExecuteMetaData[ornaments/fam.tex]{monad}
+\vspace*{1ex}\\
+\parbox[t]{.4\textwidth}{\ExecuteMetaData[ornaments/fam.tex]{monad-eta}}
+\parbox[t]{.5\textwidth}{\ExecuteMetaData[ornaments/fam.tex]{monad-mu}}
 
 Indexed families; our main category from now on:
 \vspace*{1ex}\\
@@ -45,19 +47,30 @@ Indexed families; our main category from now on:
 \section{IIR}
 
 \subsection{Codes}
+
 \ExecuteMetaData[ornaments/iir.tex]{codes}
+\ExecuteMetaData[ornaments/iir.tex]{iir}
 
 \subsection{Functor}
-\ExecuteMetaData[ornaments/iir.tex]{iir}
+
+Interpretation of $\DATA{poly}\;\VAR{X}$ as a functor.
+\vspace*{1ex}\\
 \ExecuteMetaData[ornaments/iir.tex]{fam-info}
 
-Interpretation of an $\DATA{IIR}\;\VAR{X}\;\VAR{X}$ definition as a functor on
-$\DATA{𝔽}\;\VAR{X}$.
+
+Interpretation of $\DATA{IIR}\;\VAR{X}\;\VAR{Y}$ definition as a functor
+from $\DATA{\mathbb{F}}\;\VAR{X}$ to $\DATA{\mathbb{F}}\;\VAR{Y}$.
+\vspace*{1ex}\\
 \ExecuteMetaData[ornaments/iir.tex]{fct-obj}
 
+Functorial action of $\FCT{⟦}\;\VAR{p}\;\FCT{⟧ᵢ}$ for
+$\VAR{p}\;\KW{\!:\!}\;\DATA{poly}\;\VAR{X}$.
+\vspace*{1ex}\\
 \ExecuteMetaData[ornaments/iir.tex]{fct-hom-i}
 
-Functorial action on arrows of $\DATA{𝔽}\;\VAR{X}$.
+Functorial action of $\FCT{⟦}\;\VAR{α}\;\FCT{⟧}$ for
+$\VAR{α}\;\KW{\!:\!}\;\DATA{IIR}\;\VAR{X}\;\VAR{Y}$.
+\vspace*{1ex}\\
 \ExecuteMetaData[ornaments/iir.tex]{fct-hom}
 
 \subsection{Initial Algebra}
@@ -92,6 +105,9 @@ Functorial action on arrows of $\DATA{𝔽}\;\VAR{X}$.
 \ExecuteMetaData[ornaments/orn.tex]{orn}
 
 \subsection{Interpretation}
+Interpretation of $\DATA{orn₀}$ to $\DATA{poly}$ is an arrow in a Fam
+$\DATA{Set₁}$ category between $(\DATA{orn₀}\;\CON{,}\;\DATA{info\!+})$ and
+$(\DATA{poly}\;\FCT{∘}\;\FCT{pow⁻¹}\;\CON{,}\;\DATA{info})$.
 \ExecuteMetaData[ornaments/orn.tex]{p-interp}
 \ExecuteMetaData[ornaments/orn.tex]{interp}
 

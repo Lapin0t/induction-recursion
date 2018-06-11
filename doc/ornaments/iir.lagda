@@ -6,7 +6,7 @@ module ornaments.iir where
 
 open import Agda.Builtin.TrustMe using (primTrustMe)
 open import ornaments.prelude
-open import ornaments.fam using (Fam; Code; decode; _,_; 𝔽; _>>_; _⇒_; _⟶̃_)
+open import ornaments.fam using (Fam; Code; decode; _,_; 𝔽; _>>_; _⇒_; _⟶̃_; _⊙_; ⊙-assoc)
 \end{code}
 
 
@@ -75,27 +75,22 @@ open IIR public
 %<*fct-hom-i>
 \begin{code}
 ⟦_⟧[_]ᵢ : {-<-}∀ {X}{->-} (p : poly X) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ p ⟧ᵢ F ⟶̃ ⟦ p ⟧ᵢ G
-⟦ ι i    ⟧[ φ ]ᵢ = φ i
-⟦ κ A    ⟧[ φ ]ᵢ = (λ a → a) , (λ _ → refl)
-⟦ σ A B  ⟧[ φ ]ᵢ =
-  (λ { (a , b) →
-         π₀ aux-a a ,
-         subst (Code ∘ Bᵢ) (sym (π₁ aux-a a)) (π₀ (aux-b a) b) }) ,
-  (λ { (a , b) → cong-Σ
-         (π₁ aux-a a)
-         (trans (cong₂ (decode ∘ Bᵢ) (π₁ aux-a a) (subst-elim _ (sym (π₁ aux-a a))))
-                (π₁ (aux-b a) b)) })
+⟦ ι i    ⟧[ φ ]ᵢ x = φ i x
+⟦ κ A    ⟧[ φ ]ᵢ a = a , refl
+⟦ σ A B  ⟧[ φ ]ᵢ (a , b) =
+  (π₀ aux-a , subst (Code ∘ Bᵢ) (sym (π₁ aux-a)) (π₀ aux-b)) ,
+  (cong-Σ (π₁ aux-a) (trans (cong₂ (decode ∘ Bᵢ) (π₁ aux-a) (subst-elim _ $ sym $ π₁ aux-a)) (π₁ aux-b)))
   where
     Bᵢ : (x : _) → Fam (info (B x))
     Bᵢ x = ⟦ B x ⟧ᵢ _
 
-    aux-a : ⟦ A ⟧ᵢ _ ⟶̃ ⟦ A ⟧ᵢ _
-    aux-a = ⟦ A ⟧[ φ ]ᵢ
+    aux-a : _
+    aux-a = ⟦ A ⟧[ φ ]ᵢ a
 
-    aux-b : (a : _) → ⟦ B _ ⟧ᵢ _ ⟶̃ ⟦ B _ ⟧ᵢ _
-    aux-b a = ⟦ B (decode (⟦ A ⟧ᵢ _) a) ⟧[ φ ]ᵢ
+    aux-b : _
+    aux-b = ⟦ B (decode (⟦ A ⟧ᵢ _) a) ⟧[ φ ]ᵢ b
 
-⟦ π A B  ⟧[ φ ]ᵢ = (S (π₀ ∘ aux) , funext ∘ (S (π₁ ∘ aux)))
+⟦ π A B  ⟧[ φ ]ᵢ f = (λ a → π₀ $ aux a (f a)) , funext λ a → π₁ $ aux a (f a)
   where aux : (a : A) → ⟦ B a ⟧ᵢ _ ⟶̃ ⟦ B a ⟧ᵢ _
         aux a = ⟦ B a ⟧[ φ ]ᵢ
 \end{code}
@@ -104,7 +99,7 @@ open IIR public
 %<*fct-hom>
 \begin{code}
 ⟦_⟧[_] : {-<-}∀ {X Y}{->-} (α : IIR X Y) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ α ⟧ F ⇒ ⟦ α ⟧ G
-⟦ α ⟧[ φ ] j = π₀ ⟦ node α j ⟧[ φ ]ᵢ , cong (emit α j) ∘ (π₁ ⟦ node α j ⟧[ φ ]ᵢ)
+⟦ α ⟧[ φ ] j i = π₀ $ ⟦ node α j ⟧[ φ ]ᵢ i , cong (emit α j) (π₁ $ ⟦ node α j ⟧[ φ ]ᵢ i)
 \end{code}
 %</fct-hom>
 
@@ -121,7 +116,7 @@ open IIR public
 {->-}
 data μ-C {-<-}{X}{->-} (α : IIR X X) {-<-}{s : Size}{->-} (i : Code X) : Set
 
-μ-d : {-<-}∀ {X} →{->-} (α : IIR X X) {-<-}→ {s : Size}{->-} → (i : Code X) → μ-C α {-<-}{s}{->-} i → decode X i
+μ-d : {-<-}∀ {X} →{->-} (α : IIR X X) → {-<-}{s : Size} → {->-}(i : Code X) → μ-C α {-<-}{s}{->-} i → decode X i
 
 Code    (μ α {-<-}{s}{->-} i)  = μ-C α {-<-}{s}{->-} i
 decode  (μ α i)  = μ-d α i
@@ -135,18 +130,38 @@ data μ-C α {-<-}{s}{->-} i where
   ⟨_⟩ : {-<-}∀ {t : Size< s} →{->-} Code (⟦ α ⟧ (μ α {-<-}{t}{->-}) i) → μ-C α i
 
 μ-d α i ⟨ c ⟩ = emit α i (decode (⟦ node α i ⟧ᵢ (μ α)) c)
+
+init : {-<-}∀ {X} {α : IIR X X} {s} {t : Size< s} → {->-}⟦ α ⟧ (μ α{-<-}{t}{->-}) ⇒ μ α{-<-}{s}{->-}
+init i x = ⟨ x ⟩ , refl
+
 \end{code}
 %</init-alg-impl>
 
-%format mfold = "\FCT{mfold}"
+%<*alg>
+\begin{code}
+record alg {-<-}{X : Fam Set₁} {->-}(α : IIR X X) : Set₁ where
+  constructor _,_
+  field
+    obj : 𝔽 X
+    mor : ⟦ α ⟧ obj ⇒ obj
+open alg public
+\end{code}
+%</alg>
+
+%format aux = "\FCT{aux}"
 %<*cata>
 \begin{code}
-fold : {-<-}∀ {X s}{->-} (α : IIR X X) {-<-}{F : 𝔽 X}{->-} → ⟦ α ⟧ F ⇒ F → μ α {-<-}{s}{->-} ⇒ F
-π₀ (fold α φ i) ⟨ x ⟩ = π₀ (φ i) (π₀ (⟦ α ⟧[ fold α φ ] i) x)
-π₁ (fold α φ i) ⟨ x ⟩ = trans (π₁ (φ i) (π₀ mfold x)) (π₁ mfold x)
-  where
-    mfold : _
-    mfold = ⟦ α ⟧[ fold α φ ] i
+fold : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s} {->-}→ μ α {-<-}{s}{->-} ⇒ obj φ
+mfold : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s} {->-}→ μ α {-<-}{s} {->-}⇒ ⟦ α ⟧ (obj φ)
+
+fold φ = mor φ ⊙ mfold φ
+mfold {-<-}{α = α} {->-}φ i ⟨ x ⟩ = ⟦ α ⟧[ fold φ ] i x
+
+mfold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ mfold φ {-<-}{s} {->-}⊙ init ≡ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
+mfold-comp φ = funext λ i → funext λ x → cong-Σ refl (uoip _ _)
+
+fold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ fold φ {-<-}{s} {->-}⊙ init ≡ mor φ ⊙ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
+fold-comp {-<-}{α = α} {->-}φ = trans (⊙-assoc{-<-}{f = init} {g = mfold φ} {h = mor φ}{->-}) (cong (λ x → mor φ ⊙ x) (mfold-comp φ))
 \end{code}
 %</cata>
 
@@ -208,9 +223,9 @@ module composition where
 
 %<*iir-comp>
 \begin{code}
-  _⊙'_ : {-<-}∀ {X Y Z} →{->-} IIR Y Z → IIR X Y → IIR X Z
-  node  (γ ⊙' R) j = π₀ (node γ j / R)
-  emit  (γ ⊙' R) j = emit γ j ∘ π₁ (node γ j / R)
+  _•_ : {-<-}∀ {X Y Z} →{->-} IIR Y Z → IIR X Y → IIR X Z
+  node  (γ • R) j = π₀ (node γ j / R)
+  emit  (γ • R) j = emit γ j ∘ π₁ (node γ j / R)
 \end{code}
 %</iir-comp>
 

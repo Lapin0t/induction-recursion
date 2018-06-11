@@ -38,6 +38,7 @@
 %format cong = "\FCT{cong}"
 %format trans = "\FCT{trans}"
 %format sym = "\FCT{sym}"
+%format uoip = "\FCT{uoip}"
 
 %format subst₂ = "\FCT{subst₂}"
 %format subst-≡ = "\FCT{subst\!\!-\!\!≡}"
@@ -48,8 +49,11 @@
 %format ∘ = "\FCT{\mathbin{∘}}"
 %format _∘_ = _ ∘ _
 %format app = "\FCT{app}"
-%format ⟶̇ = "\FCT{\mathbin{\dot{⟶}}}"  # FIXME
-%format _⟶̇_ = _ ⟶̇ _          # FIXME
+%format $ = "\FCT{\mathbin{\$}}"
+%format _$_ = _ $ _
+%% FIXME
+%format ⟶̇ = "\FCT{\mathbin{\dot{⟶}}}"
+%format _⟶̇_ = _ ⟶̇ _
 
 %%%%%%%%%
 %%% Fam
@@ -63,12 +67,14 @@
 
 %format ⟶̃ = "\DATA{\mathrel{⇝}}"
 %format _⟶̃_ = _ ⟶̃ _
-%format ∘̃ = "\FCT{\mathbin{\tilde{∘}}}"
+%format ∘̃ = "\FCT{\mathbin{⋄}}"
+%format ∘̃-assoc = "\FCT{∘̃\!\!-\!\!assoc}"
 %format _∘̃_ = _ ∘̃ _
 
 %format 𝔽 = "\DATA{\mathbb{F}}"
 %format ⇒ = "\DATA{\mathrel{⇒}}"
 %format _⇒_ = _ ⇒ _
+%format ⊙-assoc = "\FCT{⊙\!\!-\!\!assoc}"
 
 
 %%%%%%%%%
@@ -102,7 +108,14 @@
 %format ⟨ = "\CON{⟨}"
 %format ⟩ = "\CON{⟩}"
 %format ⟨_⟩ = ⟨ _ ⟩
+%format init = "\FCT{init}"
+%format alg = "\DATA{alg}"
+%format obj = "\PRO{obj}"
+%format mor = "\PRO{mor}"
+%format mfold = "\FCT{mfold}"
 %format fold = "\FCT{fold}"
+%format mfold-comp = "\FCT{mfold\!\!-\!\!comp}"
+%format fold-comp = "\FCT{fold\!\!-\!\!comp}"
 
 %format IIR* = "\DATA{IIR^*}"
 %format eta = "\FCT{η}"
@@ -111,8 +124,8 @@
 %format _>>=_ = _ >>= _
 %format / = "\FCT{\mathbin{/}}"
 %format _/_ = _ / _
-%format ⊙' = "\FCT{\mathbin{⊙}}"
-%format _⊙'_ = _ ⊙' _
+%format • = "\FCT{\mathbin{•}}"
+%format _•_ = _ • _
 
 %format all = "\DATA{all}"
 %format every = "\FCT{every}"
@@ -123,8 +136,8 @@
 %%% IIR
 
 %format pow = "\DATA{pow}"
-%format pow→fam = "\FCT{pow\!\!→\!\!fam}"
-%format poly-orn = "\DATA{poly\!\!-\!\!orn}"
+%format pow⁻¹ = "\FCT{pow⁻¹}"
+%format orn₀ = "\DATA{orn₀}"
 %format info+ = "\DATA{info\!+}"
 %format info↓ = "\FCT{info\!\!↓}"
 %format add = "\CON{add}"
