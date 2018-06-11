@@ -64,9 +64,13 @@ data ⊤ : Set where * : ⊤
 \begin{code}
 infixl 20 _∘_
 infixr 5 _⟶̇_
+infixr 10 _$_
 
 _∘_ : {-<-}∀ {α β γ} {A : Set α} {B : A → Set β} {C : {x : A} → B x → Set γ} →{->-} (∀ {x} → (y : B x) → C y) → (g : (x : A) → B x) → (x : A) → C (g x)
 f ∘ g = λ x → f (g x)
+
+_$_ : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (f : (a : A) → B a) → (x : A) → B x
+f $ x = f x
 
 app : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (x : A) (f : (a : A) → B a) → B x
 app x f = f x
@@ -100,6 +104,7 @@ postulate
 % utils for equality
 \begin{code}
 infix 4 _≡_
+infix 4 _≡′_
 
 _≡′_ : ∀ {α} {A : Set α} → A → A → Set α
 x ≡′ y = x ≡ y
@@ -115,6 +120,9 @@ cong f refl = refl
 
 trans : {-<-}∀ {α} {A B C : Set α} {x : A} {y : B} {z : C} →{->-} x ≡ y → y ≡ z → x ≡ z
 trans refl refl = refl
+
+uoip : ∀ {α} {A B : Set α} {x : A} {y : B} → (p₀ : x ≡ y) → (p₁ : x ≡ y) → p₀ ≡ p₁
+uoip refl refl = refl
 
 sym : {-<-}∀ {α} {A : Set α} {x y : A} →{->-} x ≡ y → y ≡ x
 sym refl = refl
