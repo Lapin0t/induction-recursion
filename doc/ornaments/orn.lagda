@@ -13,43 +13,38 @@ open import ornaments.iir
 
 %<*pow>
 \begin{code}
-pow : (X : Fam Set₁) → Set₂
-pow (I , X) = Σ (I → Set) (λ J → (ij : Σ I J) → X (π₀ ij) → Set₁)
+pow : Fam Set₁ → Set₂
+pow (I , X) = Σ (I → Set) (λ J → (ix : Σ I J) → X (π₀ ix) → Set₁)
 
-pow→fam : {-<-}∀ {X} →{->-} (P : pow X) → Fam Set₁
-Code (pow→fam {-<-}{I , _}{->-} (J , _)) = Σ I J
-decode (pow→fam {-<-}{_ , X}{->-} (_ , Y)) (i , j) = Σ (X i) (Y (i , j))
+pow⁻¹ : {-<-}∀ {X} →{->-} (P : pow X) → Fam Set₁
+Code (pow⁻¹ {-<-}{I , _}{->-} (J , _)) = Σ I J
+decode (pow⁻¹ {-<-}{_ , X}{->-} (_ , Y)) (i , j) = Σ (X i) (Y (i , j))
 \end{code}
 %</pow>
 
 
-
-
 %<*code-def>
 \begin{code}
-data poly-orn {-<-}{X : Fam Set₁}{->-} (Y : pow X) : poly X → Set₁
-info+ : {-<-}∀ {X Y γ} →{->-} poly-orn {-<-}{X}{->-} Y γ → Set₁
-info↓ : {-<-}∀ {X Y γ}{->-} (o : poly-orn {-<-}{X}{->-} Y γ) → info+ o → info γ
+data orn₀ {-<-}{X : Fam Set₁}{->-} (Y : pow X) : poly X → Set₁
+info+ : {-<-}∀ {X Y γ} →{->-} orn₀ {-<-}{X}{->-} Y γ → Set₁
+info↓ : {-<-}∀ {X Y γ}{->-} (o : orn₀ {-<-}{X}{->-} Y γ) → info+ o → info γ
 \end{code}
 %</code-def>
 
 %<*code-impl>
 \begin{code}
-data poly-orn {-<-}{X} {->-}Y where
-  ι :      {-<-}{i : Code X} → {->-}(π₀ Y i) → poly-orn Y (ι i)
-  κ :      (A : Set) → poly-orn Y (κ A)
-  σ :      {-<-}∀ {P Q} → {->-}(A : poly-orn Y P) → (B : (a : info+ A) →
-    poly-orn Y (Q (info↓ A a))) → poly-orn Y (σ P Q)
-  π :      (A : Set) → {-<-}∀ {P} →{->-} (B : (a : A) → poly-orn Y (P a)) →
-    poly-orn Y (π A P)
+data orn₀ {-<-}{X} {->-}Y where
+  ι :      {-<-}{i : Code X} → {->-}(π₀ Y i) → orn₀ Y (ι i)
+  κ :      (A : Set) → orn₀ Y (κ A)
+  σ :      {-<-}∀ {P Q} → {->-}(A : orn₀ Y P) → (B : (a : info+ A) → orn₀ Y (Q (info↓ A a))) → orn₀ Y (σ P Q)
+  π :      (A : Set) → {-<-}∀ {P} →{->-} (B : (a : A) → orn₀ Y (P a)) → orn₀ Y (π A P)
 
   {-<-}-- OPTION 1{->-}
-  add :    (A : poly (pow→fam Y)) → {-<-}∀ {P} →{->-} (B : info A → poly-orn Y P) →
-    poly-orn Y P
-  del :    {-<-}∀ {A : poly X} → {->-}(x : info A) → poly-orn Y A
+  add :    (A : poly (pow⁻¹ Y)) → {-<-}∀ {P} → {->-}(B : info A → orn₀ Y P) → orn₀ Y P
+  del :    {-<-}∀ {A : poly X} → {->-}(x : info A) → orn₀ Y A
   {-<-}-- OPTION 2{->-}
-  add-κ :  (A : Set) → {-<-}∀ {P} →{->-} (A → poly-orn Y P) → poly-orn Y P
-  del-κ :  {-<-}∀ {A} → {->-}(a : A) → poly-orn Y (κ A)
+  add-κ :  (A : Set) → {-<-}∀ {P} →{->-} (A → orn₀ Y P) → orn₀ Y P
+  del-κ :  {-<-}∀ {A} → {->-}(a : A) → orn₀ Y (κ A)
 \end{code}
 %</code-impl>
 
@@ -61,7 +56,7 @@ info+ (σ A B)      = Σ (info+ A) (λ a → info+ (B a))
 info+ (π A B)      = (a : A) → info+ (B a)
 info+ (add A B)    = Σ (info A) (λ a → info+ (B a))
 info+ (del _)      = Lift ⊤
-info+ (add-κ A B)  = Σ (Lift {-<-}{β = lsuc lzero} {->-}A) λ a → info+ (B (lower a))
+info+ (add-κ A B)  = Σ (Lift A) λ a → info+ (B (lower a))
 info+ (del-κ _)    = Lift ⊤
 \end{code}
 %</info+-impl>
@@ -84,9 +79,8 @@ info↓ (del-κ a)    _        = lift a
 \begin{code}
 record orn {-<-}{X Y : Fam Set₁} {->-}(P : pow X) (Q : pow Y) (γ : IIR X Y) : Set₁ where
   field
-    node :  (j : Code Y) → poly-orn P (node γ j)
-    emit :  (jk : Σ (Code Y) (π₀ Q)) → info+ (node (π₀ jk)) →
-            Σ (decode Y (π₀ jk)) (π₁ Q jk)
+    node :  (j : Code (pow⁻¹ Q)) → orn₀ P (node γ (π₀ j))
+    emit :  (j : Code (pow⁻¹ Q)) → info+ (node j) → decode (pow⁻¹ Q) j
 \end{code}
 %</orn>
 
@@ -97,8 +91,8 @@ open orn public
 
 %<*p-interp>
 \begin{code}
-⌊_⌋₀ : {-<-}∀ {X Y} {γ : poly X} →{->-} poly-orn Y γ → poly (pow→fam Y)
-info↑ : {-<-}∀ {X Y} {γ : poly X} {->-}(o : poly-orn Y γ) → info ⌊ o ⌋₀ ≡ info+ o
+⌊_⌋₀ : {-<-}∀ {X Y} {γ : poly X} →{->-} orn₀ Y γ → poly (pow⁻¹ Y)
+info↑ : {-<-}∀ {X Y} {γ : poly X} {->-}(o : orn₀ Y γ) → info ⌊ o ⌋₀ ≡ info+ o
 
 ⌊ ι {-<-}{i} {->-}j        ⌋₀ = ι (_ , j)
 ⌊ κ A        ⌋₀ = κ A
@@ -111,11 +105,11 @@ info↑ : {-<-}∀ {X Y} {γ : poly X} {->-}(o : poly-orn Y γ) → info ⌊ o �
 
 info↑ (ι j)        = refl
 info↑ (κ A)        = refl
-info↑ (σ A B)      = cong₂ Σ (info↑ A) (subst-≡ (info↑ A) (funext (info↑ ∘ B)))
-info↑ (π A B)      = cong (λ f → (a : A) → f a) (funext (info↑ ∘ B))
-info↑ (add A B)    = cong (Σ (info A)) (funext (λ x → info↑ (B x)))
+info↑ (σ A B)      = cong₂ Σ (info↑ A) (subst-≡ (info↑ A) (funext (λ a → info↑ (B a))))
+info↑ (π A B)      = cong (λ f → (a : A) → f a) (funext (λ a → info↑ (B a)))
+info↑ (add A B)    = cong (Σ (info A)) (funext (λ a → info↑ (B a)))
 info↑ (del _)      = refl
-info↑ (add-κ A B)  = cong (Σ (Lift A)) (funext (λ x → info↑ (B (lower x))))
+info↑ (add-κ A B)  = cong (Σ (Lift A)) (funext (λ a → info↑ (B (lower a))))
 info↑ (del-κ _)    = refl
 \end{code}
 %</p-interp>
@@ -123,16 +117,45 @@ info↑ (del-κ _)    = refl
 
 %<*interp>
 \begin{code}
-⌊_⌋ : {-<-}∀ {X Y P Q} {γ : IIR X Y} {->-}(o : orn P Q γ) → IIR (pow→fam P) (pow→fam Q)
-node  ⌊ o ⌋ (j , y)    = ⌊ node o j ⌋₀
-emit  ⌊ o ⌋ (j , y) x  = emit o (j , y) (subst (λ x → x) (info↑ (node o j)) x)
+⌊_⌋ : {-<-}∀ {X Y P Q} {γ : IIR X Y} {->-}(o : orn P Q γ) → IIR (pow⁻¹ P) (pow⁻¹ Q)
+node  ⌊ o ⌋ j    = ⌊ node o j ⌋₀
+emit  ⌊ o ⌋ j x  = emit o j (subst (λ x → x) (info↑ (node o j)) x)
 \end{code}
 %</interp>
 
+%<*erase>
+\begin{code}
+
+\end{code}
+%</erase>
+
+%<*algorn>
+\begin{code}
+algorn₀ : ∀ {X} {γ : poly X} → orn₀ ? γ
+algorn₀ {γ = ι i} = {!   !}
+algorn₀ {γ = κ A} = {!   !}
+algorn₀ {γ = σ A B} = {!   !}
+algorn₀ {γ = π A B} = {!   !}
+
+algorn-p : ∀ {X} {α : IIR X X} (φ : alg α) → pow X
+π₀ (algorn-p φ) i = Code (obj φ i)
+π₁ (algorn-p φ) (i , i′) x = Lift ⊤
+
+algorn : ∀ {X} {α : IIR X X} (φ : alg α) → orn (algorn-p φ) (algorn-p φ) α
+node (algorn {α = α} φ) j with node α (π₀ j)
+node (algorn {α = α} φ) j | ι i = {!   !}
+node (algorn {α = α} φ) j | κ A = κ A
+node (algorn {α = α} φ) j | σ A B = {!   !}
+node (algorn {α = α} φ) j | π A B = {!   !}
+emit (algorn {α = α} φ) (i , i′) x = emit α i (info↓ ? x) , lift *
+\end{code}
+%</algorn>
+
+
 %<*forget>
 \begin{code}
-forget : {-<-}∀ {X} {γ : IIR X X} {P} {->-}(o : orn P P γ) → (ij : _) → (π₀ >> (μ ⌊ o ⌋ ij)) ⟶̃ μ γ (π₀ ij)
-forget o = {!⌊ o ⌋!}
+forget : {-<-}∀ {X} {γ : IIR X X} {P} {->-}(o : orn P P γ) → μ {!(node ⌊ o ⌋) , ? !} ⇒ (μ γ ∘ π₀)
+forget o = {!fold!}
 \end{code}
 %</forget>
 
