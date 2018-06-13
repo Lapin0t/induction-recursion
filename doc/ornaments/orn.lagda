@@ -6,51 +6,53 @@
 module ornaments.orn where
 
 open import ornaments.prelude
-open import ornaments.fam using (Fam; _,_; Code; decode; _⇒_; _>>_; _⟶̃_)
+open import ornaments.fam using (Fam; _,_; Code; decode; 𝔽; _⇒_; _>>_; _⟶̃_)
+open import ornaments.pow
 open import ornaments.iir
 \end{code}
 
 
 %<*pow>
 \begin{code}
-pow : Fam Set₁ → Set₂
+{-pow : Fam Set₁ → Set₂
 pow (I , X) = Σ (I → Set) (λ J → (ix : Σ I J) → X (π₀ ix) → Set₁)
+pow (I , X) = (i : I) → Σ Set (λ J → J → X i → Set₁)
 
 pow⁻¹ : {-<-}∀ {X} →{->-} (P : pow X) → Fam Set₁
 Code (pow⁻¹ {-<-}{I , _}{->-} (J , _)) = Σ I J
-decode (pow⁻¹ {-<-}{_ , X}{->-} (_ , Y)) (i , j) = Σ (X i) (Y (i , j))
+decode (pow⁻¹ {-<-}{_ , X}{->-} (_ , Y)) (i , j) = Σ (X i) (Y (i , j))-}
 \end{code}
 %</pow>
 
 
 %<*code-def>
 \begin{code}
-data orn₀ {-<-}{X : Fam Set₁}{->-} (Y : pow X) : poly X → Set₁
-info+ : {-<-}∀ {X Y γ} →{->-} orn₀ {-<-}{X}{->-} Y γ → Set₁
-info↓ : {-<-}∀ {X Y γ}{->-} (o : orn₀ {-<-}{X}{->-} Y γ) → info+ o → info γ
+data orn₀ {-<-}{X : Fam Set₁}{->-} (P : ℙ X) : poly X → Set₁
+info+ : {-<-}∀ {X P γ} →{->-} orn₀ {-<-}{X}{->-} P γ → Set₁
+info↓ : {-<-}∀ {X P γ}{->-} (o : orn₀ {-<-}{X}{->-} P γ) → info+ o → info γ
 \end{code}
 %</code-def>
 
 %<*code-impl>
 \begin{code}
-data orn₀ {-<-}{X} {->-}Y where
-  ι :      {-<-}{i : Code X} → {->-}(π₀ Y i) → orn₀ Y (ι i)
-  κ :      (A : Set) → orn₀ Y (κ A)
-  σ :      {-<-}∀ {P Q} → {->-}(A : orn₀ Y P) → (B : (a : info+ A) → orn₀ Y (Q (info↓ A a))) → orn₀ Y (σ P Q)
-  π :      (A : Set) → {-<-}∀ {P} →{->-} (B : (a : A) → orn₀ Y (P a)) → orn₀ Y (π A P)
+data orn₀ {-<-}{X} {->-}P where
+  ι :      (i : Code (PFam P)) → orn₀ P (ι (π₀ i))
+  κ :      (A : Set) → orn₀ P (κ A)
+  σ :      {-<-}∀ {A′ B′} → {->-}(A : orn₀ P A′) → (B : (a : info+ A) → orn₀ P (B′ (info↓ A a))) → orn₀ P (σ A′ B′)
+  π :      (A : Set) → {-<-}∀ {B′} →{->-} (B : (a : A) → orn₀ P (B′ a)) → orn₀ P (π A B′)
 
   {-<-}-- OPTION 1{->-}
-  add :    (A : poly (pow⁻¹ Y)) → {-<-}∀ {P} → {->-}(B : info A → orn₀ Y P) → orn₀ Y P
-  del :    {-<-}∀ {A : poly X} → {->-}(x : info A) → orn₀ Y A
+  add :    (A : poly (PFam P)) → {-<-}∀ {A′} → {->-}(B : info A → orn₀ P A′) → orn₀ P A′
+  del :    {-<-}∀ {A : poly X} → {->-}(x : info A) → orn₀ P A
   {-<-}-- OPTION 2{->-}
-  add-κ :  (A : Set) → {-<-}∀ {P} →{->-} (A → orn₀ Y P) → orn₀ Y P
-  del-κ :  {-<-}∀ {A} → {->-}(a : A) → orn₀ Y (κ A)
+  add-κ :  (A : Set) → {-<-}∀ {A′} →{->-} (A → orn₀ P A′) → orn₀ P A′
+  del-κ :  {-<-}∀ {A} → {->-}(a : A) → orn₀ P (κ A)
 \end{code}
 %</code-impl>
 
 %<*info+-impl>
 \begin{code}
-info+ {-<-}{_ , X} {_ , Y} {->-}(ι {-<-}{i} {->-}j)        = Σ (X i) (Y (i , j))
+info+ {-<-}{P = P}{->-}(ι i)        = decode (PFam P) i
 info+ (κ A)        = Lift A
 info+ (σ A B)      = Σ (info+ A) (λ a → info+ (B a))
 info+ (π A B)      = (a : A) → info+ (B a)
@@ -77,10 +79,10 @@ info↓ (del-κ a)    _        = lift a
 
 %<*orn>
 \begin{code}
-record orn {-<-}{X Y : Fam Set₁} {->-}(P : pow X) (Q : pow Y) (γ : IIR X Y) : Set₁ where
+record orn {-<-}{X Y : Fam Set₁} {->-}(P : ℙ X) (Q : ℙ Y) (γ : IIR X Y) : Set₁ where
   field
-    node :  (j : Code (pow⁻¹ Q)) → orn₀ P (node γ (π₀ j))
-    emit :  (j : Code (pow⁻¹ Q)) → info+ (node j) → decode (pow⁻¹ Q) j
+    node :  (j : Code (PFam Q)) → orn₀ P (node γ (π₀ j))
+    emit :  (j : Code (PFam Q)) → info+ (node j) → decode (PFam Q) j
 \end{code}
 %</orn>
 
@@ -91,10 +93,10 @@ open orn public
 
 %<*p-interp>
 \begin{code}
-⌊_⌋₀ : {-<-}∀ {X Y} {γ : poly X} →{->-} orn₀ Y γ → poly (pow⁻¹ Y)
-info↑ : {-<-}∀ {X Y} {γ : poly X} {->-}(o : orn₀ Y γ) → info ⌊ o ⌋₀ ≡ info+ o
+⌊_⌋₀ : {-<-}∀ {X P} {γ : poly X} →{->-} orn₀ P γ → poly (PFam P)
+info↑ : {-<-}∀ {X P} {γ : poly X} {->-}(o : orn₀ P γ) → info ⌊ o ⌋₀ ≡ info+ o
 
-⌊ ι {-<-}{i} {->-}j        ⌋₀ = ι (_ , j)
+⌊ ι i        ⌋₀ = ι i
 ⌊ κ A        ⌋₀ = κ A
 ⌊ σ A B      ⌋₀ = σ ⌊ A ⌋₀ λ a → ⌊ B (subst (λ x → x) (info↑ A) a) ⌋₀
 ⌊ π A B      ⌋₀ = π A λ a → ⌊ B a ⌋₀
@@ -117,7 +119,7 @@ info↑ (del-κ _)    = refl
 
 %<*interp>
 \begin{code}
-⌊_⌋ : {-<-}∀ {X Y P Q} {γ : IIR X Y} {->-}(o : orn P Q γ) → IIR (pow⁻¹ P) (pow⁻¹ Q)
+⌊_⌋ : {-<-}∀ {X Y P Q} {γ : IIR X Y} {->-}(o : orn P Q γ) → IIR (PFam P) (PFam Q)
 node  ⌊ o ⌋ j    = ⌊ node o j ⌋₀
 emit  ⌊ o ⌋ j x  = emit o j (subst (λ x → x) (info↑ (node o j)) x)
 \end{code}
@@ -125,13 +127,14 @@ emit  ⌊ o ⌋ j x  = emit o j (subst (λ x → x) (info↑ (node o j)) x)
 
 %<*erase>
 \begin{code}
-
+--erase : ∀ {X Y P Q} {α : IIR X Y} {F : 𝔽 X} (o : orn P Q α) → (λ i → π₀ >> ⟦ ⌊ o ⌋ ⟧ ? i) ⇒ (⟦ α ⟧ F ∘ π₀)
+--erase = ?
 \end{code}
 %</erase>
 
 %<*algorn>
 \begin{code}
-algorn₀ : ∀ {X} {γ : poly X} → orn₀ ? γ
+{-algorn₀ : ∀ {X} {γ : poly X} → orn₀ ? γ
 algorn₀ {γ = ι i} = {!   !}
 algorn₀ {γ = κ A} = {!   !}
 algorn₀ {γ = σ A B} = {!   !}
@@ -143,19 +146,19 @@ algorn-p : ∀ {X} {α : IIR X X} (φ : alg α) → pow X
 
 algorn : ∀ {X} {α : IIR X X} (φ : alg α) → orn (algorn-p φ) (algorn-p φ) α
 node (algorn {α = α} φ) j with node α (π₀ j)
-node (algorn {α = α} φ) j | ι i = {!   !}
+node (algorn {α = α} φ) j | ι i = ι {! mor φ i !}
 node (algorn {α = α} φ) j | κ A = κ A
 node (algorn {α = α} φ) j | σ A B = {!   !}
 node (algorn {α = α} φ) j | π A B = {!   !}
-emit (algorn {α = α} φ) (i , i′) x = emit α i (info↓ ? x) , lift *
+emit (algorn {α = α} φ) (i , i′) x = emit α i (info↓ ? x) , lift *-}
 \end{code}
 %</algorn>
 
 
 %<*forget>
 \begin{code}
-forget : {-<-}∀ {X} {γ : IIR X X} {P} {->-}(o : orn P P γ) → μ {!(node ⌊ o ⌋) , ? !} ⇒ (μ γ ∘ π₀)
-forget o = {!fold!}
+{-forget : {-<-}∀ {X} {γ : IIR X X} {P} {->-}(o : orn P P γ) → μ {!(node ⌊ o ⌋) , ? !} ⇒ (μ γ ∘ π₀)
+forget o = {!fold!}-}
 \end{code}
 %</forget>
 
@@ -167,12 +170,13 @@ module catholic where
 
 %<*catholic>
 \begin{code}
-  data inv {-<-}{α β} {A : Set α} {B : Set β} {->-}(f : A → B) : B → Set α where
+  {-data inv {-<-}{α β} {A : Set α} {B : Set β} {->-}(f : A → B) : B → Set α where
     ok : (x : A) → inv f (f x)
 
-  to-pow : {-<-}∀ {X Y} → {->-}(E : Code Y → Code X) → (e : (y : Code Y) → decode Y y →
-    decode X (E y)) → pow X
-  π₀ (to-pow E e) x             = inv E x
-  π₁ (to-pow E e) (x , ok y) a  = inv (e y) a
+  to-pow : {-<-}∀ {X Y} → {->-}(E : Code Y → Code X) → (e : (y : Code Y) → decode Y y → decode X (E y)) → pow X
+  π₀ (to-pow E e)             = inv E
+  π₁ (to-pow E e) (_ , ok y)  = inv (e y)
+
+  --from-pow : ∀ {X} → (P : pow X) → Σ (Code (pow⁻¹ P) → Code X) (λ E → (j : Code (pow⁻¹ P)) → decode (pow⁻¹ P) j → decode )-}
 \end{code}
 %</catholic>
