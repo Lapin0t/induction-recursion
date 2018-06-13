@@ -21,6 +21,16 @@ record Fam {-<-}{α} {->-}(X : Set α) : Set (lsuc lzero ⊔ α) where
 open Fam public
 \end{code}
 
+%<*fam-set1>
+\begin{code}
+ISet : Set₂
+ISet = Fam Set₁
+
+El : ISet → Set₁
+El A = Σ (Code A) (λ i → decode A i)
+\end{code}
+%</fam-set1>
+
 %<*post-comp>
 \begin{code}
 _>>_ : {-<-}∀ {α} {X Y : Set α} → {->-}(X → Y) → Fam X → Fam Y
@@ -115,6 +125,9 @@ _⊙_ : ∀ {X} {F G H : 𝔽 X} → G ⇒ H → F ⇒ G → F ⇒ H
 
 ⊙-assoc : ∀ {X} {F G H I : 𝔽 X} {f : F ⇒ G} {g : G ⇒ H} {h : H ⇒ I} → (h ⊙ g) ⊙ f ≡ h ⊙ (g ⊙ f)
 ⊙-assoc {f = f} {g = g} {h = h} = funext λ i → ∘̃-assoc {f = f i} {g = g i} {h = h i}
+
+_>>>_ : {-<-}∀ {X Y} → {->-}((i : Code X) → decode X i → Y i) → 𝔽 X → 𝔽 (Code X , Y)
+(f >>> F) i = f i >> F i
 
 {-η𝔽 : {X : Fam Set₁} {i : Code X} → decode X i → Fam (decode X i)
 η𝔽 x = η x
