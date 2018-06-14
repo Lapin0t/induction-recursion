@@ -4,9 +4,8 @@
 \begin{code}
 module ornaments.iir where
 
-open import Agda.Builtin.TrustMe using (primTrustMe)
 open import ornaments.prelude
-open import ornaments.fam using (Fam; Code; decode; _,_; 𝔽; _>>_; _⇒_; _⟶̃_; _⊙_; ⊙-assoc)
+open import ornaments.fam hiding (σ; π; μ)
 \end{code}
 
 
@@ -46,8 +45,13 @@ record IIR (X Y : Fam Set₁) : Set₁ where
     emit : (j : Code Y) → info (node j) → decode Y j
 \end{code}
 %</iir>
+
 \begin{code}
 open IIR public
+
+_#_ : ∀ {X Y Z} (f : decode Y ⟶̇ Z) → IIR X Y → IIR X (_ , Z)
+node (f # α) = node α
+emit (f # α) j = f j ∘ emit α j
 \end{code}
 
 
@@ -99,7 +103,7 @@ open IIR public
 %<*fct-hom>
 \begin{code}
 ⟦_⟧[_] : {-<-}∀ {X Y}{->-} (α : IIR X Y) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ α ⟧ F ⇒ ⟦ α ⟧ G
-⟦ α ⟧[ φ ] j i = π₀ $ ⟦ node α j ⟧[ φ ]ᵢ i , cong (emit α j) (π₁ $ ⟦ node α j ⟧[ φ ]ᵢ i)
+⟦ α ⟧[ φ ] j = emit α j <$>> ⟦ node α j ⟧[ φ ]ᵢ
 \end{code}
 %</fct-hom>
 
