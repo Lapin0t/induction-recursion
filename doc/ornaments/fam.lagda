@@ -31,15 +31,6 @@ El A = Σ (Code A) (λ i → decode A i)
 \end{code}
 %</fam-set1>
 
-%<*post-comp>
-\begin{code}
-_>>_ : {-<-}∀ {α} {X Y : Set α} → {->-}(X → Y) → Fam X → Fam Y
-Code    (f >> F) = Code F
-decode  (f >> F) = f ∘ decode F
-\end{code}
-%</post-comp>
-
-
 %<*morph>
 \begin{code}
 _⟶̃_ : {-<-}∀ {α} {X : Set α} → {->-}Fam X → Fam X → Set α
@@ -51,9 +42,29 @@ _∘̃_ : {-<-}∀ {α} {X : Set α} {F G H : Fam X} → {->-}G ⟶̃ H → F �
 %</morph>
 
 \begin{code}
+infix 22 _⟶̃_
+
 ∘̃-assoc : ∀ {α} {X : Set α} {F G H I : Fam X} {f : F ⟶̃ G} {g : G ⟶̃ H} {h : H ⟶̃ I} → (h ∘̃ g) ∘̃ f ≡ h ∘̃ (g ∘̃ f)
 ∘̃-assoc = funext λ x → cong-Σ refl (uoip _ _)
 \end{code}
+
+%<*post-comp>
+\begin{code}
+infix 25 _>>_
+
+_>>_ : {-<-}∀ {α} {X Y : Set α} → {->-}(X → Y) → Fam X → Fam Y
+Code    (f >> F) = Code F
+decode  (f >> F) = f ∘ decode F
+\end{code}
+%</post-comp>
+
+%<*post-comp-arr>
+\begin{code}
+_<$>>_ : ∀ {α} {X Y : Set α} (f : X → Y) {A B : Fam X} → A ⟶̃ B → f >> A ⟶̃ f >> B
+(f <$>> h) i = π₀ $ h i , cong f (π₁ $ h i)
+\end{code}
+%</post-comp-arr>
+
 
 %<*fam-pi>
 %format π  = "\FCT{π}"
