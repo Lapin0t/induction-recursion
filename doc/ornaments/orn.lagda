@@ -127,8 +127,22 @@ emit  ⌊ o ⌋ j x  = emit o j (subst (λ x → x) (info↑ (node o j)) x)
 
 %<*erase>
 \begin{code}
---erase : ∀ {X Y P Q} {α : IIR X Y} {F : 𝔽 X} (o : orn P Q α) → (λ i → π₀ >> ⟦ ⌊ o ⌋ ⟧ ? i) ⇒ (⟦ α ⟧ F ∘ π₀)
---erase = ?
+--erase : ∀ {X Y} {P Q} {F : 𝔽 X} {A : ℙ P F} {α : IIR X Y} (o : orn P Q α) → (⟦ (λ _ x → π₀ x) # ⌊ o ⌋ ⟧ (P→F A)) ⇒ (⟦ α ⟧ F ∘ π₀)
+--erase o i x with node o i
+--...         | a = {!   !}
+
+info→ : ∀ {X} {α : poly X} {P} (o : orn₀ P α) → info ⌊ o ⌋₀ → info α
+info→ o = info↓ o ∘ subst (λ a → a) (info↑ o)
+
+{-erase : ∀ {X} {α : poly X} {P} (o : orn₀ P α) {F : 𝔽 X} {A : ℙ P F} → (info→ o >> ⟦ ⌊ o ⌋₀ ⟧ᵢ (P→F A)) ⟶̃ ⟦ α ⟧ᵢ F
+erase (ι i₁) (i , j) = i , refl
+erase (κ A) a = a , refl
+erase (σ A B) (a , b) = ((π₀ $ erase A a) , ?) , cong-Σ {! π₁ $ erase A a  !} {!   !}
+erase (π A B) f = (λ a → π₀ $ erase (B a) (f a)) , π₁ $ erase {!   !} {!   !}
+erase (add A B) (a , b) = ? --erase {!  !} {!   !}
+erase (del x) * = {!   !}
+erase (add-κ A B) (a , b) = ? --erase {!  !} {!   !}
+erase (del-κ a) _ = a , refl-}
 \end{code}
 %</erase>
 
