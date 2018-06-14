@@ -72,8 +72,8 @@ f ∘ g = λ x → f (g x)
 _$_ : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (f : (a : A) → B a) → (x : A) → B x
 f $ x = f x
 
-app : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (x : A) (f : (a : A) → B a) → B x
-app x f = f x
+--app : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (x : A) (f : (a : A) → B a) → B x
+--app x f = f x
 
 S : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : (a : A) → B a → Set γ} (x : (a : A) → (b : B a) → C a b) (y : (a : A) → B a) → (a : A) → C a (y a)
 S x y z = x z (y z)
@@ -105,9 +105,16 @@ postulate
 \begin{code}
 infix 4 _≡_
 infix 4 _≡′_
-
 _≡′_ : ∀ {α} {A : Set α} → A → A → Set α
 x ≡′ y = x ≡ y
+
+data _≡″_ {α} {A : Set α} (x : A) : A → Set α where
+  refl : x ≡″ x
+{-# BUILTIN EQUALITY _≡″_  #-}
+
+to-eq : ∀ {α} {A B : Set α} {x y : A} → x ≡ y → x ≡″ y
+to-eq refl = refl
+
 
 subst : {-<-}∀ {α β} {A : Set α}{->-} (P : A → Set β) {-<-}{x y} {->-}→ x ≡ y → P x → P y
 subst P refl p = p
