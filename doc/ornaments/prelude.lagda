@@ -97,7 +97,7 @@ postulate
 
 %<*funext>
 \begin{code}
-  funext : {-<-}∀ {α β} {A : Set α} {B : A → Set β} {f g : (x : A) → B x} → {->-}((x : A) → f x ≡ g x) → f ≡ g
+  funext : {-<-}∀ {α β} {A : Set α} {B₀ B₁ : A → Set β} {f : (x : A) → B₀ x} {g : (x : A) → B₁ x} → {->-}((x : A) → f x ≡ g x) → f ≡ g
 \end{code}
 %</funext>
 
