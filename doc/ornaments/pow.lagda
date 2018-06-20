@@ -4,7 +4,7 @@
 \begin{code}
 module ornaments.pow where
 open import ornaments.prelude
-open import ornaments.fam using (Fam; Code; decode; 𝔽; _⇒_; ISet)
+open import ornaments.fam --using (Fam; Code; decode; 𝔽; _⇒_; ISet)
 
 record Pow (X : Set₁) : Set₂ where
   constructor _,_
@@ -72,16 +72,19 @@ PFam : ∀ {X} → ℙ X → ISet
 Code (PFam P) = Σ _ (PCode ∘ P)
 decode (PFam P) (i , j) = Σ _ (Rel (P i) j)
 
---orn-ℙ : ∀ {X} (P : ℙ X) (F : 𝔽 X) → Set₁
---orn-ℙ P F = (i : Code (PFam P)) → (x : Code (F $ π₀ i)) → Σ Set λ A → A → Rel (P $ π₀ i) (π₁ i) (decode (F $ π₀ i) x)
+orn-ℙ : ∀ {X} (P : ℙ X) (F : 𝔽 X) → Set₁
+orn-ℙ P F = (i : Code (PFam P)) → (x : Code (F $ π₀ i)) → Σ Set λ A → A → Rel (P $ π₀ i) (π₁ i) (decode (F $ π₀ i) x)
 
---P→F : ∀ {X} {P : ℙ X} {F : 𝔽 X} → orn-ℙ P F → 𝔽 (PFam P)
---Code (P→F A i) = Σ _ (π₀ ∘ A i)
---decode (P→F A i) (x , y) = _ , π₁ (A i x) y
+P→F : ∀ {X} {P : ℙ X} {F : 𝔽 X} → orn-ℙ P F → 𝔽 (PFam P)
+Code (P→F A i) = Σ _ (π₀ ∘ A i)
+decode (P→F A i) (x , y) = _ , π₁ (A i x) y
 
---F→P : ∀ {X} → 𝔽 X → ℙ X
---PCode (F→P F i) = Code (F i)
---Rel (F→P F i) x y = decode (F i) x ≡ y
+π₀>_ : ∀ {X} {A : X → Set₁} {B : (x : X) → A x → Set₁} → 𝔽 (X , λ x → Σ (A x) (B x)) → 𝔽 (X , A)
+(π₀> F) i = π₀ >> F i
+
+F→P : ∀ {X} → 𝔽 X → ℙ X
+PCode (F→P F i) = Code (F i)
+Rel (F→P F i) x y = decode (F i) x ≡ y
 --func (F→P F i) r₁ r₂ = trans (sym r₁) r₂
 --tot (F→P F i) a = _ , refl
 

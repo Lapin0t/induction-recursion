@@ -82,21 +82,14 @@ emit (f # α) j = f j ∘ emit α j
 ⟦ ι i    ⟧[ φ ]ᵢ x = φ i x
 ⟦ κ A    ⟧[ φ ]ᵢ a = a , refl
 ⟦ σ A B  ⟧[ φ ]ᵢ (a , b) =
-  (π₀ aux-a , subst (Code ∘ Bᵢ) (sym (π₁ aux-a)) (π₀ aux-b)) ,
-  (cong-Σ (π₁ aux-a) (trans (cong₂ (decode ∘ Bᵢ) (π₁ aux-a) (subst-elim _ $ sym $ π₁ aux-a)) (π₁ aux-b)))
-  where
-    Bᵢ : (x : _) → Fam (info (B x))
-    Bᵢ x = ⟦ B x ⟧ᵢ _
-
-    aux-a : _
-    aux-a = ⟦ A ⟧[ φ ]ᵢ a
-
-    aux-b : _
-    aux-b = ⟦ B (decode (⟦ A ⟧ᵢ _) a) ⟧[ φ ]ᵢ b
-
-⟦ π A B  ⟧[ φ ]ᵢ f = (λ a → π₀ $ aux a (f a)) , funext λ a → π₁ $ aux a (f a)
-  where aux : (a : A) → ⟦ B a ⟧ᵢ _ ⟶̃ ⟦ B a ⟧ᵢ _
-        aux a = ⟦ B a ⟧[ φ ]ᵢ
+  let Bᵢ x = ⟦ B x ⟧ᵢ _ in
+  let (a' , eqa) = ⟦ A ⟧[ φ ]ᵢ a in
+  let (b' , eqb) = ⟦ B (decode (⟦ A ⟧ᵢ _) a) ⟧[ φ ]ᵢ b in
+  (a' , subst (Code ∘ Bᵢ) (sym eqa) b') ,
+  (cong-Σ eqa (trans (cong₂ (decode ∘ Bᵢ) eqa (subst-elim _ $ sym eqa)) eqb))
+⟦ π A B  ⟧[ φ ]ᵢ f =
+  let aux a = ⟦ B a ⟧[ φ ]ᵢ in
+  π₀ ∘ S aux f , funext $ π₁ ∘ S aux f
 \end{code}
 %</fct-hom-i>
 
@@ -135,8 +128,9 @@ data μ-C α {-<-}{s}{->-} i where
 
 μ-d α i ⟨ c ⟩ = emit α i (decode (⟦ node α i ⟧ᵢ (μ α)) c)
 
-init : {-<-}∀ {X} {α : IIR X X} {s} {t : Size< s} → {->-}⟦ α ⟧ (μ α{-<-}{t}{->-}) ⇒ μ α{-<-}{s}{->-}
-init i x = ⟨ x ⟩ , refl
+in' : {-<-}∀ {X} {α : IIR X X} {s} {t : Size< s} → {->-}⟦ α ⟧ (μ α{-<-}{t}{->-}) ⇒ μ α{-<-}{s}{->-}
+in' i x = ⟨ x ⟩ , refl
+
 
 \end{code}
 %</init-alg-impl>
@@ -161,11 +155,11 @@ mfold : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s} {->-}→ μ α {
 fold φ = mor φ ⊙ mfold φ
 mfold {-<-}{α = α} {->-}φ i ⟨ x ⟩ = ⟦ α ⟧[ fold φ ] i x
 
-mfold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ mfold φ {-<-}{s} {->-}⊙ init ≡ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
+mfold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ mfold φ {-<-}{s} {->-}⊙ in' ≡ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
 mfold-comp φ = funext λ i → funext λ x → cong-Σ refl (uoip _ _)
 
-fold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ fold φ {-<-}{s} {->-}⊙ init ≡ mor φ ⊙ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
-fold-comp {-<-}{α = α} {->-}φ = trans (⊙-assoc{-<-}{f = init} {g = mfold φ} {h = mor φ}{->-}) (cong (λ x → mor φ ⊙ x) (mfold-comp φ))
+fold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ fold φ {-<-}{s} {->-}⊙ in' ≡ mor φ ⊙ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
+fold-comp {-<-}{α = α} {->-}φ = trans (⊙-assoc{-<-}{f = in'} {g = mfold φ} {h = mor φ}{->-}) (cong (λ x → mor φ ⊙ x) (mfold-comp φ))
 \end{code}
 %</cata>
 

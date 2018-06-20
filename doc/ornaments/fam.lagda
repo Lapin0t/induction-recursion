@@ -34,7 +34,7 @@ El A = Σ (Code A) (λ i → decode A i)
 %<*morph>
 \begin{code}
 _⟶̃_ : {-<-}∀ {α} {X : Set α} → {->-}Fam X → Fam X → Set α
-F ⟶̃ G = (i : Code F) → Σ (Code G) λ j → decode G j ≡′ decode F i
+F ⟶̃ G = (i : Code F) → Σ (Code G) λ j → decode G j ≡ decode F i
 
 _∘̃_ : {-<-}∀ {α} {X : Set α} {F G H : Fam X} → {->-}G ⟶̃ H → F ⟶̃ G → F ⟶̃ H
 (f ∘̃ g) x = π₀ $ f $ π₀ $ g x , trans ((π₁ ∘ f) (π₀ $ g x)) (π₁ $ g x)
@@ -87,7 +87,12 @@ decode  (σ A B) (a , b)  = (decode A a , decode (B _) b)
 
 %<*fam-sg-arr>
 \begin{code}
---⇒σ : {X : Set₁} {Y : X → Set₁} {A : Fam X} {B : (x : X) → Fam (Y x)} → σ A B ⟶̃
+σ-⟶̃ : {X : Set₁} {Y : X → Set₁} {A₀ A₁ : Fam X} {B₀ B₁ : (x : X) → Fam (Y x)} → (pa : A₀ ⟶̃ A₁) → ((a : Code A₀) → B₀ (decode A₀ a) ⟶̃ B₁ (decode A₀ a)) → σ A₀ B₀ ⟶̃ σ A₁ B₁
+σ-⟶̃ {A₀ = A₀} {B₁ = B₁} pa pb (a , b) =
+  let a' , eqa = pa a in
+  let b' , eqb = pb a b in
+  (a' , subst (Code ∘ B₁) (sym eqa) b') ,
+  cong-Σ eqa (trans (cong₂ (decode ∘ B₁) eqa (subst-elim _ $ sym eqa)) eqb)
 \end{code}
 %</fam-sg-arr>
 
