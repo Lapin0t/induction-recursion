@@ -65,6 +65,9 @@
 %format >> = "\FCT{\mathbin{>\!>}}"
 %format _>>_ = _ >> _
 
+%format <$>> = "\FCT{\mathbin{<\!$\!>\!>}}"
+%format _<$>>_ = _ <$>> _
+
 %format ⟶̃ = "\DATA{\mathrel{⇝}}"
 %format _⟶̃_ = _ ⟶̃ _
 %format ∘̃ = "\FCT{\mathbin{⋄}}"
