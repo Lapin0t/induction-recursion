@@ -13,7 +13,7 @@ open import Agda.Builtin.Size hiding (↑_) public
 
 %<*lift>
 \begin{code}
-record Lift (A : Set) : Set₁ where
+record Lift {α} (A : Set α) : Set (lsuc α) where
   constructor lift
   field lower : A
 \end{code}
@@ -78,7 +78,7 @@ f $ x = f x
 S : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : (a : A) → B a → Set γ} (x : (a : A) → (b : B a) → C a b) (y : (a : A) → B a) → (a : A) → C a (y a)
 S x y z = x z (y z)
 
-_⟶̇_ : {-<-}∀ {α β} {I : Set} →{->-} (I → Set α) → (I → Set β) → Set (α ⊔ β)
+_⟶̇_ : {-<-}∀ {α β γ} {I : Set α} →{->-} (I → Set β) → (I → Set γ) → Set (α ⊔ β ⊔ γ)
 _⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
 \end{code}
 

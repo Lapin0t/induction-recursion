@@ -2,10 +2,10 @@
 %include ornaments.fmt
 
 \begin{code}
-module ornaments.iir where
+module ornaments.iir {α} where
 
 open import ornaments.prelude
-open import ornaments.fam hiding (σ; π; μ)
+open import ornaments.fam hiding (σ; π)
 \end{code}
 
 
@@ -15,14 +15,14 @@ open import ornaments.fam hiding (σ; π; μ)
 
 %<*codes>
 \begin{code}
-data poly (X : Fam Set₁) : Set₁
-info : {-<-}{X : Fam Set₁} →{->-} poly X → Set₁
+data poly (X : ISet (lsuc α)) : Set (lsuc α)
+info : {-<-}∀ {X} →{->-} poly X → Set (lsuc α)
 
 data poly X where
   ι : Code X → poly X
-  κ : (A : Set) → poly X
+  κ : (A : Set α) → poly X
   σ : (A : poly X) → (B : info A → poly X) → poly X
-  π : (A : Set) → (B : A → poly X) → poly X
+  π : (A : Set α) → (B : A → poly X) → poly X
 
 info {-<-}{X} {->-}(ι i)      = decode X i
 info (κ A)      = Lift A
@@ -38,7 +38,7 @@ info (π A B)    = (a : A) → info (B a)
 
 %<*iir>
 \begin{code}
-record IIR (X Y : Fam Set₁) : Set₁ where
+record IIR (X Y : ISet (lsuc α)) : Set (lsuc α) where
   constructor _,_
   field
     node : (j : Code Y) → poly X
@@ -67,8 +67,8 @@ emit (f # α) j = f j ∘ emit α j
 
 %<*fct-obj>
 \begin{code}
-⟦_⟧ : {-<-}{X Y : Fam Set₁} →{->-} (α : IIR X Y) → 𝔽 X → 𝔽 Y
-⟦ α ⟧ F j = emit α j >> ⟦ node α j ⟧ᵢ F
+⟦_⟧ : {-<-}∀ {X Y} →{->-} (γ : IIR X Y) → 𝔽 X → 𝔽 Y
+⟦ γ ⟧ F j = emit γ j >> ⟦ node γ j ⟧ᵢ F
 \end{code}
 %</fct-obj>
 
@@ -78,7 +78,7 @@ emit (f # α) j = f j ∘ emit α j
 %format aux = "\FCT{aux}"
 %<*fct-hom-i>
 \begin{code}
-⟦_⟧[_]ᵢ : {-<-}∀ {X}{->-} (p : poly X) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ p ⟧ᵢ F ⟶̃ ⟦ p ⟧ᵢ G
+⟦_⟧[_]ᵢ : {-<-}∀ {X}{->-} (γ : poly X) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ γ ⟧ᵢ F ⟶̃ ⟦ γ ⟧ᵢ G
 ⟦ ι i    ⟧[ φ ]ᵢ x = φ i x
 ⟦ κ A    ⟧[ φ ]ᵢ a = a , refl
 ⟦ σ A B  ⟧[ φ ]ᵢ (a , b) =
@@ -95,73 +95,10 @@ emit (f # α) j = f j ∘ emit α j
 
 %<*fct-hom>
 \begin{code}
-⟦_⟧[_] : {-<-}∀ {X Y}{->-} (α : IIR X Y) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ α ⟧ F ⇒ ⟦ α ⟧ G
-⟦ α ⟧[ φ ] j = emit α j <$>> ⟦ node α j ⟧[ φ ]ᵢ
+⟦_⟧[_] : {-<-}∀ {X Y}{->-} (γ : IIR X Y) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ γ ⟧ F ⇒ ⟦ γ ⟧ G
+⟦ γ ⟧[ φ ] j = emit γ j <$>> ⟦ node γ j ⟧[ φ ]ᵢ
 \end{code}
 %</fct-hom>
-
-
-------------------------------------------------------------------------
--- Initial algebra and Code interpretation
-
-%<*init-alg-def>
-\begin{code}
-μ : {-<-}∀ {X} →{->-} IIR X X → {-<-}{_ : Size} →{->-} 𝔽 X
-
-{-<-}
-{-# NO_POSITIVITY_CHECK #-}
-{->-}
-data μ-C {-<-}{X}{->-} (α : IIR X X) {-<-}{s : Size}{->-} (i : Code X) : Set
-
-μ-d : {-<-}∀ {X} →{->-} (α : IIR X X) → {-<-}{s : Size} → {->-}(i : Code X) → μ-C α {-<-}{s}{->-} i → decode X i
-
-Code    (μ α {-<-}{s}{->-} i)  = μ-C α {-<-}{s}{->-} i
-decode  (μ α i)  = μ-d α i
-\end{code}
-%</init-alg-def>
-
-
-%<*init-alg-impl>
-\begin{code}
-data μ-C α {-<-}{s}{->-} i where
-  ⟨_⟩ : {-<-}∀ {t : Size< s} →{->-} Code (⟦ α ⟧ (μ α {-<-}{t}{->-}) i) → μ-C α i
-
-μ-d α i ⟨ c ⟩ = emit α i (decode (⟦ node α i ⟧ᵢ (μ α)) c)
-
-in' : {-<-}∀ {X} {α : IIR X X} {s} {t : Size< s} → {->-}⟦ α ⟧ (μ α{-<-}{t}{->-}) ⇒ μ α{-<-}{s}{->-}
-in' i x = ⟨ x ⟩ , refl
-
-
-\end{code}
-%</init-alg-impl>
-
-%<*alg>
-\begin{code}
-record alg {-<-}{X : Fam Set₁} {->-}(α : IIR X X) : Set₁ where
-  constructor _,_
-  field
-    obj : 𝔽 X
-    mor : ⟦ α ⟧ obj ⇒ obj
-open alg public
-\end{code}
-%</alg>
-
-%format aux = "\FCT{aux}"
-%<*cata>
-\begin{code}
-fold : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s} {->-}→ μ α {-<-}{s}{->-} ⇒ obj φ
-mfold : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s} {->-}→ μ α {-<-}{s} {->-}⇒ ⟦ α ⟧ (obj φ)
-
-fold φ = mor φ ⊙ mfold φ
-mfold {-<-}{α = α} {->-}φ i ⟨ x ⟩ = ⟦ α ⟧[ fold φ ] i x
-
-mfold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ mfold φ {-<-}{s} {->-}⊙ in' ≡ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
-mfold-comp φ = funext λ i → funext λ x → cong-Σ refl (uoip _ _)
-
-fold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ fold φ {-<-}{s} {->-}⊙ in' ≡ mor φ ⊙ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
-fold-comp {-<-}{α = α} {->-}φ = trans (⊙-assoc{-<-}{f = in'} {g = mfold φ} {h = mor φ}{->-}) (cong (λ x → mor φ ⊙ x) (mfold-comp φ))
-\end{code}
-%</cata>
 
 
 ------------------------------------------------------------------------
@@ -173,15 +110,15 @@ module composition where
 
 %<*iir-star>
 \begin{code}
-  IIR* : Fam Set₁ → Set₁ → Set₁
+  IIR* : ISet (lsuc α) → Set (lsuc α) → Set (lsuc α)
   IIR* X Y = Σ (poly X) λ n → info n → Y
 \end{code}
 %</iir-star>
 
 %<*iir-eta>
 \begin{code}
-  eta : {-<-}∀ {X Y} →{->-} Y → IIR* X Y
-  eta y = κ ⊤ , λ _ → y
+  --eta : {-<-}∀ {X Y} →{->-} Y → IIR* X Y
+  --eta y = κ ? , λ _ → y
 \end{code}
 %</iir-eta>
 
@@ -196,7 +133,7 @@ module composition where
 
 %<*iir-pow>
 \begin{code}
-  pow : {-<-}∀ {X}{->-} (A : Set) {-<-}{B : A → Set₁}{->-} → ((a : A) → IIR* X (B a)) →
+  pow : {-<-}∀ {X}{->-} (A : Set α) {-<-}{B : A → Set (lsuc α)}{->-} → ((a : A) → IIR* X (B a)) →
     IIR* X ((a : A) → B a)
   pow A f = π A (π₀ ∘ f) , λ z a → π₁ (f a) (z a)
 \end{code}
@@ -226,38 +163,3 @@ module composition where
   emit  (γ • R) j = emit γ j ∘ π₁ (node γ j / R)
 \end{code}
 %</iir-comp>
-
-\begin{code}
-module induction where
-\end{code}
-
-%<*ind-all>
-\begin{code}
-  all :  {-<-} ∀ {X} {->-} (γ : poly X) {-<-}{D : 𝔽 X}{->-} → (P : {-<-}{i : Code X} →{->-} Code (D i) → Set) → Code (⟦ γ ⟧ᵢ D) → Set
-  all (ι i)    P x        = P x
-  all (κ A)    P x        = ⊤
-  all (σ A B)  P (a , b)  = Σ (all A P a) λ _ → all (B (decode (⟦ A ⟧ᵢ _) a)) P b
-  all (π A B)  P f        = (a : A) → all (B a) P (f a)
-\end{code}
-%</ind-all>
-
-%<*ind-everywhere>
-\begin{code}
-  every :  {-<-}∀ {X} {->-}(γ : poly X) {-<-}{D : 𝔽 X}{->-} → (P : {-<-}{i : Code X} →{->-} Code (D i) → Set) →
-           ({-<-}∀ {i}{->-} (x : Code (D i)) → P x) → (xs : Code (⟦ γ ⟧ᵢ D)) → all γ P xs
-  every (ι i)    _ p x        = p x
-  every (κ A)    P _ _        = *
-  every (σ A B)  P p (a , b)  = every A P p a , every (B (decode (⟦ A ⟧ᵢ _) a)) P p b
-  every (π A B)  P p f        = λ a → every (B a) P p (f a)
-\end{code}
-%</ind-everywhere>
-
-
-%<*induction>
-\begin{code}
-  induction :  {-<-}∀ {X} {->-}(γ : IIR X X) (P : {-<-}∀ {s i} →{->-} Code (μ γ {-<-}{s}{->-} i) → Set) →
-               ({-<-}∀ {s} {t : Size< s} {i}{->-} (xs : Code (⟦ γ ⟧ (μ γ {-<-}{t}{->-}) i)) → all (node γ i) P xs → P (⟨_⟩ {-<-}{s = s}{->-} xs)) →
-               {-<-}∀ {s i} {->-}(x : Code (μ γ {-<-}{s}{->-} i)) → P x
-  induction γ P p ⟨ xs ⟩ = p xs (every (node γ _) P (induction γ P p) xs)
-\end{code}
-%</induction>
