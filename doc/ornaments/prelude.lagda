@@ -53,8 +53,8 @@ A × B = Σ A λ _ → B
 
 %<*prop>
 \begin{code}
-data ⊥ : Set where
-data ⊤ : Set where * : ⊤
+data ⊥ {α} : Set α where
+data ⊤ {α} : Set α where * : ⊤
 \end{code}
 %</prop>
 
@@ -112,7 +112,10 @@ data _≡″_ {α} {A : Set α} (x : A) : A → Set α where
   refl : x ≡″ x
 {-# BUILTIN EQUALITY _≡″_  #-}
 
-to-eq : ∀ {α} {A B : Set α} {x y : A} → x ≡ y → x ≡″ y
+to-beq : ∀ {α} {A : Set α} {x y : A} → x ≡ y → x ≡″ y
+to-beq refl = refl
+
+to-eq : ∀ {α} {A : Set α} {x y : A} → x ≡″ y → x ≡ y
 to-eq refl = refl
 
 
