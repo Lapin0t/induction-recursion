@@ -150,4 +150,13 @@ _>>>_ : {-<-}∀ {α} {X : ISet (lsuc α)} {Y} → {->-}((i : Code X) → decode
 
 μ𝔽 : {X : Fam Set₁} → 𝔽 (Code X , Fam ∘ (decode X)) → 𝔽 X
 μ𝔽 F = λ i → μ (F i)-}
+
+
+record _⊂_ {α β} (X : ISet α) (Y : ISet β) : Set (α ⊔ β) where
+  constructor _,_
+  field
+    up : Code X → Code Y
+    down : (i : Code X) → decode Y (up i) → decode X i
+open _⊂_ public
+
 \end{code}

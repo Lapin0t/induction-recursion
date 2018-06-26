@@ -48,12 +48,7 @@ record IIR (X Y : ISet (lsuc α)) : Set (lsuc α) where
 
 \begin{code}
 open IIR public
-
-_#_ : ∀ {X Y Z} (f : decode Y ⟶̇ Z) → IIR X Y → IIR X (_ , Z)
-node (f # α) = node α
-emit (f # α) j = f j ∘ emit α j
 \end{code}
-
 
 %<*fam-info>
 \begin{code}
