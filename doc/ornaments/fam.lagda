@@ -9,7 +9,7 @@ open import ornaments.prelude
 
 %<*fam-def>
 \begin{code}
-record Fam {-<-}{α} {->-}(X : Set (lsuc α)) : Set (lsuc α) where
+record Fam (α : Level) {-<-}{β} {->-}(X : Set β) : Set (lsuc α ⊔ β) where
   constructor _,_
   field
     Code : Set α
@@ -23,20 +23,23 @@ open Fam public
 
 %<*fam-set1>
 \begin{code}
-ISet : (α : Level) → Set (lsuc α)
-ISet α = Fam (Set α)
+ISet : (α β : Level) → Set (lsuc (α ⊔ β))
+ISet α β = Fam α (Set β)
 
-El : ∀ {α} → ISet α → Set α
-El A = Σ (Code A) (λ i → decode A i)
+el : ∀ {α β} → ISet α β → Set (α ⊔ β)
+el X = (i : Code X) → decode X i
+
+sing : ∀ {α β} → ISet α β → Set (α ⊔ β)
+sing X = Σ (Code X) (decode X)
 \end{code}
 %</fam-set1>
 
 %<*morph>
 \begin{code}
-_⟶̃_ : {-<-}∀ {α X} → {->-}Fam {α} X → Fam {α} X → Set (lsuc α)
+_⟶̃_ : {-<-}∀ {α₀ α₁ β} {X : Set β} → {->-}Fam α₀ X → Fam α₁ X → Set (α₀ ⊔ α₁ ⊔ β)
 F ⟶̃ G = (i : Code F) → Σ (Code G) λ j → decode G j ≡ decode F i
 
-_∘̃_ : {-<-}∀ {α X} {F G H : Fam {α} X} → {->-}G ⟶̃ H → F ⟶̃ G → F ⟶̃ H
+_∘̃_ : {-<-}∀ {α β} {X : Set β} {F G H : Fam α X} → {->-}G ⟶̃ H → F ⟶̃ G → F ⟶̃ H
 (f ∘̃ g) x = π₀ $ f $ π₀ $ g x , trans ((π₁ ∘ f) (π₀ $ g x)) (π₁ $ g x)
 \end{code}
 %</morph>
@@ -44,7 +47,7 @@ _∘̃_ : {-<-}∀ {α X} {F G H : Fam {α} X} → {->-}G ⟶̃ H → F ⟶̃ G 
 \begin{code}
 infix 22 _⟶̃_
 
-∘̃-assoc : ∀ {α X} {F G H I : Fam {α} X} {f : F ⟶̃ G} {g : G ⟶̃ H} {h : H ⟶̃ I} → (h ∘̃ g) ∘̃ f ≡ h ∘̃ (g ∘̃ f)
+∘̃-assoc : ∀ {α β} {X : Set β} {F G H I : Fam α X} {f : F ⟶̃ G} {g : G ⟶̃ H} {h : H ⟶̃ I} → (h ∘̃ g) ∘̃ f ≡ h ∘̃ (g ∘̃ f)
 ∘̃-assoc = funext λ x → cong-Σ refl (uoip _ _)
 \end{code}
 
@@ -52,7 +55,7 @@ infix 22 _⟶̃_
 \begin{code}
 infix 25 _>>_
 
-_>>_ : {-<-}∀ {α} {X Y : Set (lsuc α)} → {->-}(X → Y) → Fam X → Fam Y
+_>>_ : {-<-}∀ {α β δ} {X : Set β} {Y : Set δ} → {->-}(X → Y) → Fam α X → Fam α Y
 Code    (f >> F) = Code F
 decode  (f >> F) = f ∘ decode F
 \end{code}
@@ -60,7 +63,7 @@ decode  (f >> F) = f ∘ decode F
 
 %<*post-comp-arr>
 \begin{code}
-_<$>>_ : ∀ {α} {X Y : Set (lsuc α)} (f : X → Y) {A B : Fam X} → A ⟶̃ B → f >> A ⟶̃ f >> B
+_<$>>_ : ∀ {α β δ} {X : Set β} {Y : Set δ} (f : X → Y) {A B : Fam α X} → A ⟶̃ B → f >> A ⟶̃ f >> B
 (f <$>> h) i = π₀ $ h i , cong f (π₁ $ h i)
 \end{code}
 %</post-comp-arr>
@@ -69,30 +72,36 @@ _<$>>_ : ∀ {α} {X Y : Set (lsuc α)} (f : X → Y) {A B : Fam X} → A ⟶̃ 
 %<*fam-pi>
 %format π  = "\FCT{π}"
 \begin{code}
-π : ∀ {α} (A : Set α) {-<-}{X : A → Set (lsuc α)} {->-}(B : (a : A) → Fam (X a)) → Fam ((a : A) → X a)
+π : ∀ {α β δ} (A : Set α) {-<-}{X : A → Set δ} {->-}(B : (a : A) → Fam β (X a)) → Fam (α ⊔ β) ((a : A) → X a)
 Code    (π A B)      = (a : A) → Code (B a)
 decode  (π A B) f a  = decode (B a) (f a)
 \end{code}
 %</fam-pi>
 
+%<*fam-pi-arr>
+\begin{code}
+π→ : ∀ {α β₀ β₁ δ} {A : Set α} {X : A → Set δ} {B₀ : (a : A) → Fam β₀ (X a)} {B₁ : (a : A) → Fam β₁ (X a)} → ((a : A) → B₀ a ⟶̃ B₁ a) → π A B₀ ⟶̃ π A B₁
+π→ F i = (λ a → π₀ $ F a (i a)) , funext λ a → π₁ $ F a (i a)
+\end{code}
+%</fam-pi-arr>
 
 %<*fam-sg>
 %format σ = "\FCT{σ}"
 \begin{code}
-σ : {-<-}∀ {α} {X : Set (lsuc α)} {Y : X → Set (lsuc α)} → {->-}(A : Fam X) → (B : (x : X) → Fam (Y x)) → Fam (Σ X Y)
+σ : {-<-}∀ {α β δ γ} {X : Set δ} {Y : X → Set γ} → {->-}(A : Fam α X) → (B : (x : X) → Fam β (Y x)) → Fam (α ⊔ β) (Σ X Y)
 Code    (σ A B)          = Σ (Code A) λ a → Code (B (decode A a))
-decode  (σ A B) (a , b)  = (decode A a , decode (B _) b)
+decode  (σ A B) (a , b)  = decode A a , decode (B _) b
 \end{code}
 %</fam-sg>
 
 %<*fam-sg-arr>
 \begin{code}
-σ-⟶̃ : ∀ {α} {X : Set (lsuc α)} {Y : X → Set (lsuc α)} {A₀ A₁ : Fam X} {B₀ B₁ : (x : X) → Fam (Y x)} → (pa : A₀ ⟶̃ A₁) → ((a : Code A₀) → B₀ (decode A₀ a) ⟶̃ B₁ (decode A₀ a)) → σ A₀ B₀ ⟶̃ σ A₁ B₁
-σ-⟶̃ {A₀ = A₀} {B₁ = B₁} pa pb (a , b) =
-  let a' , eqa = pa a in
-  let b' , eqb = pb a b in
-  (a' , subst (Code ∘ B₁) (sym eqa) b') ,
-  cong-Σ eqa (trans (cong₂ (decode ∘ B₁) eqa (subst-elim _ $ sym eqa)) eqb)
+σ→ : ∀ {α₀ α₁ β₀ β₁ δ γ} {X : Set δ} {Y : X → Set γ} {A₀ : Fam α₀ X} {A₁ : Fam α₁ X} {B₀ : (x : X) → Fam β₀ (Y x)} (B₁ : (x : X) → Fam β₁ (Y x)) →
+     A₀ ⟶̃ A₁ → ((a : Code A₀) → B₀ (decode A₀ a) ⟶̃ B₁ (decode A₀ a)) → σ A₀ B₀ ⟶̃ σ A₁ B₁
+σ→ B₁ F G (a , b) =
+  let a' , p = F a in
+  let b' , q = G a b in
+  (a' , subst (Code ∘ B₁) (sym p) b') , cong-Σ p (trans (cong₂ (decode ∘ B₁) p (subst-elim _ $ sym p)) q)
 \end{code}
 %</fam-sg-arr>
 
@@ -118,14 +127,14 @@ decode  (σ A B) (a , b)  = (decode A a , decode (B _) b)
 
 %<*ifam>
 \begin{code}
-𝔽 : ∀ {α} → ISet (lsuc α) → Set (lsuc α)
-𝔽 (I , X) = (i : I) → Fam (X i)
+𝔽 : ∀ {α β} → ISet α β → Set (lsuc α ⊔ β)
+𝔽 {α} (I , X) = (i : I) → Fam α (X i)
 \end{code}
 %</ifam>
 
 %<*ifam-arr>
 \begin{code}
-_⇒_ : {-<-}∀ {α} {X : ISet (lsuc α)} → {->-}𝔽 X → 𝔽 X → Set (lsuc α)
+_⇒_ : {-<-}∀ {α β} {X : ISet α β} → {->-}𝔽 X → 𝔽 X → Set (α ⊔ β)
 F ⇒ G = (i : _) → F i ⟶̃ G i
 \end{code}
 %</ifam-arr>
@@ -135,15 +144,16 @@ F ⇒ G = (i : _) → F i ⟶̃ G i
 \begin{code}
 infixr 20 _⊙_
 
-_⊙_ : ∀ {α} {X : ISet (lsuc α)} {F G H : 𝔽 X} → G ⇒ H → F ⇒ G → F ⇒ H
+_⊙_ : ∀ {α β} {X : ISet α β} {F G H : 𝔽 X} → G ⇒ H → F ⇒ G → F ⇒ H
 (f ⊙ g) i = (f i) ∘̃ (g i)
 
-
-⊙-assoc : ∀ {α} {X : ISet (lsuc α)} {F G H I : 𝔽 X} {f : F ⇒ G} {g : G ⇒ H} {h : H ⇒ I} → (h ⊙ g) ⊙ f ≡ h ⊙ (g ⊙ f)
+⊙-assoc : ∀ {α β} {X : ISet α β} {F G H I : 𝔽 X} {f : F ⇒ G} {g : G ⇒ H} {h : H ⇒ I} → (h ⊙ g) ⊙ f ≡ h ⊙ (g ⊙ f)
 ⊙-assoc {f = f} {g = g} {h = h} = funext λ i → ∘̃-assoc {f = f i} {g = g i} {h = h i}
 
-_>>>_ : {-<-}∀ {α} {X : ISet (lsuc α)} {Y} → {->-}((i : Code X) → decode X i → Y i) → 𝔽 X → 𝔽 (Code X , Y)
+_>>>_ : {-<-}∀ {α β γ} {X : ISet α β} {Y : Code X → Set γ} → {->-}((i : Code X) → decode X i → Y i) → 𝔽 X → 𝔽 (Code X , Y)
 (f >>> F) i = f i >> F i
+
+
 
 {-η𝔽 : {X : Fam Set₁} {i : Code X} → decode X i → Fam (decode X i)
 η𝔽 x = η x
@@ -152,7 +162,7 @@ _>>>_ : {-<-}∀ {α} {X : ISet (lsuc α)} {Y} → {->-}((i : Code X) → decode
 μ𝔽 F = λ i → μ (F i)-}
 
 
-record _⊂_ {α β} (X : ISet α) (Y : ISet β) : Set (α ⊔ β) where
+record _⊂_ {α β δ γ} (X : ISet α δ) (Y : ISet β γ) : Set (α ⊔ β ⊔ δ ⊔ γ) where
   constructor _,_
   field
     up : Code X → Code Y

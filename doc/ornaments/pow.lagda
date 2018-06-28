@@ -4,30 +4,28 @@
 \begin{code}
 module ornaments.pow where
 open import ornaments.prelude
-open import ornaments.fam --using (Fam; Code; decode; 𝔽; _⇒_; ISet)
+open import ornaments.fam hiding (el)
 
-record Pow (X : Set₁) : Set₂ where
+record Pow (α : Level) {β} (X : Set β) : Set (lsuc (α ⊔ β)) where
   constructor _,_
   field
-    PCode : Set
-    Rel : PCode → X → Set₁
-
---  field
+    PCode : Set α
+    Rel : PCode → X → Set β
 --    func : ∀ {a x y} → Rel a x → Rel a y → x ≡ y
 --    tot : (a : PCode) → Σ X (λ x → Rel a x)
-
 open Pow public
 
-el : ∀ {X} → Pow X → X → Set₁
+
+el : ∀ {α β} {X : Set β} → Pow α X → X → Set (α ⊔ β)
 el P x = Σ (PCode P) (λ i → Rel P i x)
 
-_⟶̊_ : ∀ {X} → Pow X → Pow X → Set₁
+_⟶̊_ : ∀ {α β} {X : Set β} → Pow α X → Pow α X → Set (α ⊔ β)
 P ⟶̊ Q = (x : _) → el P x → el Q x
 
-ℙ : (X : Fam Set₁) → Set₂
-ℙ X = (i : _) → Pow (decode X i)
+ℙ : ∀ {α β} (X : ISet α β) → Set (lsuc (α ⊔ β))
+ℙ {α} X = (i : _) → Pow α (decode X i)
 
-_⇒̊_ : ∀ {X} → ℙ X → ℙ X → Set₁
+_⇒̊_ : ∀ {α β} {X : ISet α β} → ℙ X → ℙ X → Set (α ⊔ β)
 P ⇒̊ Q = (i : _) → P i ⟶̊ Q i
 
 
@@ -50,7 +48,7 @@ Rel    (π A B) f p  = (a : A) → Rel (B a) (f a) (p a)
 func   (π A B) r₁ r₂ = funext λ a → func (B a) (r₁ a) (r₂ a)
 tot    (π A B) f    = let aux = λ a → tot (B a) (f a) in (π₀ ∘ aux , π₁ ∘ aux)-}
 
-record iso {X} (F : 𝔽 X) (R : (i : _) → Code (F i) → decode X i → Set₁) : Set₁ where
+record iso {α β} {X : ISet α β} (F : 𝔽 X) (R : (i : _) → Code (F i) → decode X i → Set β) : Set (α ⊔ β) where
   field
     to : ∀ {i x} → R i x (decode (F i) x)
     from : ∀ {i x y} → R i x y → decode (F i) x ≡′ y
@@ -58,31 +56,49 @@ record iso {X} (F : 𝔽 X) (R : (i : _) → Code (F i) → decode X i → Set�
   i-pow : ℙ X
   PCode  (i-pow i)        = Code (F i)
   Rel    (i-pow i)        = R i
-  --func   (i-pow i) r₁ r₂  = trans (sym (from r₁)) (from r₂)
-  --tot    (i-pow i) a      = decode (F i) a , to
-
 open iso public
 
 
-trans-arr : ∀ {X} {F G : 𝔽 X} {P Q} (A : iso F P) (B : iso G Q) → i-pow A ⇒̊ i-pow B → F ⇒ G
+trans-arr : ∀ {α β} {X : ISet α β} {F G : 𝔽 X} {P Q} (A : iso F P) (B : iso G Q) → i-pow A ⇒̊ i-pow B → F ⇒ G
 trans-arr A B f i x with f i _ (x , to A)
 ...                 | x′ , q = x′ , from B q
 
-PFam : ∀ {X} → ℙ X → ISet
+PFam : ∀ {α β} {X : ISet α β} → ℙ X → ISet α β
 Code (PFam P) = Σ _ (PCode ∘ P)
 decode (PFam P) (i , j) = Σ _ (Rel (P i) j)
 
-orn-ℙ : ∀ {X} (P : ℙ X) (F : 𝔽 X) → Set₁
-orn-ℙ P F = (i : Code (PFam P)) → (x : Code (F $ π₀ i)) → Σ Set λ A → A → Rel (P $ π₀ i) (π₁ i) (decode (F $ π₀ i) x)
+record PObj {α β} {X : ISet α β} (P : ℙ X) : Set (lsuc α ⊔ β) where
+  field
+    ifam : 𝔽 X
+    addon : (i : Code (PFam P)) (x : Code (ifam $ π₀ i)) → Fam α (Rel (P $ π₀ i) (π₁ i) (decode (ifam $ π₀ i) x))
 
-P→F : ∀ {X} {P : ℙ X} {F : 𝔽 X} → orn-ℙ P F → 𝔽 (PFam P)
-Code (P→F A i) = Σ _ (π₀ ∘ A i)
-decode (P→F A i) (x , y) = _ , π₁ (A i x) y
+  pfam : 𝔽 (PFam P)
+  Code (pfam i) = Σ _ (Code ∘ addon i)
+  decode (pfam i) (x , y) = _ , decode (addon i x) y
 
-π₀>_ : ∀ {X} {A : X → Set₁} {B : (x : X) → A x → Set₁} → 𝔽 (X , λ x → Σ (A x) (B x)) → 𝔽 (X , A)
+open PObj public
+
+--PFObj {α} {_} {X} P = Σ (𝔽 X) λ F → (i : Code (PFam P)) (x : Code (F $ π₀ i)) → Fam α (Rel (P $ π₀ i) (π₁ i) (decode (F $ π₀ i) x))
+--(i : Code X) → Σ (Fam α (decode X i)) λ F → (j : PCode (P i)) → (x : Code F) → Fam α (Rel (P i) j (decode F x))
+
+--to-fam : ∀ {α β} {X : ISet α β} {P : ℙ X} → PFObj P → 𝔽 X
+--to-fam P = π₀ P
+
+--to-pfam : ∀ {α β} {X : ISet α β} {P : ℙ X} → PFObj P → 𝔽 (PFam P)
+--Code (to-pfam P i) = Σ _ (Code ∘ π₁ P i)
+--decode (to-pfam P i) (x , y) = _ , decode (π₁ P i x) y
+
+orn-ℙ : ∀ {α β} {X : ISet α β} (P : ℙ X) (F : 𝔽 X) → Set (lsuc α ⊔ β)
+orn-ℙ {α} P F = (i : Code (PFam P)) → (x : Code (F $ π₀ i)) → Fam α (Rel (P $ π₀ i) (π₁ i) (decode (F $ π₀ i) x))
+
+P→F : ∀ {α β} {X : ISet α β} {P : ℙ X} {F : 𝔽 X} → orn-ℙ P F → 𝔽 (PFam P)
+Code (P→F A i) = Σ _ (Code ∘ A i)
+decode (P→F A i) (x , y) = _ , decode (A i x) y
+
+π₀>_ : ∀ {α β} {X : Set α} {A : X → Set β} {B : (x : X) → A x → Set β} → 𝔽 (X , λ x → Σ (A x) (B x)) → 𝔽 (X , A)
 (π₀> F) i = π₀ >> F i
 
-F→P : ∀ {X} → 𝔽 X → ℙ X
+F→P : ∀ {α β} {X : ISet α β} → 𝔽 X → ℙ X
 PCode (F→P F i) = Code (F i)
 Rel (F→P F i) x y = decode (F i) x ≡ y
 --func (F→P F i) r₁ r₂ = trans (sym r₁) r₂

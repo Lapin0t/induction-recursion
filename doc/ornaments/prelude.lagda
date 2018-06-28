@@ -13,7 +13,7 @@ open import Agda.Builtin.Size hiding (↑_) public
 
 %<*lift>
 \begin{code}
-record Lift {α} (A : Set α) : Set (lsuc α) where
+record Lift {α} (β : Level) (A : Set α) : Set (α ⊔ β) where
   constructor lift
   field lower : A
 \end{code}
