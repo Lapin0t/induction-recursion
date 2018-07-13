@@ -2,30 +2,35 @@
 %include ornaments.fmt
 
 \begin{code}
-module ornaments.iir {α β} where
+module ornaments.iir where
 
 open import ornaments.prelude
 open import ornaments.fam hiding (σ; π)
+
+variable
+  {α} : Level  -- level of the index set
+  {β} : Level  -- level of the output set
+  {γ} : Level  -- level of the code set
+  {X Y} : ISet α β
 \end{code}
 
 
 ------------------------------------------------------------------------
 -- Codes.
 
-
 %<*codes>
 \begin{code}
-data poly (X : ISet α β) : Set (lsuc α ⊔ β)
-info : {-<-}∀ {X} →{->-} poly X → Set (α ⊔ β)
+data poly {α β} (γ : Level) (X : ISet α β) : Set (lsuc α ⊔ β ⊔ lsuc γ)
+info : {X : ISet α β} → poly γ X → Set (β ⊔ γ)
 
-data poly X where
-  ι : Code X → poly X
-  κ : (A : Set α) → poly X
-  σ : (A : poly X) → (B : info A → poly X) → poly X
-  π : (A : Set α) → (B : A → poly X) → poly X
+data poly γ X where
+  ι : Code X → poly γ X
+  κ : (A : Set γ) → poly γ X
+  σ : (A : poly γ X) → (B : info A → poly γ X) → poly γ X
+  π : (A : Set γ) → (B : A → poly γ X) → poly γ X
 
-info {-<-}{X} {->-}(ι i)      = Lift α (decode X i)
-info (κ A)      = Lift β A
+info {-<-}{γ = γ}{X}{->-}(ι i)      = Lift γ (decode X i)
+info {-<-}{β = β}{->-}(κ A)      = Lift β A
 info (σ A B)    = Σ (info A) λ x → info (B x)
 info (π A B)    = (a : A) → info (B a)
 \end{code}
@@ -38,10 +43,10 @@ info (π A B)    = (a : A) → info (B a)
 
 %<*iir>
 \begin{code}
-record IIR (X Y : ISet α β) : Set (lsuc α ⊔ β) where
+record IIR {α β} (γ : Level) (X Y : ISet α β) : Set (lsuc α ⊔ β ⊔ lsuc γ) where
   constructor _,_
   field
-    node : (j : Code Y) → poly X
+    node : (j : Code Y) → poly γ X
     emit : (j : Code Y) → info (node j) → decode Y j
 \end{code}
 %</iir>
@@ -52,7 +57,7 @@ open IIR public
 
 %<*fam-info>
 \begin{code}
-⟦_⟧ᵢ : {-<-}∀ {X} →{->-} (γ : poly X) → 𝔽 X → Fam α (info γ)
+⟦_⟧ᵢ : (ρ : poly γ X) → 𝔽 γ X → Fam γ (info ρ)
 ⟦ ι i    ⟧ᵢ F = lift >> F i
 ⟦ κ A    ⟧ᵢ F = A , lift
 ⟦ σ A B  ⟧ᵢ F = ornaments.fam.σ (⟦ A ⟧ᵢ F) λ a → ⟦ B a ⟧ᵢ F
@@ -62,8 +67,8 @@ open IIR public
 
 %<*fct-obj>
 \begin{code}
-⟦_⟧ : {-<-}∀ {X Y} →{->-} (γ : IIR X Y) → 𝔽 X → 𝔽 Y
-⟦ γ ⟧ F j = emit γ j >> ⟦ node γ j ⟧ᵢ F
+⟦_⟧ : IIR γ X Y → 𝔽 γ X → 𝔽 γ Y
+⟦ ρ ⟧ F = λ j → emit ρ j >> ⟦ node ρ j ⟧ᵢ F
 \end{code}
 %</fct-obj>
 
@@ -73,7 +78,7 @@ open IIR public
 %format aux = "\FCT{aux}"
 %<*fct-hom-i>
 \begin{code}
-⟦_⟧[_]ᵢ : {-<-}∀ {X}{->-} (γ : poly X) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ γ ⟧ᵢ F ⟶̃ ⟦ γ ⟧ᵢ G
+⟦_⟧[_]ᵢ : (ρ : poly γ X) {-<-}{F G : 𝔽 γ X}{->-} → F ⇒ G → ⟦ ρ ⟧ᵢ F ⟶̃ ⟦ ρ ⟧ᵢ G
 ⟦ ι i    ⟧[ φ ]ᵢ x = (lift <$>> φ i) $ x
 ⟦ κ A    ⟧[ φ ]ᵢ a = a , refl
 ⟦_⟧[_]ᵢ (σ A B) {F} {G} φ (a , b) = --σ→ (λ x → ⟦ B x ⟧ᵢ G) ⟦ A ⟧[ φ ]ᵢ (λ a → ⟦ B (decode (⟦ A ⟧ᵢ F) a) ⟧[ φ ]ᵢ) x
@@ -88,8 +93,8 @@ open IIR public
 
 %<*fct-hom>
 \begin{code}
-⟦_⟧[_] : {-<-}∀ {X Y}{->-} (γ : IIR X Y) {-<-}{F G : 𝔽 X}{->-} → F ⇒ G → ⟦ γ ⟧ F ⇒ ⟦ γ ⟧ G
-⟦ γ ⟧[ φ ] j = emit γ j <$>> ⟦ node γ j ⟧[ φ ]ᵢ
+⟦_⟧[_] : (ρ : IIR γ X Y) {-<-}{F G : 𝔽 γ X}{->-} → F ⇒ G → ⟦ ρ ⟧ F ⇒ ⟦ ρ ⟧ G
+⟦ ρ ⟧[ φ ] = λ j → emit ρ j <$>> ⟦ node ρ j ⟧[ φ ]ᵢ
 \end{code}
 %</fct-hom>
 

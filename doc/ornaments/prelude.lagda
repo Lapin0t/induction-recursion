@@ -5,7 +5,7 @@
 module ornaments.prelude where
 
 open import Agda.Primitive public
-open import Agda.Builtin.Size hiding (↑_) public
+open import Agda.Builtin.Size public
 \end{code}
 
 
@@ -75,8 +75,8 @@ f $ x = f x
 --app : {-<-}∀ {α β} {A : Set α} {B : A → Set β}{->-} (x : A) (f : (a : A) → B a) → B x
 --app x f = f x
 
-S : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : (a : A) → B a → Set γ} (x : (a : A) → (b : B a) → C a b) (y : (a : A) → B a) → (a : A) → C a (y a)
-S x y z = x z (y z)
+--S : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : (a : A) → B a → Set γ} (x : (a : A) → (b : B a) → C a b) (y : (a : A) → B a) → (a : A) → C a (y a)
+--S x y z = x z (y z)
 
 _⟶̇_ : {-<-}∀ {α β γ} {I : Set α} →{->-} (I → Set β) → (I → Set γ) → Set (α ⊔ β ⊔ γ)
 _⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
@@ -90,16 +90,6 @@ _⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
 data _≡_ {-<-}{α} {A : Set α}{->-} (x : A) : {-<-}{B : Set α} →{->-} B → Set α where refl : x ≡ x
 \end{code}
 %</equality>
-
-\begin{code}
-postulate
-\end{code}
-
-%<*funext>
-\begin{code}
-  funext : {-<-}∀ {α β} {A : Set α} {B₀ B₁ : A → Set β} {f : (x : A) → B₀ x} {g : (x : A) → B₁ x} → {->-}((x : A) → f x ≡ g x) → f ≡ g
-\end{code}
-%</funext>
 
 % utils for equality
 \begin{code}
@@ -150,3 +140,18 @@ cong-Σ refl refl = refl
 subst-≡ : {A₀ A₁ : Set₁} → {B₀ B₁ : A₁ → Set₁} → (p : A₀ ≡ A₁) → (B₀ ≡ B₁) → B₀ ∘ subst (λ x → x) p ≡ B₁
 subst-≡ refl refl = refl
 \end{code}
+
+\begin{code}
+postulate
+\end{code}
+
+%<*funext>
+\begin{code}
+  funext₁ : {-<-}∀ {α β} {A₀ A₁ : Set α} {B₀ : A₀ → Set β} {B₁ : A₁ → Set β}
+           {f : (x : A₀) → B₀ x} {g : (x : A₁) → B₁ x} → {->-} (p : A₀ ≡ A₁) →
+           ((x : A₀) → f x ≡ g (subst (λ s → s) p x)) → f ≡ g
+funext : {-<-}∀ {α β} {A : Set α} {B₀ B₁ : A → Set β} {f : (x : A) → B₀ x} {g : (x : A) → B₁ x} → {->-} ((x : A) → f x ≡ g x) → f ≡ g
+funext p = funext₁ refl p
+\end{code}
+%</funext>
+
