@@ -39,11 +39,13 @@ decode (Ref F) (i , j) x = decode (F i) j ≡ x
 record PObj {α₀ α₁ β₀ β₁} {X : ISet α₀ β₀} (γ₀ γ₁ : Level) (R : PRef α₁ β₁ X) : Set (α₀ ⊔ β₀ ⊔ α₁ ⊔ β₁ ⊔ lsuc γ₀ ⊔ lsuc γ₁) where
   field
     ifam : 𝔽 γ₀ X
-    addon : (j : Code $ PFam R) → (x : decode X $ down R j) → Fam γ₁ $ decode R j x
+    pfam : 𝔽 (γ₀ ⊔ γ₁) (PFam R)
+    arr : (π₀> pfam) ⇒ (ifam ∘ down R)
+    --addon : (j : Code $ PFam R) → (x : decode X $ down R j) → Fam γ₁ $ decode R j x
 
-  pfam : 𝔽 (γ₀ ⊔ γ₁) (PFam R)
-  Code (pfam j) = Σ (Code ∘ ifam $ down R j) λ x → Code ∘ addon j $ decode (ifam $ down R j) x
-  decode (pfam j) (x , y) = _ , decode (addon j $ decode (ifam $ down R j) x) y
+  --pfam : 𝔽 (γ₀ ⊔ γ₁) (PFam R)
+  --Code (pfam j) = Σ (Code ∘ ifam $ down R j) λ x → Code ∘ addon j $ decode (ifam $ down R j) x
+  --decode (pfam j) (x , y) = _ , decode (addon j $ decode (ifam $ down R j) x) y
 open PObj public
 
 {-el : ∀ {α β} {X : Set β} → Pow α X → X → Set (α ⊔ β)
