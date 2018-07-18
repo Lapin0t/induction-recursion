@@ -5,12 +5,13 @@
 module ornaments.iir where
 
 open import ornaments.prelude
-open import ornaments.fam hiding (σ; π)
+open import ornaments.fam renaming (σ to f-σ; π to f-π; σ→ to f-σ→; π→ to f-π→)
 
 variable
   {α} : Level  -- level of the index set
   {β} : Level  -- level of the output set
   {γ} : Level  -- level of the code set
+  {δ ε} : Level
   {X Y} : ISet α β
 \end{code}
 
@@ -57,17 +58,17 @@ open IIR public
 
 %<*fam-info>
 \begin{code}
-⟦_⟧ᵢ : (ρ : poly γ X) → 𝔽 γ X → Fam γ (info ρ)
-⟦ ι i    ⟧ᵢ F = lift >> F i
-⟦ κ A    ⟧ᵢ F = A , lift
-⟦ σ A B  ⟧ᵢ F = ornaments.fam.σ (⟦ A ⟧ᵢ F) λ a → ⟦ B a ⟧ᵢ F
-⟦ π A B  ⟧ᵢ F = ornaments.fam.π A λ a → ⟦ B a ⟧ᵢ F
+⟦_⟧ᵢ : (ρ : poly γ X) → 𝔽 δ X → Fam (γ ⊔ δ) (info ρ)
+⟦_⟧ᵢ {γ = γ} (ι i) F = lift >> lft γ F i --lift >> F i
+⟦_⟧ᵢ {δ = δ} (κ A) F = Lift δ A , lift ∘ lower
+⟦ σ A B  ⟧ᵢ F = f-σ (⟦ A ⟧ᵢ F) λ a → ⟦ B a ⟧ᵢ F
+⟦ π A B  ⟧ᵢ F = f-π A λ a → ⟦ B a ⟧ᵢ F
 \end{code}
 %</fam-info>
 
 %<*fct-obj>
 \begin{code}
-⟦_⟧ : IIR γ X Y → 𝔽 γ X → 𝔽 γ Y
+⟦_⟧ : IIR γ X Y → 𝔽 δ X → 𝔽 (δ ⊔ γ) Y
 ⟦ ρ ⟧ F = λ j → emit ρ j >> ⟦ node ρ j ⟧ᵢ F
 \end{code}
 %</fct-obj>
@@ -78,23 +79,19 @@ open IIR public
 %format aux = "\FCT{aux}"
 %<*fct-hom-i>
 \begin{code}
-⟦_⟧[_]ᵢ : (ρ : poly γ X) {-<-}{F G : 𝔽 γ X}{->-} → F ⇒ G → ⟦ ρ ⟧ᵢ F ⟶̃ ⟦ ρ ⟧ᵢ G
-⟦ ι i    ⟧[ φ ]ᵢ x = (lift <$>> φ i) $ x
-⟦ κ A    ⟧[ φ ]ᵢ a = a , refl
-⟦_⟧[_]ᵢ (σ A B) {F} {G} φ (a , b) = --σ→ (λ x → ⟦ B x ⟧ᵢ G) ⟦ A ⟧[ φ ]ᵢ (λ a → ⟦ B (decode (⟦ A ⟧ᵢ F) a) ⟧[ φ ]ᵢ) x
-  let Bᵢ x = ⟦ B x ⟧ᵢ _ in
-  let (a' , eqa) = ⟦ A ⟧[ φ ]ᵢ a in
-  let (b' , eqb) = ⟦ B (decode (⟦ A ⟧ᵢ _) a) ⟧[ φ ]ᵢ b in
-  (a' , subst (Code ∘ Bᵢ) (sym eqa) b') ,
-  (cong-Σ eqa (trans (cong₂ (decode ∘ Bᵢ) eqa (subst-elim _ $ sym eqa)) eqb))
-⟦ π A B  ⟧[ φ ]ᵢ = π→ λ a → ⟦ B a ⟧[ φ ]ᵢ
+⟦_⟧[_]ᵢ : (ρ : poly γ X){-<-}{F : 𝔽 δ X}{G : 𝔽 ε X}{->-} → F ⇒ G → ⟦ ρ ⟧ᵢ F ⟶̃ ⟦ ρ ⟧ᵢ G
+⟦ ι i    ⟧[ φ ]ᵢ = λ x → (lift $ π₀ $ φ i (lower x)) , cong lift $ π₁ $ φ i (lower x)
+⟦ κ A    ⟧[ φ ]ᵢ = λ a → lift $ lower a , refl
+⟦ σ A B  ⟧[ φ ]ᵢ = f-σ→ (λ a → ⟦ B a ⟧ᵢ _) (λ a → ⟦ B a ⟧ᵢ _) ⟦ A ⟧[ φ ]ᵢ
+                        (λ a → ⟦ B $ decode (⟦ A ⟧ᵢ _) a ⟧[ φ ]ᵢ)
+⟦ π A B  ⟧[ φ ]ᵢ = f-π→ λ a → ⟦ B a ⟧[ φ ]ᵢ
 \end{code}
 %</fct-hom-i>
 
 %<*fct-hom>
 \begin{code}
-⟦_⟧[_] : (ρ : IIR γ X Y) {-<-}{F G : 𝔽 γ X}{->-} → F ⇒ G → ⟦ ρ ⟧ F ⇒ ⟦ ρ ⟧ G
-⟦ ρ ⟧[ φ ] = λ j → emit ρ j <$>> ⟦ node ρ j ⟧[ φ ]ᵢ
+⟦_⟧[_] : (ρ : IIR γ X Y) {-<-}{F : 𝔽 δ X}{G : 𝔽 ε X}{->-} → F ⇒ G → ⟦ ρ ⟧ F ⇒ ⟦ ρ ⟧ G
+⟦ ρ ⟧[ φ ] j = emit ρ j <$>> ⟦ node ρ j ⟧[ φ ]ᵢ
 \end{code}
 %</fct-hom>
 
@@ -108,22 +105,22 @@ module composition where
 
 %<*iir-star>
 \begin{code}
-  --IIR* : ISet ? (lsuc α) → Set (lsuc α) → Set (lsuc α)
-  --IIR* X Y = Σ (poly X) λ n → info n → Y
+  IIR* : (γ : Level) → ISet α β → Set β → Set (lsuc α ⊔ β ⊔ lsuc γ)
+  IIR* γ X Y = Σ (poly γ X) λ n → info n → Y
 \end{code}
 %</iir-star>
 
 %<*iir-eta>
 \begin{code}
-  --eta : {-<-}∀ {X Y} →{->-} Y → IIR* X Y
-  --eta y = κ ? , λ _ → y
+  eta : ∀ {Y} → Y → IIR* γ X Y
+  eta y = κ ⊤ , λ _ → y
 \end{code}
 %</iir-eta>
 
 %<*iir-mu>
 \begin{code}
-  --mu : {-<-}∀ {X Y} →{->-} IIR* X (IIR* X Y) → IIR* X Y
-  --mu (n₀ , e₀) = σ n₀ (λ z → π₀ (e₀ z)) , λ { (n₁ , e₁) → π₁ (e₀ n₁) e₁ }
+  mu : ∀ {X : ISet α (lsuc α ⊔ β ⊔ lsuc γ)} {Y} → IIR* γ X (IIR* γ X Y) → IIR* γ X Y
+  mu (p , e) = σ p (λ x → π₀ (e x)) , λ { (x , y) → π₁ (e x) y }
 \end{code}
 %</iir-mu>
 
@@ -131,9 +128,8 @@ module composition where
 
 %<*iir-pow>
 \begin{code}
-  --pow : {-<-}∀ {X}{->-} (A : Set α) {-<-}{B : A → Set (lsuc α)}{->-} → ((a : A) → IIR* X (B a)) →
-  --  IIR* X ((a : A) → B a)
-  --pow A f = π A (π₀ ∘ f) , λ z a → π₁ (f a) (z a)
+  pow : {X : ISet α (α ⊔ β)} (A : Set α) {B : A → Set (α ⊔ β)} → ((a : A) → IIR* (α ⊔ γ) X (B a)) → IIR* (α ⊔ γ) X ((a : A) → B a)
+  pow {γ = γ} A ρ = π (Lift γ A) (π₀ ∘ ρ ∘ lower) , λ z a → π₁ (ρ a) (z $ lift a)
 \end{code}
 %</iir-pow>
 

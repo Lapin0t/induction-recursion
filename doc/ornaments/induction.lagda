@@ -2,17 +2,18 @@
 %include ornaments.fmt
 
 \begin{code}
+{--# OPTIONS --experimental-irrelevance #-}
 module ornaments.induction where
 
 open import ornaments.prelude
 open import ornaments.fam hiding (σ; π)
-open import ornaments.iir hiding (α; β; γ; X; Y)
+open import ornaments.iir hiding (α; β; γ; δ; ε; X; Y)
 
 variable
-  {α β γ δ} : Level
+  {α β γ δ ε} : Level
   {X} : ISet α β
-  {s} : Size
-  {t} : Size< s
+  ..{s} : Size
+--  .{t} : Size< s
 \end{code}
 
 
@@ -22,11 +23,11 @@ variable
 %<*init-alg-def>
 \begin{code}
 
-μ : (ρ : IIR γ X X) {s : Size} → 𝔽 γ X
+μ : (ρ : IIR γ X X) ..{s : Size} → 𝔽 γ X
 
 {-# NO_POSITIVITY_CHECK #-}
-data μ-c {α β γ} {X : ISet α β} (ρ : IIR γ X X) {s : Size} (i : Code X) : Set γ where
-  ⟨_⟩ : {t : Size< s} → Code (⟦ ρ ⟧ (μ ρ {t}) i) → μ-c ρ {s} i
+data μ-c {α β γ} {X : ISet α β} (ρ : IIR γ X X) ..{s : Size} (i : Code X) : Set γ where
+  ⟨_⟩ : ..{t : Size< s} → Code (⟦ ρ ⟧ (μ ρ {t}) i) → μ-c ρ {s} i
 
 μ-d : (ρ : IIR γ X X) (i : Code X) → μ-c ρ {s} i → decode X i
 μ-d ρ i ⟨ x ⟩ = decode (⟦ ρ ⟧ (μ ρ) i) x
@@ -34,20 +35,18 @@ data μ-c {α β γ} {X : ISet α β} (ρ : IIR γ X X) {s : Size} (i : Code X) 
 Code (μ ρ {s} i) = μ-c ρ {s} i
 decode (μ ρ i) = μ-d ρ i
 
---postulate
---  .irr-ax : ∀ {α} {A : Set α} → .A → A
 
 --.μ-sz : {ρ : IIR γ X X} {s : _} {i : _} → μ-c ρ {s} i → Size< s
 --μ-sz (⟨_⟩ {t} _) = irr-ax t
 
-roll : {ρ : IIR γ X X} {t : Size< s} → ⟦ ρ ⟧ (μ ρ {t}) ⇒ μ ρ {s}
+roll : {ρ : IIR γ X X} ..{s : Size} ..{t : Size< s} → ⟦ ρ ⟧ (μ ρ {t}) ⇒ μ ρ {s}
 roll _ x = ⟨ x ⟩ , refl
 
 --uroll : {X : ISet α β} {ρ : IIR X X} .{s : Size} .{t : Size} → μ ρ {s} ⇒ ⟦ ρ ⟧ (μ ρ {t})
 --uroll _ ⟨ x ⟩ = x , refl
 
-unroll : {ρ : IIR γ X X} {F : 𝔽 γ X} → ({t : Size< s} → ⟦ ρ ⟧ (μ ρ {t}) ⇒ F) → μ ρ {s} ⇒ F
-unroll f i ⟨ x ⟩ = f i x
+--unroll : {ρ : IIR γ X X} {F : 𝔽 γ X} → ({t : Size< s} → ⟦ ρ ⟧ (μ ρ {t}) ⇒ F) → μ ρ {s} ⇒ F
+--unroll f i ⟨ x ⟩ = f i x
 --unroll : {X : ISet α β} {ρ : IIR X X} {s : _} → μ ρ {s} ⇒ ⟦ ρ ⟧ (μ ρ {s})
 --unroll _ ⟨ x ⟩ = {! x  !} , {!   !}
 
@@ -149,10 +148,10 @@ unroll f i ⟨ x ⟩ = f i x
 
 %<*alg>
 \begin{code}
-record alg {-<-}{α β γ} {X : ISet α β}{->-}(ρ : IIR γ X X) : Set (α ⊔ β ⊔ lsuc γ) where
+record alg {-<-}{α β γ} (δ : Level) {X : ISet α β}{->-}(ρ : IIR γ X X) : Set (α ⊔ β ⊔ lsuc δ ⊔ γ) where
   constructor _,_
   field
-    obj : 𝔽 γ X
+    obj : 𝔽 δ X
     mor : ⟦ ρ ⟧ obj ⇒ obj
 open alg public
 \end{code}
@@ -160,14 +159,12 @@ open alg public
 
 %<*cata>
 \begin{code}
-fold : {-<-}{ρ : IIR γ X X}{->-}(φ : alg ρ) → μ ρ {-<-}{s}{->-}⇒ obj φ
-ufold : {-<-}{ρ : IIR γ X X}{->-}(φ : alg ρ) → μ ρ {-<-}{s}{->-}⇒ ⟦ ρ ⟧ (obj φ)
+fold : {-<-}{ρ : IIR γ X X}{->-}(φ : alg δ ρ) → μ ρ {-<-}{s}{->-}⇒ obj φ
+foldm : {-<-}{ρ : IIR γ X X}{->-}(φ : alg δ ρ) → μ ρ {-<-}{s}{->-}⇒ ⟦ ρ ⟧ (obj φ)
 
-fold {ρ = ρ} φ = mor φ ⊙ ufold φ
-ufold {ρ = ρ} φ i ⟨ x ⟩ = ⟦ ρ ⟧[ fold φ ] i x
+fold {ρ = ρ} φ = mor φ ⊙ foldm φ
+foldm {ρ = ρ} φ i ⟨ x ⟩ = ⟦ ρ ⟧[ fold φ ] i x
 
---fold φ = mor φ ⊙ mfold φ
---mfold {-<-}{γ = γ} {->-}φ i ⟨ x ⟩ = ⟦ γ ⟧[ fold φ ] i x
 
 --mfold-comp : {-<-}∀ {X} {α : IIR X X} {->-}(φ : alg α) {-<-}{s : Size} {t : Size< s} {->-}→ mfold φ {-<-}{s} {->-}⊙ in' ≡ ⟦ α ⟧[ fold φ {-<-}{t} {->-}]
 --mfold-comp φ = funext λ i → funext λ x → cong-Σ refl (uoip _ _)
@@ -180,8 +177,8 @@ ufold {ρ = ρ} φ i ⟨ x ⟩ = ⟦ ρ ⟧[ fold φ ] i x
 
 %<*ind-all>
 \begin{code}
-all : {-<-}{X : ISet α β}{->-}(ρ : poly γ X){-<-}{F : 𝔽 γ X}{->-} (P : {-<-}∀ {i} →{->-}Code (F i) → Set δ) → Code (⟦ ρ ⟧ᵢ F) → Set (α ⊔ γ ⊔ δ)
-all {-<-}{α = α}{γ = γ}{->-}(ι i)    P x        = Lift (α ⊔ γ) (P x)
+all : {-<-}{X : ISet α β}{->-}(ρ : poly γ X){-<-}{F : 𝔽 ε X}{->-} (P : {i : Code X} → Code (F i) → Set δ) → Code (⟦ ρ ⟧ᵢ F) → Set (α ⊔ γ ⊔ δ)
+all {-<-}{α = α}{γ = γ}{->-}(ι i)    P (lift x)        = Lift (α ⊔ γ) (P x)
 all (κ A)    P x        = ⊤
 all (σ A B)  P (a , b)  = Σ (all A P a) λ _ → all (B (decode (⟦ A ⟧ᵢ _) a)) P b
 all (π A B)  P f        = (a : A) → all (B a) P (f a)
@@ -190,9 +187,9 @@ all (π A B)  P f        = (a : A) → all (B a) P (f a)
 
 %<*ind-everywhere>
 \begin{code}
-every :  (ρ : poly γ X) {-<-}{D : 𝔽 γ X}{->-} → (P : {-<-}∀ {i} →{->-}Code (D i) → Set δ) →
-         ({-<-}∀ {i}{->-}(x : Code (D i)) → P x) → (xs : Code (⟦ ρ ⟧ᵢ D)) → all ρ P xs
-every (ι i)    _ p x        = lift $ p x
+every :  (ρ : poly γ X) {-<-}{D : 𝔽 ε X}{->-} → (P : {i : Code X} → Code (D i) → Set δ) →
+         ({i : Code X} (x : Code (D i)) → P x) → (xs : Code (⟦ ρ ⟧ᵢ D)) → all ρ P xs
+every (ι i)    _ p (lift x) = lift $ p x
 every (κ A)    P _ _        = *
 every (σ A B)  P p (a , b)  = every A P p a , every (B (decode (⟦ A ⟧ᵢ _) a)) P p b
 every (π A B)  P p f        = λ a → every (B a) P p (f a)
@@ -202,9 +199,9 @@ every (π A B)  P p f        = λ a → every (B a) P p (f a)
 
 %<*induction>
 \begin{code}
-induction :  (ρ : IIR γ X X) (P : {-<-}∀ {s i} →{->-} Code (μ ρ {-<-}{s}{->-} i) → Set δ)
-             (p : {-<-}∀ {s} {t : Size< s} {i}{->-} (xs : Code (⟦ ρ ⟧ (μ ρ {-<-}{t}{->-}) i)) → all (node ρ i) P xs → P (⟨_⟩ {-<-}{s = s}{->-} xs)) →
-             {-<-}∀ {s i} {->-}(x : Code (μ ρ {-<-}{s}{->-} i)) → P x
-induction ρ P p ⟨ xs ⟩ = p xs (every (node ρ _) P (induction ρ P p) xs)
+induction :  (ρ : IIR γ X X) (P : {-<-}..{s : Size}{i : Code X} → {->-}Code (μ ρ {s} i) → Set δ)
+             (p : {-<-}..{s : Size}..{t : Size< s}{i : Code X}{->-}(xs : Code (⟦ ρ ⟧ (μ ρ {t}) i)) → all (node ρ i) P xs → P (⟨_⟩ {s = s} xs)) →
+             {-<-}..{s : Size}{i : Code X}{->-}(x : Code (μ ρ {s} i)) → P x
+induction ρ P p ⟨ x ⟩ = p x (every (node ρ _) P (induction ρ P p) x)
 \end{code}
 %</induction>
