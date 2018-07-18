@@ -91,15 +91,15 @@ decode  (π A B) f a  = decode (B a) (f a)
 \begin{code}
 σ : {-<-}∀ {α β δ γ} {X : Set δ} {Y : X → Set γ} → {->-}(A : Fam α X) → (B : (x : X) → Fam β (Y x)) → Fam (α ⊔ β) (Σ X Y)
 Code    (σ A B)          = Σ (Code A) λ a → Code (B (decode A a))
-decode  (σ A B) (a , b)  = decode A a , decode (B _) b
+decode  (σ A B) (a , b)  = decode A a , decode (B (decode A a)) b
 \end{code}
 %</fam-sg>
 
 %<*fam-sg-arr>
 \begin{code}
-σ→ : ∀ {α₀ α₁ β₀ β₁ δ γ} {X : Set δ} {Y : X → Set γ} {A₀ : Fam α₀ X} {A₁ : Fam α₁ X} {B₀ : (x : X) → Fam β₀ (Y x)} (B₁ : (x : X) → Fam β₁ (Y x)) →
+σ→ : ∀ {α₀ α₁ β₀ β₁ δ γ} {X : Set δ} {Y : X → Set γ} {A₀ : Fam α₀ X} {A₁ : Fam α₁ X} (B₀ : (x : X) → Fam β₀ (Y x)) (B₁ : (x : X) → Fam β₁ (Y x)) →
      A₀ ⟶̃ A₁ → ((a : Code A₀) → B₀ (decode A₀ a) ⟶̃ B₁ (decode A₀ a)) → σ A₀ B₀ ⟶̃ σ A₁ B₁
-σ→ B₁ F G (a , b) =
+σ→ _ B₁ F G (a , b) =
   let a' , p = F a in
   let b' , q = G a b in
   (a' , subst (Code ∘ B₁) (sym p) b') , cong-Σ p (trans (cong₂ (decode ∘ B₁) p (subst-elim _ $ sym p)) q)
@@ -143,17 +143,30 @@ F ⇒ G = (i : _) → F i ⟶̃ G i
 % TODO
 
 \begin{code}
+lft : ∀ {α β γ} {X : ISet α β} (γ' : Level) → 𝔽 γ X → 𝔽 (γ ⊔ γ') X
+Code (lft γ' F i) = Lift γ' (Code $ F i)
+decode (lft γ' F i) (lift x) = decode (F i) x
+
+infix 22 _⇒_
+infix 30 π₀>_
+
+_!<_ : ∀ {α β γ δ} {X : ISet α β} {Y : Code X → Set δ} (f : (i : _) → decode X i → Y i) → 𝔽 γ X → 𝔽 γ (Code X , Y)
+(f !< F) i = f i >> F i
 
 π₀>_ : ∀ {α β γ δ}{X : ISet α β}{B : (i : _) → decode X i → Set δ} → 𝔽 γ (Code X , λ i → Σ (decode X i) (B i)) → 𝔽 γ X
-(π₀> F) i = π₀ >> F i
+π₀> F = (λ _ → π₀) !< F
 
 infixr 20 _⊙_
 
-_⊙_ : ∀ {α β γ} {X : ISet α β} {F G H : 𝔽 γ X} → G ⇒ H → F ⇒ G → F ⇒ H
+_⊙_ : ∀ {α β γ₀ γ₁ γ₂} {X : ISet α β} {F : 𝔽 γ₀ X} {G : 𝔽 γ₁ X} {H : 𝔽 γ₂ X} → G ⇒ H → F ⇒ G → F ⇒ H
 (f ⊙ g) i = (f i) ∘̃ (g i)
 
 ⊙-assoc : ∀ {α β γ} {X : ISet α β} {F G H I : 𝔽 γ X} {f : F ⇒ G} {g : G ⇒ H} {h : H ⇒ I} → (h ⊙ g) ⊙ f ≡ h ⊙ (g ⊙ f)
 ⊙-assoc {f = f} {g = g} {h = h} = funext λ i → ∘̃-assoc {f = f i} {g = g i} {h = h i}
+
+_#_ : ∀ {α₀ α₁ β γ₀ γ₁} {X : ISet α₀ β} {Y : ISet α₁ β} (f : Y ⟶̃ X) → 𝔽 γ₀ X → 𝔽 (γ₀ ⊔ γ₁) Y
+Code (_#_ {γ₁ = γ₁} f F j) = Lift γ₁ $ Code (F $ π₀ $ f j)
+decode ((f # F) j) (lift x) = subst (λ a → a) (π₁ $ f j) (decode (F $ π₀ $ f j) x)
 
 --_>>>_ : {-<-}∀ {α β γ} {X : ISet α β} {Y : Code X → Set γ} → {->-}((i : Code X) → decode X i → Y i) → 𝔽 X → 𝔽 (Code X , Y)
 --(f >>> F) i = f i >> F i

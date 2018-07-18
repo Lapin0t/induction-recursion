@@ -127,6 +127,9 @@ uoip refl refl = refl
 sym : {-<-}∀ {α} {A : Set α} {x y : A} →{->-} x ≡ y → y ≡ x
 sym refl = refl
 
+sub-sub-elim : ∀ {α β} {A : Set α} (P : A → Set β) {x y} (p : x ≡ y) {a : P x} → subst P (sym p) (subst P p a) ≡ a
+sub-sub-elim P refl = refl
+
 subst₂ : ∀ {α β γ} {A : Set α} {B : A → Set β} (P : (a : A) → B a → Set γ)
            {x₀ x₁ y₀ y₁} → x₀ ≡ x₁ → y₀ ≡ y₁ → P x₀ y₀ → P x₁ y₁
 subst₂ P refl refl p = p
