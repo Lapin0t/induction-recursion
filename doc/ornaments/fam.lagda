@@ -57,8 +57,10 @@ infix 22 _⟶̃_
 infix 25 _>>_
 
 _>>_ : {-<-}∀ {α β₀ β₁}{X : Set β₀}{Y : Set β₁}{->-}(f : X → Y) → Fam α X → Fam α Y
-Code    (f >> F) = Code F
-decode  (f >> F) = f ∘ decode F
+f >> F = _ , f ∘ decode F
+
+_<<_ : {-<-}∀ {α₀ α₁ β}{X : Set β}(F : Fam α₀ X){Y : Set α₁}{->-}(f : Y → Code F) → Fam α₁ X
+F << f = _ , decode F ∘ f
 \end{code}
 %</post-comp>
 

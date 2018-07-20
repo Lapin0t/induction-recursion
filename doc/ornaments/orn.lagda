@@ -2,7 +2,7 @@
 %include ornaments.fmt
 
 \begin{code}
-{--# OPTIONS --experimental-irrelevance --show-implicit --show-irrelevant #-}
+{-# OPTIONS --experimental-irrelevance #-}
 module ornaments.orn where
 
 open import ornaments.prelude
@@ -13,72 +13,58 @@ open import ornaments.induction hiding (α; β; γ; δ; X; s)
 
 variable
   {α₀ α₁} : Level  -- old/new index lvl
-  {β} : Level  -- output lvl
+  {β₀ β₁} : Level  -- output lvl
   {γ₀ γ₁} : Level  -- old/new code lvl (actually new is `γ₀ ⊔ γ₁`)
   {δ} : Level
-  {X Y} : ISet α₀ β
-  {R} : ISet α₁ β
-  --{R S} : PRef α₁ β₁ X
+  {X Y} : ISet α₀ β₀
+  {R} : PRef α₁ β₁ X
+  {S} : PRef α₁ β₁ Y
 \end{code}
 
 
 %<*code-def>
 \begin{code}
-mk : (X : ISet α₀ β) {R : Set α₁} (f : R → Code X) → ISet α₁ β
-Code (mk X {R} f) = R
-decode (mk X f) j = decode X (f j)
-
-mk₂ : {X : ISet α₀ β} {R : Set α₁} (γ₁ : Level) (f : R → Code X) → 𝔽 γ₀ X → 𝔽 (γ₀ ⊔ γ₁) (mk X f)
-Code (mk₂ γ₁ f F j) = Lift γ₁ (Code $ F $ f j)
-decode (mk₂ γ₁ f F j) (lift x) = decode (F $ f j) x
-
-data orn₀ {-<-}{α₀ α₁ β γ₀ : _}{X : ISet α₀ β}{->-}(γ₁ : Level) {R : Set α₁} (f : R → Code X) : poly γ₀ X → Set (α₀ ⊔ β ⊔ lsuc (α₁ ⊔ γ₀ ⊔ γ₁))
-⌊_⌋₀  : {-<-}{X : ISet α₀ β}{R : Set α₁}{f : R → Code X}{ρ : poly γ₀ X}{->-}(o : orn₀ γ₁ f ρ) → poly (γ₀ ⊔ γ₁) (mk X f)
-info↓ : {-<-}{X : ISet α₀ β}{R : Set α₁}{f : R → Code X}{ρ : poly γ₀ X}{->-}(o : orn₀ γ₁ f ρ) → info ⌊ o ⌋₀ → info ρ
+data orn₀ {-<-}{α₀ α₁ β₀ β₁ γ₀ : Level}{X : ISet α₀ β₀}{->-}(γ₁ : Level)(R : PRef α₁ β₁ X) : poly γ₀ X → Set (α₀ ⊔ β₀ ⊔ β₁ ⊔ lsuc (α₁ ⊔ γ₀ ⊔ γ₁))
+⌊_⌋₀  : {-<-}{R : PRef α₁ β₁ X}{ρ : poly γ₀ X}{->-}(o : orn₀ γ₁ R ρ) → poly (γ₀ ⊔ γ₁) (PFam R)
+info↓ : {-<-}{R : PRef α₁ β₁ X}{ρ : poly γ₀ X}{o : orn₀ γ₁ R ρ}{->-} → info ⌊ o ⌋₀ → info ρ
 \end{code}
 %</code-def>
 
 %<*code-impl>
 \begin{code}
-data orn₀ {-<-}{α₀}{α₁}{β}{γ₀}{X}{->-}γ₁ {R} f where
-  ι      : (j : R)                                                                                → orn₀ γ₁ f (ι (f j))
-  κ      : (A : Set γ₀)                                                                           → orn₀ γ₁ f (κ A)
-  σ      : {-<-}∀ {U V}{->-}(A : orn₀ γ₁ f U) (B : (a : info ⌊ A ⌋₀) → orn₀ γ₁ f (V (info↓ A a))) → orn₀ γ₁ f (σ U V)
-  π      : (A : Set γ₀){-<-}{V : _}{->-} (B : (a : A) → orn₀ γ₁ f (V a))                          → orn₀ γ₁ f (π A V)
+data orn₀ {-<-}{α₀}{α₁}{β₀}{β₁}{γ₀}{X}{->-}γ₁ R where
+  ι      : (j : Code R)                                                                         → orn₀ γ₁ R (ι (down R j))
+  κ      : {A : Set γ₀}                                                                         → orn₀ γ₁ R (κ A)
+  σ      : {-<-}∀ {U V}{->-}(A : orn₀ γ₁ R U)(B : (a : info ⌊ A ⌋₀) → orn₀ γ₁ R (V (info↓ a)))  → orn₀ γ₁ R (σ U V)
+  π      : {-<-}∀ {A V}{->-}(B : (a : A) → orn₀ γ₁ R (V a))                                     → orn₀ γ₁ R (π A V)
 
-  add₀   : (A : poly (γ₀ ⊔ γ₁) (mk X f)) {-<-}{U : _}{->-}(B : info A → orn₀ γ₁ f U)              → orn₀ γ₁ f U
-  add₁   : {-<-}∀ {U}{->-}(A : orn₀ γ₁ f U) (B : info ⌊ A ⌋₀ → poly (γ₀ ⊔ γ₁) (mk X f))           → orn₀ γ₁ f U
---  del :    {-<-}∀ {A : poly X} → {->-} {!  !} → orn₀ P A
-  add-κ  : (A : Set (γ₀ ⊔ γ₁)){-<-}{U : _}{->-} (B : A → orn₀ γ₁ f U)                             → orn₀ γ₁ f U
-  del-κ  : {-<-}∀ {A}{->-}(a : A)                                                                 → orn₀ γ₁ f (κ A)
+  add₀   : (A : poly (γ₀ ⊔ γ₁) (PFam R)){-<-}{U : _}{->-}(B : info A → orn₀ γ₁ R U)             → orn₀ γ₁ R U
+  add₁   : {-<-}∀ {U}{->-}(A : orn₀ γ₁ R U)(B : info ⌊ A ⌋₀ → poly (γ₀ ⊔ γ₁) (PFam R))          → orn₀ γ₁ R U
+  del-κ  : {-<-}∀ {A}{->-}(a : A)                                                               → orn₀ γ₁ R (κ A)
 \end{code}
 %</code-impl>
 
 %<*p-interp>
 \begin{code}
 ⌊ ι j        ⌋₀ = ι j
-⌊_⌋₀ {γ₁ = γ₁} (κ A) = κ (Lift γ₁ A)
+⌊_⌋₀ {γ₁ = γ₁} (κ {A}) = κ (Lift γ₁ A)
 ⌊ σ A B      ⌋₀ = σ ⌊ A ⌋₀ λ a → ⌊ B a ⌋₀
-⌊_⌋₀ {γ₁ = γ₁} (π A B) = π (Lift γ₁ A) λ { (lift a) → ⌊ B a ⌋₀ }
+⌊_⌋₀ {γ₁ = γ₁} (π {A} B) = π (Lift γ₁ A) λ { (lift a) → ⌊ B a ⌋₀ }
 ⌊ add₀ A B   ⌋₀ = σ A λ a → ⌊ B a ⌋₀
 ⌊ add₁ A B   ⌋₀ = σ ⌊ A ⌋₀ B
---⌊ del _      ⌋₀ = κ ⊤
-⌊ add-κ A B  ⌋₀ = σ (κ A) λ { (lift a) → ⌊ B a ⌋₀ }
 ⌊ del-κ _    ⌋₀ = κ ⊤
 \end{code}
 %</p-interp>
 
 %<*infodown-impl>
 \begin{code}
-info↓ {f = f} (ι i)        (lift x) = lift x
-info↓ (κ A)        (lift (lift a)) = lift a
-info↓ (σ A B)      (a , b)  = info↓ A a , info↓ (B a) b
-info↓ (π A B)      f        = λ a → info↓ (B a) (f (lift a))
-info↓ (add₀ A B)   (a , b)  = info↓ (B a) b
-info↓ (add₁ A B)   (a , _)  = info↓ A a
---info↓ (del x)      _        = ?
-info↓ (add-κ A B)  (lift a , b)  = info↓ (B a) b
-info↓ (del-κ a)    _        = lift a
+info↓ {o = ι i}        (lift (x , _))  = lift x
+info↓ {o = κ}          (lift a)        = lift $ lower a
+info↓ {o = σ A B}      (a , b)         = info↓ a , info↓ b
+info↓ {o = π B}        f               = λ a → info↓ (f $ lift a)
+info↓ {o = add₀ A B}   (a , b)         = info↓ b
+info↓ {o = add₁ A B}   (a , _)         = info↓ a
+info↓ {o = del-κ a}    _               = lift a
 \end{code}
 %</infodown-impl>
 
@@ -86,10 +72,10 @@ info↓ (del-κ a)    _        = lift a
 
 %<*orn>
 \begin{code}
-record orn {-<-}{α₀ α₁ β γ₀}{X Y : ISet α₀ β}{->-}(γ₁ : Level) {R S : Set α₁} (f : R → Code X) (g : S → Code Y) (ρ : IIR γ₀ X Y) : Set (α₀ ⊔ β ⊔ lsuc (α₁ ⊔ γ₀ ⊔ γ₁)) where
+record orn {α₀ α₁ β₀ β₁ γ₀}{X Y : ISet α₀ β₀}(γ₁ : Level)(R : PRef α₁ β₁ X)(S : PRef α₁ β₁ Y)(ρ : IIR γ₀ X Y) : Set (α₀ ⊔ β₀ ⊔ β₁ ⊔ lsuc (α₁ ⊔ γ₀ ⊔ γ₁)) where
   field
-    node :  (j : S) → orn₀ γ₁ f (node ρ (g j))
-    emit :  (j : S) → (x : info ⌊ node j ⌋₀) → decode Y (g j)
+    node :  (j : Code S) → orn₀ γ₁ R (node ρ (down S j))
+    emit :  (j : Code S) → (x : info ⌊ node j ⌋₀) → decode S j (emit ρ (down S j) (info↓ x))
 \end{code}
 %</orn>
 
@@ -100,17 +86,15 @@ open orn public
 
 %<*interp>
 \begin{code}
-⌊_⌋ : {-<-}{X Y : ISet α₀ β}{R S : Set α₁}{f : R → Code X}{g : S → Code Y}{ρ : IIR γ₀ X Y}{->-}(o : orn γ₁ f g ρ) → IIR (γ₀ ⊔ γ₁) (mk X f) (mk Y g)
+⌊_⌋ : {X Y : ISet α₀ β₀}{R : PRef α₁ β₁ X}{S : PRef α₁ β₁ Y}{ρ : IIR γ₀ X Y}(o : orn γ₁ R S ρ) → IIR (γ₀ ⊔ γ₁) (PFam R) (PFam S)
 node ⌊ o ⌋ j = ⌊ node o j ⌋₀
-emit (⌊_⌋ {g = g} {ρ = ρ} o) j x = emit ρ (g j) (info↓ (node o j) x)
+emit ⌊ o ⌋ j = λ x → _ , emit o j x
 \end{code}
 %</interp>
 
 %<*erase>
 \begin{code}
---dwn : {ρ : }
-
-erase₀ : {-<-}{X : ISet α₀ β}{ρ : poly γ₀ X}{R : Set α₁}{f : R → Code X}{->-}(o : orn₀ γ₁ f ρ) (F : 𝔽 γ₀ X) → info↓ o >> ⟦ ⌊ o ⌋₀ ⟧ᵢ (F ∘ f) ⟶̃ ⟦ ρ ⟧ᵢ F
+{-erase₀ : {-<-}{X : ISet α₀ β}{ρ : poly γ₀ X}{R : Set α₁}{f : R → Code X}{->-}(o : orn₀ γ₁ f ρ) (F : 𝔽 γ₀ X) → info↓ o >> ⟦ ⌊ o ⌋₀ ⟧ᵢ (F ∘ f) ⟶̃ ⟦ ρ ⟧ᵢ F
 erase₀ {f = f} (ι j) F (lift x) = lift x , refl
 erase₀ (κ A) F (lift x) = lift $ lower x , refl
 erase₀ (σ {V = V} A B) F (a , b) =
@@ -126,36 +110,76 @@ erase₀ (add₁ A B) F (x , _) = erase₀ A F x
 erase₀ (add-κ A B) F (lift a , x) = erase₀ (B a) F x
 erase₀ (del-κ a) F _ = lift a , refl
 
-erase : {-<-}{X Y : ISet α₀ β}{ρ : IIR γ₀ X Y}{R S : Set α₁}{f : R → Code X}{g : S → Code Y}{->-}(o : orn γ₁ f g ρ) (F : 𝔽 γ₀ X) → ⟦ ⌊ o ⌋ ⟧ (F ∘ f) ⇒ (⟦ ρ ⟧ F ∘ g)
-erase {ρ = ρ} {g = g} o F j = emit ρ (g j) <$>> erase₀ (node o j) F
+erase : {-<-}{X Y : ISet α₀ β}{R S : Set α₁}{f : R → Code X}{g : S → Code Y}{ρ : IIR γ₀ X Y}{->-}(o : orn γ₁ f g ρ) (F : 𝔽 γ₀ X) → ⟦ ⌊ o ⌋ ⟧ (F ∘ f) ⇒ (⟦ ρ ⟧ F ∘ g)
+erase {g = g}{ρ} o F j = emit ρ (g j) <$>> erase₀ (node o j) F-}
 \end{code}
 %</erase>
 
 %<*ornalg>
 \begin{code}
-ornalg : {X : ISet α₀ β}{ρ : IIR γ₀ X X}{R : Set α₁}{f : R → Code X} (o : orn γ₁ f f ρ) ..{s : Size} ..{t : Size< s} → (⟦ ⌊ o ⌋ ⟧ (μ ρ {t} ∘ f)) ⇒ (μ ρ {s} ∘ f)
-ornalg o i x = ⟨ π₀ $ erase o _ i x ⟩ , π₁ $ erase o _ i x
+--ornalg : {X : ISet α₀ β}{R : Set α₁}{f : R → Code X}{ρ : IIR γ₀ X X}(o : orn γ₁ f f ρ) ..{s : Size} ..{t : Size< s} → (⟦ ⌊ o ⌋ ⟧ (μ ρ {t} ∘ f)) ⇒ (μ ρ {s} ∘ f)
+--ornalg o i x = ⟨ π₀ $ erase o _ i x ⟩ , π₁ $ erase o _ i x
 \end{code}
 %</ornalg>
 
 %<*forget>
 \begin{code}
-forget : {-<-}{X : ISet α₀ β}{ρ : IIR γ₀ X X}{R : Set α₁}{f : R → Code X}{->-}(o : orn γ₁ f f ρ){-<-}..{s : Size}{->-} → (μ ⌊ o ⌋ {s}) ⇒ (μ ρ {s} ∘ f)
-forget o {s} = {!fold (_ , ornalg o {↑ s})!}
+--forget : {-<-}{X : ISet α₀ β}{R : Set α₁}{f : R → Code X}{ρ : IIR γ₀ X X}{->-}(o : orn γ₁ f f ρ){-<-}{->-} → μ ⌊ o ⌋ {∞} ⇒ (μ ρ {∞} ∘ f)
+--forget {f = f}{ρ = ρ} o = fold (μ ρ ∘ f , ornalg o)
 
 \end{code}
 %</forget>
 
+%<*foldout>
+\begin{code}
+POut : {X : ISet α₀ β₀}(f : (i : Code X) → decode X i → Set β₁) → PRef α₀ β₁ X
+Code (POut f) = _
+down (POut f) = λ x → x
+decode (POut f) = f
+
+PFold : {X : ISet α₀ β₀}(F : 𝔽 β₁ X) → PRef α₀ (β₀ ⊔ β₁) X
+PFold F = POut λ i x → Σ (Code (F i)) λ c → decode (F i) c ≡ x
+
+lem : ∀ {α₀ β₀ β₁ γ₀ γ₁}{X : ISet α₀ β₀}{F : 𝔽 β₁ X}{ρ : poly γ₀ X}(o : orn₀ γ₁ (PFold F) ρ) → (info ⌊ o ⌋₀ , info↓) ⟶̃ ⟦ ρ ⟧ᵢ F
+lem (ι j)      (lift (_ , (c , p))) = lift c , cong lift p
+lem κ          x                    = _ , refl
+lem (σ {V = V} A B)    (a , b)      =
+  let a' , p = lem A a in
+  let b' , q = lem (B _) b in
+  (a' , subst (λ x → Code (⟦ V x ⟧ᵢ _)) (sym p) b') ,
+  cong-Σ p (trans (cong₂ (λ x → decode (⟦ V x ⟧ᵢ _)) p (subst-elim _ $ sym p)) q)
+lem (π B)      x                    = π→ (λ a → lem (B a)) (x ∘ lift)
+lem (add₀ A B) (a , x)              = lem (B a) x
+lem (add₁ A B) (x , _)              = lem A x
+lem (del-κ a)  x                    = _ , refl
+
+o-fold₀ : ∀ {α₀ β₀ β₁ γ₀}{X : ISet α₀ β₀}(F : 𝔽 β₁ X)(ρ : poly γ₀ X) → orn₀ γ₀ (PFold F) ρ
+o-fold₀ F (ι i) = ι i
+o-fold₀ F (κ A) = κ
+o-fold₀ F (σ A B) = σ (o-fold₀ F _) (o-fold₀ F ∘ _)
+o-fold₀ F (π A B) = π (o-fold₀ F ∘ _)
+
+o-fold : ∀ {α₀ β₀ β₁ γ₀}{X : ISet α₀ β₀}(ρ : IIR γ₀ X X)(φ : alg β₁ ρ) → orn γ₀ (PFold (obj φ)) (PFold (obj φ)) ρ
+node (o-fold ρ φ) i = o-fold₀ (obj φ) (node ρ i)
+emit (o-fold ρ φ) i x =
+  let a , p = lem (o-fold₀ (obj φ) (node ρ i)) x in
+  let b , q = mor φ i a in
+  b , (trans q (cong (emit ρ i) p))
+
+\end{code}
+%</foldout>
+
 %<*algorn>
 \begin{code}
---algorn₀ : ∀ {α₀ β γ₀ δ} {X : ISet α₀ β} (ρ : poly γ₀ X) {F : 𝔽 δ X} (G : Set δ) (f : Code (⟦ ρ ⟧ᵢ F) → G) → orn₀ δ {R = Σ (Code X) (λ i → Code (F i))} π₀ ρ
---algorn₀ {γ₀ = γ₀} (ι i) G f = ?
---algorn₀ (κ A) G f = κ A
---algorn₀ (σ A B) G f = ? --σ (algorn₀ A F) (λ a → algorn₀ (B $ info↓ _ a) f)
---algorn₀ (π A B) G f = π A (λ a → algorn₀ (B a) {!   !} λ x → {!   !}) --π A (λ a → algorn₀ (B a) ((Code G) , (λ x → decode G x a)) λ x → (π₀ $ f {! λ a →   !}) , {!   !}) --π A (λ a → algorn₀ (B a) f)
+--algorn₀ : ∀ {α₀ β γ₀ δ} {X : ISet α₀ β} (ρ : poly γ₀ X) (F : 𝔽 δ X) → orn₀ δ {R = Σ (Code X) (λ i → Code (F i))} π₀ ρ
+--algorn₀ {γ₀ = γ₀} (ι i) F = add₀ (κ (Lift γ₀ (Code (F i)))) (λ { (lift j) → ι (i , lower j) })
+--algorn₀ (κ A) F = κ A
+--algorn₀ (σ A B) F = σ (algorn₀ A F) (λ a → algorn₀ (B $ info↓ _ a) F)
+--algorn₀ (π A B) F = π A (λ a → algorn₀ (B a) F) --π A (λ a → algorn₀ (B a) ((Code G) , (λ x → decode G x a)) λ x → (π₀ $ f {! λ a →   !}) , {!   !}) --π A (λ a → algorn₀ (B a) f)
 
 --algorn : ∀ {α β γ δ} {X : ISet α β} (ρ : IIR γ X X) (φ : alg δ ρ) → orn δ {R = Σ (Code X) (λ i → Code (obj φ i))} {S = Σ (Code X) (λ i → Code (obj φ i))} π₀ π₀ ρ
---algorn ρ φ = {! mor φ  !}
+--node (algorn {α} {β} {γ} {δ} {X} ρ φ) (i , j) = add₁ (algorn₀ (node ρ i) (obj φ)) λ x → κ {! mor φ i  !}
+--emit (algorn {α} {β} {γ} {δ} {X} ρ φ) = {!   !}
 
 {-algorn₀ : {X : ISet α₀ β} (ρ : poly γ₀ X) (F : 𝔽 γ₁ X) → orn₀ γ₁ (Ref F) ρ
 algorn₀ {γ₀ = γ₀} (ι i) F = add₀ (κ (Lift γ₀ $ Code (F i))) λ { (lift x) → ι (i , lower x) }
@@ -198,21 +222,3 @@ foo (π A B) F P x p = λ { (lift a) → foo (B a) F P (x a) (p a) }-}
 
 \end{code}
 %</algorn>
-
-
-\begin{code}
---module catholic where
-\end{code}
-
-%<*catholic>
-\begin{code}
-  {-data inv {-<-}{α β} {A : Set α} {B : Set β} {->-}(f : A → B) : B → Set α where
-    ok : (x : A) → inv f (f x)
-
-  to-pow : {-<-}∀ {X Y} → {->-}(E : Code Y → Code X) → (e : (y : Code Y) → decode Y y → decode X (E y)) → pow X
-  π₀ (to-pow E e)             = inv E
-  π₁ (to-pow E e) (_ , ok y)  = inv (e y)
-
-  --from-pow : ∀ {X} → (P : pow X) → Σ (Code (pow⁻¹ P) → Code X) (λ E → (j : Code (pow⁻¹ P)) → decode (pow⁻¹ P) j → decode )-}
-\end{code}
-%</catholic>

@@ -14,10 +14,6 @@ open import ornaments.orn hiding (α₀; α₁; β₀; β₁; γ₀; γ₁)
 variable
   {α β γ} : Level
 
-LF : ISet α β → ISet (α ⊔ β) lzero
-Code (LF X) = Σ (Code X) (decode X)
-decode (LF X) _ = ⊤
-
 PLF : (X : ISet α β) → PRef (α ⊔ β) lzero X
 Code (PLF X) = Σ (Code X) (decode X)
 down (PLF X) (x , _) = x
@@ -25,12 +21,12 @@ decode (PLF X) j x = ⊤
 
 G₀-orn : {X : ISet α β} (ρ : poly γ X) → orn₀ (β ⊔ γ) (PLF X) ρ
 G₀-orn {γ = γ} {X = X} (ι i) = add₀ (κ (Lift γ (decode X i))) λ { (lift y) → ι (i , lower y) }
-G₀-orn (κ A) = κ A
-G₀-orn (σ A B) = σ (G₀-orn A) (λ a → G₀-orn (B (info↓ _ a)))
-G₀-orn (π A B) = π A (λ a → G₀-orn (B a))
+G₀-orn (κ A) = κ
+G₀-orn (σ A B) = σ (G₀-orn A) (λ a → G₀-orn (B (info↓ a)))
+G₀-orn (π A B) = π (λ a → G₀-orn (B a))
 
 G-orn : {X Y : ISet α β} (ρ : IIR γ X Y) → orn (β ⊔ γ) (PLF X) (PLF Y) ρ
-node (G-orn {γ = γ} ρ) (i , y) = add₁ (G₀-orn (node ρ i)) λ x → κ (Lift γ (emit ρ i (info↓ _ x) ≡ y)) --κ (Lift γ (emit ρ i (dg₀ (node ρ i) x) ≡ j))
+node (G-orn {γ = γ} ρ) (i , y) = add₁ (G₀-orn (node ρ i)) λ x → κ (Lift γ (emit ρ i (info↓ x) ≡ y))
 emit (G-orn ρ) j x = *
 
 
