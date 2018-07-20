@@ -124,7 +124,7 @@ trans refl refl = refl
 uoip : ∀ {α} {A B : Set α} {x : A} {y : B} → (p₀ : x ≡ y) → (p₁ : x ≡ y) → p₀ ≡ p₁
 uoip refl refl = refl
 
-sym : {-<-}∀ {α} {A : Set α} {x y : A} →{->-} x ≡ y → y ≡ x
+sym : {-<-}∀ {α} {A B : Set α} {x : A} {y : B} →{->-} x ≡ y → y ≡ x
 sym refl = refl
 
 sub-sub-elim : ∀ {α β} {A : Set α} (P : A → Set β) {x y} (p : x ≡ y) {a : P x} → subst P (sym p) (subst P p a) ≡ a
@@ -157,4 +157,10 @@ funext : {-<-}∀ {α β} {A : Set α} {B₀ B₁ : A → Set β} {f : (x : A) �
 funext p = funext₁ refl p
 \end{code}
 %</funext>
+%<*inv>
+\begin{code}
+data _⁻¹_ {α β}{X : Set α}{Y : Set β}(f : X → Y) : Y → Set α where
+  ok : (x : X) → f ⁻¹ (f x)
+\end{code}
 
+%</inv>
