@@ -177,10 +177,10 @@ foldm {ρ = ρ} φ i ⟨ x ⟩ = ⟦ ρ ⟧[ fold φ ] i x
 
 %<*ind-all>
 \begin{code}
-all : {-<-}{X : ISet α β}{->-}(ρ : poly γ X){-<-}{F : 𝔽 ε X}{->-} (P : {i : Code X} → Code (F i) → Set δ) → Code (⟦ ρ ⟧ᵢ F) → Set (α ⊔ γ ⊔ δ)
+all : {-<-}{X : ISet α β}{->-}(ρ : poly γ X){-<-}{F : 𝔽 ε X}{->-} (P : {i : Code X} → Code (F i) → Set δ) → Code (⟦ ρ ⟧₀ F) → Set (α ⊔ γ ⊔ δ)
 all {-<-}{α = α}{γ = γ}{->-}(ι i)    P (lift x)        = Lift (α ⊔ γ) (P x)
 all (κ A)    P x        = ⊤
-all (σ A B)  P (a , b)  = Σ (all A P a) λ _ → all (B (decode (⟦ A ⟧ᵢ _) a)) P b
+all (σ A B)  P (a , b)  = Σ (all A P a) λ _ → all (B (decode (⟦ A ⟧₀ _) a)) P b
 all (π A B)  P f        = (a : A) → all (B a) P (f a)
 \end{code}
 %</ind-all>
@@ -188,10 +188,10 @@ all (π A B)  P f        = (a : A) → all (B a) P (f a)
 %<*ind-everywhere>
 \begin{code}
 every :  (ρ : poly γ X) {-<-}{D : 𝔽 ε X}{->-} → (P : {i : Code X} → Code (D i) → Set δ) →
-         ({i : Code X} (x : Code (D i)) → P x) → (xs : Code (⟦ ρ ⟧ᵢ D)) → all ρ P xs
+         ({i : Code X} (x : Code (D i)) → P x) → (xs : Code (⟦ ρ ⟧₀ D)) → all ρ P xs
 every (ι i)    _ p (lift x) = lift $ p x
 every (κ A)    P _ _        = *
-every (σ A B)  P p (a , b)  = every A P p a , every (B (decode (⟦ A ⟧ᵢ _) a)) P p b
+every (σ A B)  P p (a , b)  = every A P p a , every (B (decode (⟦ A ⟧₀ _) a)) P p b
 every (π A B)  P p f        = λ a → every (B a) P p (f a)
 \end{code}
 %</ind-everywhere>
