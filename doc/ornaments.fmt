@@ -1,15 +1,15 @@
 %%%%%%%%%%%
 %%% Prelude
 
+%format Level = "\DATA{Level}"
 %format lzero = "\CON{lzero}"
 %format lsuc = "\CON{lsuc}"
-%format ⊔ = "\FCT{⊔}"
+%format ⊔ = "\FCT{\sqcup}"
 %format _⊔_ = _ "\!" ⊔ "\!" _
 
 %format Lift = "\DATA{Lift}"
 %format lift = "\CON{lift}"
 %format lower = "\PRO{lower}"
-
 
 %format Set = "\DATA{Set}"
 %format Set₁ = "\DATA{Set₁}"
@@ -41,9 +41,13 @@
 %format uoip = "\FCT{uoip}"
 
 %format subst₂ = "\FCT{subst₂}"
-%format subst-≡ = "\FCT{subst\!\!-\!\!≡}"
 %format cong₂ = "\FCT{cong₂}"
 %format cong-Σ = "\FCT{cong\!\!-\!\!Σ}"
+%format subst-≡ = "\FCT{subst\!\!-\!\!≡}"
+
+%format ⁻¹ = "\DATA{⁻¹}"
+%format _⁻¹_ = _ ⁻¹ _
+%format ok = "\CON{ok}"
 
 %format funext = "\FCT{funext}"
 %format ∘ = "\FCT{\mathbin{∘}}"
@@ -61,11 +65,12 @@
 %format Fam = "\DATA{Fam}"
 %format Code = "\PRO{Code}"
 %format decode = "\PRO{decode}"
+%format ISet = "\DATA{ISet}"
 
 %format >> = "\FCT{\mathbin{>\!>}}"
 %format _>>_ = _ >> _
 
-%format <$>> = "\FCT{\mathbin{<\!$\!>\!>}}"
+%format <$>> = "\FCT{\mathbin{<\!\$\!>\!>}}"
 %format _<$>>_ = _ <$>> _
 
 %format ⟶̃ = "\DATA{\mathrel{⇝}}"

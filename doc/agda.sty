@@ -48,7 +48,7 @@
 \newlength{\lwidth}\setlength{\lwidth}{4.5cm}
 \newlength{\cwidth}\setlength{\cwidth}{8mm} % 3mm
 
-\newcommand{\VAR}[1]{\purpleFG{\mathit{#1}}}
+\newcommand{\VAR}[1]{\purpleFG{\mathit{#1}\/}}
 \newcommand{\CON}[1]{\redFG{\mathsf{#1}}}
 \newcommand{\PRO}[1]{\orangeFG{\mathsf{#1}}}
 \newcommand{\KW}[1]{\blackFG{\mathbfsf{#1}}}
@@ -59,6 +59,7 @@
 
 %mathindent has to be defined
 \@@ifundefined{mathindent}{\newdimen\mathindent\mathindent\leftmargini}{}
+\setlength\mathindent{0cm}
 
 \def\resethooks{
   \global\let\SaveRestoreHook\empty
