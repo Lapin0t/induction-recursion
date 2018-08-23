@@ -21,14 +21,14 @@ variable
 
 %<*codes>
 \begin{code}
-data poly {α β} (γ : Level) (X : ISet α β) : Set (lsuc α ⊔ β ⊔ lsuc γ)
+data poly {-<-}{α β}{->-}(γ : Level) (X : ISet α β) : Set (lsuc α ⊔ β ⊔ lsuc γ)
 info : {X : ISet α β} → poly γ X → Set (β ⊔ γ)
 
 data poly γ X where
   ι : Code X → poly γ X
   κ : (A : Set γ) → poly γ X
-  σ : (A : poly γ X) → (B : info A → poly γ X) → poly γ X
-  π : (A : Set γ) → (B : A → poly γ X) → poly γ X
+  σ : (A : poly γ X) (B : info A → poly γ X) → poly γ X
+  π : (A : Set γ) (B : A → poly γ X) → poly γ X
 
 info {-<-}{γ = γ}{X}{->-}(ι i)      = Lift γ (decode X i)
 info {-<-}{β = β}{->-}(κ A)      = Lift β A
@@ -44,7 +44,7 @@ info (π A B)    = (a : A) → info (B a)
 
 %<*iir>
 \begin{code}
-record IIR {α β} (γ : Level) (X Y : ISet α β) : Set (lsuc α ⊔ β ⊔ lsuc γ) where
+record IIR {-<-}{α β}{->-}(γ : Level) (X Y : ISet α β) : Set (lsuc α ⊔ β ⊔ lsuc γ) where
   constructor _,_
   field
     node : (j : Code Y) → poly γ X
@@ -68,7 +68,7 @@ open IIR public
 
 %<*fct-obj>
 \begin{code}
-⟦_⟧ : IIR γ X Y → 𝔽 δ X → 𝔽 (δ ⊔ γ) Y
+⟦_⟧ : IIR γ X Y → 𝔽 δ X → 𝔽 (γ ⊔ δ) Y
 ⟦ ρ ⟧ F = λ j → emit ρ j >> ⟦ node ρ j ⟧₀ F
 \end{code}
 %</fct-obj>

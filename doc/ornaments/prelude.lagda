@@ -13,7 +13,7 @@ open import Agda.Builtin.Size public
 
 %<*lift>
 \begin{code}
-record Lift {α} (β : Level) (A : Set α) : Set (α ⊔ β) where
+record Lift {-<-}{α}{->-}(β : Level) (A : Set α) : Set (α ⊔ β) where
   constructor lift
   field lower : A
 \end{code}
@@ -48,13 +48,22 @@ A × B = Σ A λ _ → B
 \end{code}
 %</prod>
 
+%<*sum>
+\begin{code}
+data _+_ {α β} (A : Set α) (B : Set β): Set (α ⊔ β) where
+  inl : A → A + B
+  inr : B → A + B
+\end{code}
+%</sum>
+
+
 
 %%% SIGMA %%%
 
 %<*prop>
 \begin{code}
 data ⊥ {α} : Set α where
-data ⊤ {α} : Set α where * : ⊤
+record ⊤ {α} : Set α where constructor *
 \end{code}
 %</prop>
 
@@ -157,10 +166,10 @@ funext : {-<-}∀ {α β} {A : Set α} {B₀ B₁ : A → Set β} {f : (x : A) �
 funext p = funext₁ refl p
 \end{code}
 %</funext>
+
 %<*inv>
 \begin{code}
 data _⁻¹_ {α β}{X : Set α}{Y : Set β}(f : X → Y) : Y → Set α where
   ok : (x : X) → f ⁻¹ (f x)
 \end{code}
-
 %</inv>
