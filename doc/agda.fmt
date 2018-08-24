@@ -71,9 +71,10 @@
 %format _          = "\anonymous "
 %format →          = "→"
 %format ->         = →
-%format λ          = "λ"
-%format \          = "λ"
-%format forall     = "∀"
+%format λ          = "\KW{λ}"
+%format \          = λ
+%format ∀          = "\KW{∀}"
+%format forall     = ∀
 %format |          = "\mid "
 %format {          = "\{\mskip1.5mu "
 %format }          = "\mskip1.5mu\}"

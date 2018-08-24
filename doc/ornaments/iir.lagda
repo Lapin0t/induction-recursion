@@ -22,7 +22,7 @@ variable
 %<*codes>
 \begin{code}
 data poly {-<-}{α β}{->-}(γ : Level) (X : ISet α β) : Set (lsuc α ⊔ β ⊔ lsuc γ)
-info : {X : ISet α β} → poly γ X → Set (β ⊔ γ)
+info : {-<-}{X : ISet α β} →{->-}poly γ X → Set (β ⊔ γ)
 
 data poly γ X where
   ι : Code X → poly γ X
@@ -59,8 +59,8 @@ open IIR public
 %<*fam-info>
 \begin{code}
 ⟦_⟧₀ : (ρ : poly γ X) → 𝔽 δ X → Fam (γ ⊔ δ) (info ρ)
-⟦_⟧₀ {γ = γ} (ι i) F = lift >> lft γ F i
-⟦_⟧₀ {δ = δ} (κ A) F = Lift δ A , lift ∘ lower
+⟦_⟧₀ {-<-}{γ = γ}{->-}(ι i) F = lift << lft γ F i
+⟦_⟧₀ {-<-}{δ = δ}{->-}(κ A) F = Lift δ A , lift ∘ lower
 ⟦ σ A B  ⟧₀ F = f-σ (⟦ A ⟧₀ F) λ a → ⟦ B a ⟧₀ F
 ⟦ π A B  ⟧₀ F = f-π A λ a → ⟦ B a ⟧₀ F
 \end{code}
@@ -69,17 +69,16 @@ open IIR public
 %<*fct-obj>
 \begin{code}
 ⟦_⟧ : IIR γ X Y → 𝔽 δ X → 𝔽 (γ ⊔ δ) Y
-⟦ ρ ⟧ F = λ j → emit ρ j >> ⟦ node ρ j ⟧₀ F
+⟦ ρ ⟧ F = λ j → emit ρ j << ⟦ node ρ j ⟧₀ F
 \end{code}
 %</fct-obj>
 
 %<*fct-hom-i>
 \begin{code}
 ⟦_⟧[_]₀ : (ρ : poly γ X){-<-}{F : 𝔽 δ X}{G : 𝔽 ε X}{->-} → F ⇒ G → ⟦ ρ ⟧₀ F ⟶̃ ⟦ ρ ⟧₀ G
-⟦ ι i    ⟧[ φ ]₀ = λ x → (lift $ π₀ $ φ i (lower x)) , cong lift $ π₁ $ φ i (lower x)
+⟦ ι i    ⟧[ φ ]₀ = λ x → lift $ π₀ $ φ i $ lower x , cong lift $ π₁ $ φ i $ lower x
 ⟦ κ A    ⟧[ φ ]₀ = λ a → lift $ lower a , refl
-⟦ σ A B  ⟧[ φ ]₀ = f-σ→ (λ a → ⟦ B a ⟧₀ _) (λ a → ⟦ B a ⟧₀ _) ⟦ A ⟧[ φ ]₀
-                        (λ a → ⟦ B $ decode (⟦ A ⟧₀ _) a ⟧[ φ ]₀)
+⟦ σ A B  ⟧[ φ ]₀ = f-σ→ {-<-}(λ a → ⟦ B a ⟧₀ _) (λ a → ⟦ B a ⟧₀ _){->-}⟦ A ⟧[ φ ]₀ λ a → ⟦ B $ decode (⟦ A ⟧₀ _) a ⟧[ φ ]₀
 ⟦ π A B  ⟧[ φ ]₀ = f-π→ λ a → ⟦ B a ⟧[ φ ]₀
 \end{code}
 %</fct-hom-i>
@@ -87,7 +86,7 @@ open IIR public
 %<*fct-hom>
 \begin{code}
 ⟦_⟧[_] : (ρ : IIR γ X Y) {-<-}{F : 𝔽 δ X}{G : 𝔽 ε X}{->-} → F ⇒ G → ⟦ ρ ⟧ F ⇒ ⟦ ρ ⟧ G
-⟦ ρ ⟧[ φ ] j = emit ρ j <$>> ⟦ node ρ j ⟧[ φ ]₀
+⟦ ρ ⟧[ φ ] j = emit ρ j <<$> ⟦ node ρ j ⟧[ φ ]₀
 \end{code}
 %</fct-hom>
 
