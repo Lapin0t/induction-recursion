@@ -127,8 +127,11 @@
 %format mor = "\PRO{mor}"
 %format foldm = "\FCT{foldm}"
 %format fold = "\FCT{fold}"
-%format mfold-comp = "\FCT{mfold\!\!-\!\!comp}"
-%format fold-comp = "\FCT{fold\!\!-\!\!comp}"
+%format foldm-⊙ = "\FCT{foldm\!\!-\!\!⊙}"
+%format fold-⊙ = "\FCT{fold\!\!-\!\!⊙}"
+%format p-alg = "\DATA{alg\!\!≈}"
+%format para-pre = "\FCT{para\!\!-\!\!pre}"
+%format para = "\FCT{para}"
 
 %format IIR* = "\DATA{IIR^*}"
 %format eta = "\FCT{η}"

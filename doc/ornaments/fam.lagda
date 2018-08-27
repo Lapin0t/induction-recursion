@@ -169,6 +169,15 @@ F ⇒ G = (i : _) → F i ⟶̃ G i
 
 % TODO
 
+%<*fam-and>
+\begin{code}
+infix 30 _&_
+_&_ : ∀ {α β γ₀ γ₁} {X : ISet α β} (F : 𝔽 γ₀ X) (G : 𝔽 γ₁ X) → 𝔽 (γ₀ ⊔ γ₁) X
+Code ((F & G) i) = Code (F i) × Code (G i)
+decode ((F & G) i) (_ , x) = decode (G i) x
+\end{code}
+%</fam-and>
+
 \begin{code}
 lft : ∀ {α β γ} {X : ISet α β} (γ' : Level) → 𝔽 γ X → 𝔽 (γ ⊔ γ') X
 Code (lft γ' F i) = Lift γ' (Code $ F i)

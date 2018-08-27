@@ -25,14 +25,14 @@ data poly {-<-}{α β}{->-}(γ : Level) (X : ISet α β) : Set (lsuc α ⊔ β �
 info : {-<-}{X : ISet α β} →{->-}poly γ X → Set (β ⊔ γ)
 
 data poly γ X where
-  ι : Code X → poly γ X
-  κ : (A : Set γ) → poly γ X
-  σ : (A : poly γ X) (B : info A → poly γ X) → poly γ X
-  π : (A : Set γ) (B : A → poly γ X) → poly γ X
+  ι  : (i  : Code X)                               → poly γ X
+  κ  : (A  : Set γ)                                → poly γ X
+  σ  : (A  : poly γ X)  (B  : info A  → poly γ X)  → poly γ X
+  π  : (A  : Set γ)     (B  : A       → poly γ X)  → poly γ X
 
 info {-<-}{γ = γ}{X}{->-}(ι i)      = Lift γ (decode X i)
 info {-<-}{β = β}{->-}(κ A)      = Lift β A
-info (σ A B)    = Σ (info A) λ x → info (B x)
+info (σ A B)    = Σ (info A) λ a → info (B a)
 info (π A B)    = (a : A) → info (B a)
 \end{code}
 %</codes>
@@ -76,7 +76,7 @@ open IIR public
 %<*fct-hom-i>
 \begin{code}
 ⟦_⟧[_]₀ : (ρ : poly γ X){-<-}{F : 𝔽 δ X}{G : 𝔽 ε X}{->-} → F ⇒ G → ⟦ ρ ⟧₀ F ⟶̃ ⟦ ρ ⟧₀ G
-⟦ ι i    ⟧[ φ ]₀ = λ x → lift $ π₀ $ φ i $ lower x , cong lift $ π₁ $ φ i $ lower x
+⟦ ι i    ⟧[ φ ]₀ = λ x → let j , p = φ i $ lower x in lift j , cong lift p
 ⟦ κ A    ⟧[ φ ]₀ = λ a → lift $ lower a , refl
 ⟦ σ A B  ⟧[ φ ]₀ = f-σ→ {-<-}(λ a → ⟦ B a ⟧₀ _) (λ a → ⟦ B a ⟧₀ _){->-}⟦ A ⟧[ φ ]₀ λ a → ⟦ B $ decode (⟦ A ⟧₀ _) a ⟧[ φ ]₀
 ⟦ π A B  ⟧[ φ ]₀ = f-π→ λ a → ⟦ B a ⟧[ φ ]₀

@@ -6,7 +6,7 @@
 module ornaments.orn where
 
 open import ornaments.prelude
-open import ornaments.fam hiding (σ; π; el)
+open import ornaments.fam hiding (σ; π; el; α₀; α₁; β₀; β₁; γ₀; γ₁)
 open import ornaments.pow hiding (α₀; α₁; β₀; β₁)
 open import ornaments.iir hiding (α; β; γ; δ; X; Y)
 open import ornaments.induction hiding (α; β; γ; δ; X; s)
@@ -188,7 +188,7 @@ to-algorn {γ₀ = γ₀} {X = X} {ρ = ρ} {φ} = induction ρ P rec
 %<*erase>
 \begin{code}
 erase₀ : {-<-}{X : ISet α₀ β₀}{ρ : poly γ₀ X}{R : PRef α₁ β₁ X}{->-}(o : orn₀ γ₁ R ρ)
-         (F : 𝔽 γ₀ X) (G : PObj γ₁ R F) → info↓ {o = o} >> ⟦ ⌊ o ⌋₀ ⟧₀ (pfam G) ⟶̃ ⟦ ρ ⟧₀ F
+         (F : 𝔽 γ₀ X) (G : PObj γ₁ R F) → info↓ {o = o} << ⟦ ⌊ o ⌋₀ ⟧₀ (pfam G) ⟶̃ ⟦ ρ ⟧₀ F
 erase₀ (ι i) F G (lift (x , y)) = _ , refl
 erase₀ κ F G (lift x) = _ , refl
 erase₀ (σ {V = V} A B) F G (a , b) =
@@ -203,7 +203,7 @@ erase₀ (del-κ a) F G x = _ , refl
 
 erase : {-<-}{X Y : ISet α₀ β₀}{R : PRef α₁ β₁ X}{S : PRef α₁ β₁ Y}{ρ : IIR γ₀ X Y}{->-}(o : orn γ₁ R S ρ)
         (F : 𝔽 γ₀ X)(G : PObj γ₁ R F) → π₀> ⟦ ⌊ o ⌋ ⟧ (pfam G) ⇒ (⟦ ρ ⟧ F ∘ down S)
-erase {S = S} {ρ} o F G j = emit ρ (down S j) <$>> erase₀ (node o j) F G
+erase {S = S} {ρ} o F G j = emit ρ (down S j) <<$> erase₀ (node o j) F G
 
 --Bla : ∀ {α₀ α₁ β₀ β₁ γ₀ γ₁}{X : ISet α₀ β₀}{R : PRef α₁ β₁ X}{ρ : IIR γ₀ X X}(o : orn γ₁ R R ρ)(F : 𝔽 γ₀ X) → PObj γ₁ R F
 --Code (addon (Bla o F) j x) = μ-c ⌊ o ⌋ j
