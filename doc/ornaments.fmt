@@ -84,10 +84,16 @@
 %format f-π = "\FCT{FΠ}"
 %format f-π→ = "\FCT{FΠ\!\!⇝}"
 
+%format & = "\DATA{\&}"
+%format _&_ = _ & _
+
 %format 𝔽 = "\DATA{\mathbb{F}}"
 %format ⇒ = "\DATA{\mathrel{⇒}}"
 %format _⇒_ = _ ⇒ _
+%format ⊙ = "\FCT{\mathbin{⊙}}"
+%format _⊙_ = _ "\!" ⊙ "\!" _
 %format ⊙-assoc = "\FCT{⊙\!\!-\!\!assoc}"
+%format !< = "\FCT{\mathbin{\triangleleft\!\!\shortmid}}"
 
 
 %%%%%%%%%
@@ -130,7 +136,8 @@
 %format foldm-⊙ = "\FCT{foldm\!\!-\!\!⊙}"
 %format fold-⊙ = "\FCT{fold\!\!-\!\!⊙}"
 %format p-alg = "\DATA{alg\!\!≈}"
-%format para-pre = "\FCT{para\!\!-\!\!pre}"
+%format down = "\PRO{down}"
+%format para₀ = "\FCT{para₀}"
 %format para = "\FCT{para}"
 
 %format IIR* = "\DATA{IIR^*}"

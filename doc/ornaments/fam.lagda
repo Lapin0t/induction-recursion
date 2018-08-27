@@ -172,9 +172,10 @@ F ⇒ G = (i : _) → F i ⟶̃ G i
 %<*fam-and>
 \begin{code}
 infix 30 _&_
-_&_ : ∀ {α β γ₀ γ₁} {X : ISet α β} (F : 𝔽 γ₀ X) (G : 𝔽 γ₁ X) → 𝔽 (γ₀ ⊔ γ₁) X
+_&_ : ∀ {α β γ δ₀ δ₁} {I : Set α} {X : I → Set β} {Y : I → Set γ} (F : 𝔽 δ₀ (I , X)) (G : 𝔽 δ₁ (I , Y)) → 𝔽 (δ₀ ⊔ δ₁) (I , X)
 Code ((F & G) i) = Code (F i) × Code (G i)
-decode ((F & G) i) (_ , x) = decode (G i) x
+decode ((F & G) i) (x , _) = decode (F i) x
+
 \end{code}
 %</fam-and>
 
@@ -184,13 +185,13 @@ Code (lft γ' F i) = Lift γ' (Code $ F i)
 decode (lft γ' F i) (lift x) = decode (F i) x
 
 infix 22 _⇒_
-infix 30 π₀>_
+infix 30 π₀<_
 
 _!<_ : ∀ {α β γ δ} {X : ISet α β} {Y : Code X → Set δ} (f : (i : _) → decode X i → Y i) → 𝔽 γ X → 𝔽 γ (Code X , Y)
 (f !< F) i = f i << F i
 
-π₀>_ : ∀ {α β γ δ}{X : ISet α β}{B : (i : _) → decode X i → Set δ} → 𝔽 γ (Code X , λ i → Σ (decode X i) (B i)) → 𝔽 γ X
-π₀> F = (λ _ → π₀) !< F
+π₀<_ : ∀ {α β γ δ}{X : ISet α β}{B : (i : _) → decode X i → Set δ} → 𝔽 γ (Code X , λ i → Σ (decode X i) (B i)) → 𝔽 γ X
+π₀< F = (λ _ → π₀) !< F
 
 infixr 20 _⊙_
 

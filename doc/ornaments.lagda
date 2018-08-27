@@ -4,7 +4,9 @@
 \usepackage{catchfilebetweentags}
 \usepackage{natbib}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{prftree}
+\usepackage{tikz-cd}
 
 %include agda.fmt
 %include ornaments.fmt
@@ -56,7 +58,7 @@ general--purpose programming languages, leveraging their expressivity to enable
 correct--by--construction type--driven programming. But without the right tools
 this new power is unmanageable. One issues is the need to prove over and over
 again the same properties for similar datastructures. Ornaments (\todo{ref
-mcbride}) tacle this problem by giving a formal syntax to describe how
+mcbride}) tackle this problem by giving a formal syntax to describe how
 datastructures might be \textit{similar}. Using these objects, we can prove
 generic theorems once and for all. The broad idea behind this approach is to
 ``speak in a more intelligible way to the computer'': if instead of giving a
@@ -72,6 +74,19 @@ types) as recently axiomatized by Ghani et al (\ref{ghani17}).
 
 \paragraph{Acknowledgements}
 
+
+{-<-}
+\begin{code}
+data ℕ : Set where
+  zero : ℕ
+  suc : ℕ → ℕ
+
+open import ornaments.prelude
+open import ornaments.fam hiding (el; σ; π)
+open import ornaments.iir
+open import ornaments.induction
+\end{code}
+{->-}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Indexed Induction--Recursion}
@@ -95,15 +110,12 @@ numbers and Π--types).
 
 {-<-}
 \begin{code}
-data ℕ : Set where
-  zero : ℕ
-  suc : ℕ → ℕ
-
 data U : Set
 el : U → Set
 \end{code}
 {->-}
 
+\todo{alternate lines}
 \noindent
 \begin{minipage}[b]{0.5\textwidth}
 \begin{code}
@@ -118,6 +130,7 @@ el `ℕ        = ℕ
 el (`Π A B)  = (a : el A) → el (B a)
 \end{code}
 \end{minipage}
+
 %}
 
 %\begin{center}\begin{tabular}{cc}
@@ -155,7 +168,7 @@ I) → U i → X i| for any |I : Set| and |X : I → Set₁|. Using a vocabulary
 influenced by the \textit{bidirectional} paradigm for typing (\todo{ref}) we
 will call |i : I| the \textit{input index} and |X i| the \textit{output index}.
 Indeed if we think of the judgement |a : U i| as a typechecker would, the
-judgment requires the validity of |i : I| and suffices to the validity of |f a
+judgment requires the validity of |i : I| and suffices to demonstrate the validity of |f a
 : X i|. We will explore bidirectionality further in section \ref{sec:stlc}.
 
 %}
@@ -191,7 +204,7 @@ definition of a category |C|:
 \item a collection of morphisms (or arrows) |_⇒_ : (X Y : C) → Set|
 \item an identity |1 : (X : C) → X ⇒ X|
 \item a composition operation |_∘_ : ∀ {X Y Z} → Y ⇒ Z → X ⇒ Y → X ⇒ Z| that is
-  associative and respects the identity laws
+  associative and respects the identity laws |1 X ∘ F ≡ F ≡ F ∘ 1 Y|
 \end{itemize}
 
 A functor |F| between categories |C| and |D| is a mapping of objects |F : C →
@@ -213,21 +226,43 @@ types, inductive types, live in the category $\DATA{Set}$.  On the other hand,
 as we have seen, inductive--recursive data types are formed by couples in
 $(\DATA{U} : \DATA{Set})~×~(\DATA{U} → \DATA{X})$. Categorically, this an
 $\DATA{X}$-indexed set and it is an object of the slice category of $\DATA{Set}
-/ \DATA{X}$. We will be representing these objects by the record type
-|Fam γ X|.
+/ \DATA{X}$. We will be representing these objects by the record type |Fam γ
+X|\footnote{See section \todo{ref} for some explainations of |Level|, but for
+most part it can be safely ignored, together with its artifacts |Lift|, |lift|
+and the greek letters |α|, |β|, |γ| and |δ|.}.
 
 \ExecuteMetaData[ornaments/fam.tex]{fam-def}
 \ExecuteMetaData[ornaments/fam.tex]{morph}
+
+This definition already gives us enough to express our first example of
+inductive--recursive definition.
+
+%format Πℕ-univ = "\VAR{Πℕ\!\!-\!\!univ}"
+
+\begin{code}
+Πℕ-univ : Fam lzero Set
+Πℕ-univ = U , el
+\end{code}
 
 Now we can get to indexed inductive--recursive data types which essentially are
 functions from an input index $\VAR{i} : \DATA{I}$ to
 $(\DATA{X}~\VAR{i})$-indexed sets. We will use couples $(\DATA{I}~,~\DATA{X})$
 a lot as they define the input and output indexing sets so we call their type
-$\DATA{ISet}$.
+|ISet|.
 
 \ExecuteMetaData[ornaments/fam.tex]{iset}
 \ExecuteMetaData[ornaments/fam.tex]{ifam}
 \ExecuteMetaData[ornaments/fam.tex]{ifam-arr}
+
+Again we might consider our universe example as a trivially indexed type.
+
+%format Πℕ-univᵢ = "\VAR{Πℕ\!\!-\!\!univᵢ}"
+\begin{code}
+Πℕ-univᵢ : 𝔽 lzero (⊤{-<-}{lzero}{->-} , λ _ → Set)
+Πℕ-univᵢ _ = U , el
+\end{code}
+
+\todo{mention |FΣ| and |FΠ|}
 
 \subsection{A Universe of Strictly Positive Functors}
 
@@ -236,7 +271,7 @@ definitions (\todo{ref}) by constructing a universe of functors. However, as
 conjectured by \cite{ghani17}, this universe lacks closure under composition,
 \textit{eg} if given the codes of two functors, we don't know how to construct
 a code for the composition of the functors. I will thus use an alternative
-universe construction devised by McBride which we call \textit{irish}
+universe construction devised by McBride which we call \textit{Irish}
 induction--recursion\footnote{It has also been called \textit{polynomial}
 induction--recursion because it draws similarities to polynomial functors, yet
 they are different notions and should not be confused.}.
@@ -249,19 +284,13 @@ First we give a datatype of codes that will describe the first component
 inductive--recursive functors. This definition is itself inductive--recursive:
 we define a type |poly γ X : Set| representing the shape of the
 constructor\footnote{It is easy to show that in a dependent theory, restricting
-every type to a single constructor does not loose generality.} and a recursive
-predicate $\DATA{info}:\DATA{poly}~\VAR{γ}~\VAR{X} → \DATA{Set}$ representing
-the information contained in the final datatype.
+every type to a single constructor does not lose generality.} and a recursive
+predicate |info : poly γ X → Set| representing the information contained in the
+final datatype, underapproximating the information contained in a subnode by
+the output index |X i| it delivers.
 
-\ExecuteMetaData[ornaments/iir.tex]{codes}
+%\ExecuteMetaData[ornaments/iir.tex]{codes}
 
-We can now give the interpretation of a code |ρ : poly δ X| into a
-functor |⟦ ρ ⟧₀|.
-
-\ExecuteMetaData[ornaments/iir.tex]{fam-info}
-\ExecuteMetaData[ornaments/iir.tex]{fct-hom-i}
-
-\todo{mention |FΣ| and |FΠ|}
 Lets give some intuition for these constructors.
 \begin{itemize}
 \item |ι i| codes an inductive position with input index |i|, \textit{eg} the
@@ -275,22 +304,61 @@ inductive positions in the domain. As such the functor |A| must be a constant
 functor and we can (and must) make it range over |Set|, not |poly|.
 \end{itemize}
 
+The encoding of our Πℕ--universe goes as follows:
+
+%format Πℕ-tag = "\DATA{Πℕ\!\!-\!\!tag}"
+%format Πℕ₀ = "\VAR{Πℕ₀}"
+%format Πℕc = "\VAR{Πℕc}"
+
+\begin{code}
+data Πℕ-tag : Set where `ℕ `Π : Πℕ-tag
+
+Πℕ₀ : poly lzero (⊤{-<-}{lzero}{->-} , λ _ → Set)
+Πℕ₀ = σ (κ Πℕ-tag) λ {   -- select a constructor
+   -- no argument for `ℕ
+  (lift `ℕ) → κ ⊤ ;
+  -- first argument, an inductive position whose output index we bind to A
+  -- second argument, a (non-dependent) Π type from A to an inductive position
+  (lift `Π) → σ (ι *) λ { (lift A) → π A λ _ → ι * }}
+\end{code}
+
+We can now give the interpretation of a code |ρ : poly δ X| into a
+functor |⟦ ρ ⟧₀|.
+
+\ExecuteMetaData[ornaments/iir.tex]{fam-info}
+\ExecuteMetaData[ornaments/iir.tex]{fct-hom-i}
+
+It would be time to check if this interpretation does the right thing on our
+example, alas even simple examples of induction--recursion are somewhat
+complicated, as such I don't think it would be informative to display here the
+normalized expression of |⟦ Πℕc ⟧₀ F|. The reader is still encouraged to
+normalize it by hand to familiarize with the interpretation.
+
 While taking as parameter a indexed family |𝔽 γ X|, our intepreted functors
-only outputs a family |Fam (γ ⊔ δ) (info ρ)|. In other words, |ρ : poly γ X|
+only output a family |Fam (γ ⊔ δ) (info ρ)|. In other words, |ρ : poly γ X|
 only gives the structure of the definition for a given input index |i : Code
 Y|.  To account for that, the full description of the first component of
 inductive--recursive functors has to be a function |node : Code Y → poly γ X|.
 We are left to describe the recursive function, which can be done with a direct
-|emit : (i : Code Y) → info (node i) → decode Y i| computing the output index
+|emit : (j : Code Y) → info (node j) → decode Y j| computing the output index
 from the full information.
 
 \ExecuteMetaData[ornaments/iir.tex]{iir}
+
+We can now explain the index emitting function |el|, completing our encoding of
+the Πℕ--universe.
+
+\begin{code}
+Πℕc : IIR lzero (⊤{-<-}{lzero}{->-} , λ _ → Set) (⊤{-<-}{lzero}{->-} , λ _ → Set)
+node Πℕc _ = Πℕ₀
+emit Πℕc _ (lift `ℕ , lift *)  = ℕ
+emit Πℕc _ (lift `Π , A , B)   = (a : lower A) → lower $ B a
+\end{code}
+
 \ExecuteMetaData[ornaments/iir.tex]{fct-obj}
 \ExecuteMetaData[ornaments/iir.tex]{fct-hom}
 
 We have use the post--composition functor defined as follows:
-
-$\FCT{f}$, a functor |Fam α X → Fam α Y|.
 
 \ExecuteMetaData[ornaments/fam.tex]{pcomp}
 \ExecuteMetaData[ornaments/fam.tex]{pcomp-arr}
@@ -315,15 +383,50 @@ implementation of respectively |μ-c ρ| and |μ-d ρ|.
 
 \ExecuteMetaData[ornaments/induction.tex]{mu-tools}
 
+We have now completed the encoding of Πℕ and we can write pretty versions the
+constructors!
+
+\todo{minipage}
+
+%{
+%format U₁ = "\DATA{U₁}"
+%format el₁ = "\FCT{el₁}"
+%format `ℕ₁ = "\CON{`ℕ₁}"
+%format `Π₁ = "\CON{`Π₁}"
+\begin{code}
+U₁ : Set
+U₁ = μ-c Πℕc *
+
+el₁ : U₁ → Set
+el₁ = μ-d Πℕc *
+
+`ℕ₁ : U₁
+`ℕ₁ = ⟨ lift `ℕ , lift * ⟩
+
+`Π₁ : (A : U₁) (B : el₁ A → U₁) → U₁
+`Π₁ A B = ⟨ lift `Π , lift A , lift ∘ B ⟩
+\end{code}
+%}
+
+\subsubsection{Catamorphism and Paramorphism}
+
 I previously said that this least--fixed point has in category theory the
 semantic of an initial algebra. Let's break it down. Given an endofunctor |F :
 C → C|, an |F|-algebras is a carrier |X : C| together with an arrow |F X ⇒ X|.
 An arrow between two |F|-algebras |(X , φ)| and |(Y , ψ)| is an arrow |m : X ⇒
 Y| subject to the commutativity of the usual square diagram |ψ ∘ F[ m ] ≡ m ∘
-φ|. Additionaly, an object |X : C| is initial if for any |Y : C| we can give an
-arrow |X ⇒ Y|.
+φ|.
 
-\subsubsection{Catamorphism and Paramorphism}
+\begin{center}
+\begin{tikzcd}
+|F X| \arrow[r, "|φ|"] \arrow[d, "{|F[ m ]|}"'] & |X| \arrow[d, "|m|"] \\
+|F Y| \arrow[r, "|ψ|"] & |Y|
+\end{tikzcd}
+\end{center}
+
+
+Additionaly, an object |X : C| is initial if for any |Y : C| we can give an
+arrow |X ⇒ Y|.
 
 We almost already have constructed an |⟦ ρ ⟧|-algebra with carrier |μ ρ| and
 the constructor |⟨_⟩| mapping the object part of |⟦ ρ ⟧ (μ ρ)| to |μ ρ|. What
@@ -355,11 +458,11 @@ Complying to the proof obligation for the equality condition, we get:
 Note that we make use of |uoip| the unicity of identity proofs, together
 with the associativity lemma |⊙-assoc|.
 
-As hinted by it's name, the initiality arrow |fold ρ| is in fact a generic fold
-or with fancier wording an elimination rule, precisely a catamorphism. An
-elimination scheme is the semantic of recursive functions with pattern
-matching. Diggressing a little on elimination rules, we can notice that this is
-not the only one.
+As hinted by its name, the initiality arrow |fold ρ| is in fact a generic fold
+or with fancier wording an elimination rule, precisely the catamorphism (also
+called recursor). An elimination scheme is the semantic of recursive functions
+with pattern matching. Diggressing a little on elimination rules, we can notice
+that this is not the only one.
 
 \todo{introduce paramorphism, factorial on nat}
 \todo{para is the most generic (non-dependent) eliminator, ref meeertens}
@@ -398,10 +501,72 @@ principle, but cata-- and paramorphisms are very useful non--dependent special
 cases that diserve to be treated separately and possibly optimized.
 Non-dependent functions still have a place of choice in dependent languages:
 just because we can replace every implication by universal quantification
-doesn't mean it's practical to.
+doesn't mean we should.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ornaments}
+\subsection{Fancy Data}
+
+%{
+%format list = "\DATA{list}"
+%format nil = "\CON{nil}"
+%format cons = "\CON{cons}"
+%format zip = "\FCT{zip}"
+%format zip' = "\FCT{zip}"
+
+A major use for indexes in type families is to refine a type to contain
+computational relevant information about objects of that type. Suppose we have
+a type of lists.
+
+\begin{code}
+data list (X : Set) : Set where
+  nil : list X
+  cons : X → list X → list X
+\end{code}
+
+We may want to define a function |zip : list X → list Y → list (X × Y)| pairing
+up the items of two arguments.
+
+\begin{code}
+zip' : {-<-}∀ {X Y} →{->-}list X → list Y → list (X × Y)
+zip' nil          nil          = nil
+zip' (cons x xs)  (cons y ys)  = cons (x , y) (zip' xs ys)
+zip' (cons x xs)  nil          = ?
+zip' nil          (cons y ys)  = ?
+\end{code}
+
+It is clear that there is nothing really sensible to do for the two last cases.
+We should signal some incompatibility by throwing an exception or we may just
+return an empty list. But this is not very principled. What we would like is to
+enforce on the type level that the two arguments have the same length and that
+we additionally will return a list of that exact length. This type is called |vec|.
+
+\begin{code}
+data vec (X : Set) : ℕ → Set where
+  nil : vec X zero
+  cons : ∀ {n} → X → vec X n → vec X (suc n)
+\end{code}
+
+I wrote the constructors such that they maintain the invariant that |vec X n|
+is only inhabited by sequences of length |n|. I may now write the stronger
+version of |zip| which explicitely states what is possible to zip.
+\begin{code}
+zip : {X Y : Set} {n : ℕ} → vec X n → vec Y n → vec (X × Y) n
+zip nil          nil          = nil
+zip (cons x xs)  (cons y ys)  = cons (x , y) (zip xs ys)
+\end{code}
+
+This is made possible because of the power dependent pattern matching has:
+knowing a value is of a particular constructor may add constraints to the type
+of the expression we have to produce and to the type of other arguments. As
+such when we pattern match with |cons| on the first argument, the implicit
+index |n| gets unified with |suc m|, which implies that the second argument has no choice but to be a |cons| too.
+
+%}
+
+\subsection{A Universe of Ornaments}
+\subsection{Ornamental Algebra}
+\subsection{}
 
 
 
@@ -436,100 +601,4 @@ pattern matching conditions}
 \section{Bibliography}
 \bibliographystyle{plain}
 \bibliography{ornaments.bib}
-
-
-%\section{Fam}
-
-%\ExecuteMetaData[ornaments/fam.tex]{fam-def}
-
-%Arrows of the $\DATA{Fam}\;\VAR{X}$ category.
-%\ExecuteMetaData[ornaments/fam.tex]{morph}
-%\ExecuteMetaData[ornaments/fam.tex]{fam-pi}
-%\ExecuteMetaData[ornaments/fam.tex]{fam-sg}
-
-
-%Functorial structure for $\DATA{Fam}$.
-%\ExecuteMetaData[ornaments/fam.tex]{post-comp}
-
-%Monadic structure for $\DATA{Fam}$.
-%\vspace*{1ex}\\
-%\parbox[t]{.4\textwidth}{\ExecuteMetaData[ornaments/fam.tex]{monad-eta}}
-%\parbox[t]{.5\textwidth}{\ExecuteMetaData[ornaments/fam.tex]{monad-mu}}
-
-%Indexed families; our main category from now on:
-%\vspace*{1ex}\\
-%\parbox[t]{.5\textwidth}{\ExecuteMetaData[ornaments/fam.tex]{ifam}}
-%\parbox[t]{.5\textwidth}{\ExecuteMetaData[ornaments/fam.tex]{ifam-arr}}
-
-%\section{IIR}
-
-%\subsection{Codes}
-
-%\ExecuteMetaData[ornaments/iir.tex]{codes}
-%\ExecuteMetaData[ornaments/iir.tex]{iir}
-
-%\subsection{Functor}
-
-%Interpretation of $\DATA{poly}\;\VAR{X}$ as a functor.
-%\vspace*{1ex}\\
-%\ExecuteMetaData[ornaments/iir.tex]{fam-info}
-
-
-%Interpretation of $\DATA{IIR}\;\VAR{X}\;\VAR{Y}$ definition as a functor
-%from $\DATA{\mathbb{F}}\;\VAR{X}$ to $\DATA{\mathbb{F}}\;\VAR{Y}$.
-%\vspace*{1ex}\\
-%\ExecuteMetaData[ornaments/iir.tex]{fct-obj}
-
-%Functorial action of $\FCT{⟦}\;\VAR{p}\;\FCT{⟧ᵢ}$ for
-%$\VAR{p}\;\KW{\!:\!}\;\DATA{poly}\;\VAR{X}$.
-%\vspace*{1ex}\\
-%\ExecuteMetaData[ornaments/iir.tex]{fct-hom-i}
-
-%Functorial action of $\FCT{⟦}\;\VAR{α}\;\FCT{⟧}$ for
-%$\VAR{α}\;\KW{\!:\!}\;\DATA{IIR}\;\VAR{X}\;\VAR{Y}$.
-%\vspace*{1ex}\\
-%\ExecuteMetaData[ornaments/iir.tex]{fct-hom}
-
-%\subsection{Initial Algebra}
-%\ExecuteMetaData[ornaments/iir.tex]{init-alg-def}
-%\ExecuteMetaData[ornaments/iir.tex]{init-alg-impl}
-%\ExecuteMetaData[ornaments/iir.tex]{cata}
-
-%\subsection{Composition}
-%\ExecuteMetaData[ornaments/iir.tex]{iir-star}
-%\ExecuteMetaData[ornaments/iir.tex]{iir-eta}
-%\ExecuteMetaData[ornaments/iir.tex]{iir-mu}
-%\ExecuteMetaData[ornaments/iir.tex]{iir-pow}
-%\ExecuteMetaData[ornaments/iir.tex]{iir-bind}
-%\ExecuteMetaData[ornaments/iir.tex]{iir-subst}
-%\ExecuteMetaData[ornaments/iir.tex]{iir-comp}
-
-%\subsection{Induction Scheme}
-%\ExecuteMetaData[ornaments/iir.tex]{ind-all}
-%\ExecuteMetaData[ornaments/iir.tex]{ind-everywhere}
-%\ExecuteMetaData[ornaments/iir.tex]{induction}
-
-%\section{Ornaments}
-
-%\ExecuteMetaData[ornaments/orn.tex]{pow}
-%\ExecuteMetaData[ornaments/orn.tex]{catholic}
-
-%\subsection{Codes}
-%\ExecuteMetaData[ornaments/orn.tex]{code-def}
-%\ExecuteMetaData[ornaments/orn.tex]{code-impl}
-%\ExecuteMetaData[ornaments/orn.tex]{info+-impl}
-%\ExecuteMetaData[ornaments/orn.tex]{infodown-impl}
-%\ExecuteMetaData[ornaments/orn.tex]{orn}
-
-%\subsection{Interpretation}
-%Interpretation of $\DATA{orn₀}$ to $\DATA{poly}$ is an arrow in a Fam
-%$\DATA{Set₁}$ category between $(\DATA{orn₀}\;\CON{,}\;\DATA{info\!+})$ and
-%$(\DATA{poly}\;\FCT{∘}\;\FCT{pow⁻¹}\;\CON{,}\;\DATA{info})$.
-%\ExecuteMetaData[ornaments/orn.tex]{p-interp}
-%\ExecuteMetaData[ornaments/orn.tex]{interp}
-
-%\subsection{Forgetful map}
-%\ExecuteMetaData[ornaments/orn.tex]{forget}
-
-
 \end{document}

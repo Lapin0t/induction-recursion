@@ -106,11 +106,12 @@ fold-⊙ φ = trans {-<-}({->-}⊙-assoc{-<-}{f = roll} {g = foldm φ} {h = mor 
 
 %<*p-alg>
 \begin{code}
-record p-alg {-<-}{α β γ}{->-}(δ : Level) {-<-}{X : ISet α β}{->-}(ρ : IIR γ X X) : Set (α ⊔ β ⊔ lsuc δ ⊔ γ) where
+record p-alg {-<-}{α β₀ β₁ γ}{->-}(δ : Level) {-<-}{X : ISet α β₀}{->-}(Y : Code X → Set β₁) (ρ : IIR γ X X) : Set (α ⊔ β₀ ⊔ β₁ ⊔ lsuc δ ⊔ γ) where
   constructor _,_
   field
-    {obj} : 𝔽 δ X
-    mor : ⟦ ρ ⟧ (μ ρ {-<-}{s}{->-}& obj) ⇒ obj
+    {obj} : 𝔽 δ (Code X , Y)
+    down : (i : Code X) → decode X i → Y i
+    mor : (down !< ⟦ ρ ⟧ (μ ρ {-<-}{s}{->-}& obj)) ⇒ obj
 open p-alg public
 \end{code}
 %</p-alg>
@@ -118,16 +119,18 @@ open p-alg public
 
 %<*para-pre>
 \begin{code}
-para-pre : {-<-}{ρ : IIR γ X X}{->-}(φ : p-alg δ ρ) → μ ρ {-<-}{s}{->-}⇒ μ ρ {-<-}{s}{->-}& obj φ
-π₀ (para-pre {-<-}{ρ = ρ}{->-}φ i ⟨ x ⟩) = ⟨ x ⟩ , π₀ $ mor φ i $ π₀ $ ⟦ ρ ⟧[ para-pre φ ] i x
-π₁ (para-pre {-<-}{ρ = ρ}{->-}φ i ⟨ x ⟩) = trans (π₁ $ mor φ i _) (π₁ $ ⟦ ρ ⟧[ para-pre φ ] i x)
+para₀ : {-<-}∀ {α β β' γ δ}{X : ISet α β}{ρ : IIR γ X X}{->-}(Y : Code X → Set β')(φ : p-alg δ Y ρ) → μ ρ {-<-}{s}{->-}⇒ μ ρ {-<-}{s}{->-}& obj φ
+π₀ (para₀ {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = ⟨ x ⟩ , π₀ $ mor φ i (π₀ $ ⟦ ρ ⟧[ para₀ Y φ ] i x)
+π₁ (para₀ {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = refl
+
 \end{code}
 %</para-pre>
 
 %<*para>
 \begin{code}
-para : {-<-}{ρ : IIR γ X X}{->-}(φ : p-alg δ ρ) → μ ρ {-<-}{s}{->-}⇒ obj φ
-para φ i x = let (y , p) = para-pre φ i x in π₁ y , p
+para : {-<-}∀ {α β β' γ δ}{X : ISet α β}{ρ : IIR γ X X}{->-}(Y : Code X → Set β')(φ : p-alg δ Y ρ) → (down φ !< μ ρ {-<-}{s}{->-})⇒ obj φ
+π₀ (para {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = π₀ $ mor φ i (π₀ $ ⟦ ρ ⟧[ para₀ Y φ ] i x)
+π₁ (para {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = trans (π₁ $ mor φ i _) (cong (down φ i) (π₁ $ ⟦ ρ ⟧[ _ ] i x))
 \end{code}
 %</para>
 

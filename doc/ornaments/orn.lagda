@@ -2,7 +2,7 @@
 %include ornaments.fmt
 
 \begin{code}
-{-# OPTIONS --experimental-irrelevance #-}
+{-# OPTIONS --experimental-irrelevance --allow-unsolved-metas #-}
 module ornaments.orn where
 
 open import ornaments.prelude
@@ -202,15 +202,22 @@ erase₀ (add₁ A B) F G (a , _) = erase₀ A F G a
 erase₀ (del-κ a) F G x = _ , refl
 
 erase : {-<-}{X Y : ISet α₀ β₀}{R : PRef α₁ β₁ X}{S : PRef α₁ β₁ Y}{ρ : IIR γ₀ X Y}{->-}(o : orn γ₁ R S ρ)
-        (F : 𝔽 γ₀ X)(G : PObj γ₁ R F) → π₀> ⟦ ⌊ o ⌋ ⟧ (pfam G) ⇒ (⟦ ρ ⟧ F ∘ down S)
+        (F : 𝔽 γ₀ X)(G : PObj γ₁ R F) → π₀< ⟦ ⌊ o ⌋ ⟧ (pfam G) ⇒ (⟦ ρ ⟧ F ∘ down S)
 erase {S = S} {ρ} o F G j = emit ρ (down S j) <<$> erase₀ (node o j) F G
 
 --Bla : ∀ {α₀ α₁ β₀ β₁ γ₀ γ₁}{X : ISet α₀ β₀}{R : PRef α₁ β₁ X}{ρ : IIR γ₀ X X}(o : orn γ₁ R R ρ)(F : 𝔽 γ₀ X) → PObj γ₁ R F
 --Code (addon (Bla o F) j x) = μ-c ⌊ o ⌋ j
 --decode (addon (Bla o F) j x) y = {! π₁ $ μ-d ⌊ o ⌋ j y !}
 
---forget : {-<-}∀ {α₀ β₀ α₁ β₁ γ₀ γ₁}{X : ISet α₀ β₀}{R : PRef α₁ β₁ X}{ρ : IIR γ₀ X X}{->-}(o : orn γ₁ R R ρ){s} → π₀> (μ ⌊ o ⌋ {s}) ⇒ (μ ρ {s} ∘ down R)
---forget o i = {!   !}
+{-forget : {-<-}∀ {α₀ β₀ α₁ β₁ γ₀ γ₁}{X : ISet α₀ β₀}{R : PRef α₁ β₁ X}{ρ : IIR γ₀ X X}{->-}(o : orn γ₁ R R ρ){s} → π₀< (μ ⌊ o ⌋ {s}) ⇒ (μ ρ {s} ∘ down R)
+forget {X = X} {R = R} {ρ = ρ} o {s = s} = para {!   !} φ
+  where
+    φ : ..{t : Size} → p-alg _ (decode X ∘ down R) ⌊ o ⌋
+    obj (φ {t}) = μ ρ {t} ∘ down R
+    down φ _ = π₀
+    mor φ i x =
+      let y , p = erase o (μ ρ) {!   !} i ?
+      in {!   !} , trans p ?-}
 
 \end{code}
 %</erase>
