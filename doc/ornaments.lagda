@@ -7,6 +7,7 @@
 \usepackage{amssymb}
 \usepackage{prftree}
 \usepackage{tikz-cd}
+\usepackage[a4paper, margin=1.2in]{geometry}
 
 %include agda.fmt
 %include ornaments.fmt
@@ -73,6 +74,17 @@ types) as recently axiomatized by Ghani et al (\ref{ghani17}).
 \paragraph{Related Work}
 
 \paragraph{Acknowledgements}
+This 3 month internship research project was conducted in the Mathematically
+Structured Programming group of the University of Strathclyde, Glasgow under
+supervision of Conor McBride as part of my M1 in theoretical computer science
+at the university of ENS de Lyon. I spend an enjoyable time there with the
+staff, PhD students and fellow interns, discovering a whole new world populated
+by modalities, coinduction, quantitative types and cheering against England.
+Many thanks to Ioan and Simone for sharing their roof. Last but not least I'm
+grateful to Conor for sharing his insights on (protestant integrist) type
+theory, taking the time to lead me through narrow difficulties or open doors
+into new realms of thought. It was loads of fun and I'm looking forward to
+collaborate again in some way or another.
 
 
 {-<-}
@@ -83,8 +95,10 @@ data ℕ : Set where
 
 open import ornaments.prelude
 open import ornaments.fam hiding (el; σ; π)
+open import ornaments.pow
 open import ornaments.iir
 open import ornaments.induction
+open import ornaments.orn
 \end{code}
 {->-}
 
@@ -115,7 +129,6 @@ el : U → Set
 \end{code}
 {->-}
 
-\todo{alternate lines}
 \noindent
 \begin{minipage}[b]{0.5\textwidth}
 \begin{code}
@@ -434,6 +447,8 @@ is left is to add a trivial proof.
 
 \ExecuteMetaData[ornaments/induction.tex]{roll}
 
+\todo{interlude: intro example distinct elt list}
+
 To prove the fact that our algebra is initial we have first have to formally write
 the type of algebras.
 
@@ -509,6 +524,7 @@ doesn't mean we should.
 
 %{
 %format list = "\DATA{list}"
+%format list = "\DATA{vec}"
 %format nil = "\CON{nil}"
 %format cons = "\CON{cons}"
 %format zip = "\FCT{zip}"
@@ -560,11 +576,154 @@ This is made possible because of the power dependent pattern matching has:
 knowing a value is of a particular constructor may add constraints to the type
 of the expression we have to produce and to the type of other arguments. As
 such when we pattern match with |cons| on the first argument, the implicit
-index |n| gets unified with |suc m|, which implies that the second argument has no choice but to be a |cons| too.
+index |n| gets unified with |suc m|, which implies that the second argument has
+no choice but to be a |cons| too.
 
+Several comments can be made about |vec| and |list|. The first one is that they
+are almost same. More precisely, they have the same shape, the only added
+argument is the natural number |n| in |cons| for |vec|\footnote{Actually this
+|n| does not contain any information as it can be derived from the type index.
+As such there is ongoing research to optimize away these kind of arguments and
+we will see that because of our index--first formalism of indexed datatypes it
+will not even be added in the first hand.}. Because only a sprinkle of
+information has been added to something of the same shape, we should be able to
+derive a function from |vec X n| to |list X|. The second comment is that there
+is an straightforward isomorphism between |list X| and |Σ ℕ (vec X)|. As such
+we should be able to come up with the reverse function |(x : list X) → vec X
+(length x)|.
+
+The rest of this section will be dedicated to formalizing prose definitions
+such as ``vectors are lists indexed by their length'' and generically deriving
+the properties that they imply.
 %}
 
+\subsection{Reindexing}
+Another take on the previous example of lists and vectors is that vectors have
+a more informative index (natural numbers) than lists (trivial indexation by
+the unit type). This can be expressed by the fact that there is a function |ℕ →
+⊤| giving a non-fancy index given a fancy one. Because we work with
+inductive--recursive types and not just inductive ones, we have two
+indexes---the input index $\DATA{I} : \DATA{Set}$ and the output index
+$\DATA{X} : \DATA{I} → \DATA{Set}$---and we have to translate this notion. For
+this we introduce the datatype |PRef| (index refinement using powersets).
+
+\ExecuteMetaData[ornaments/pow.tex]{pref}
+
+Let |X : ISet α₀ β₀| and |R : PRef α₁ β₁ X|. |Code R| represents the new input
+index, together with the striping function |down R| taking new input indexes to
+old ones. Additionaly we have to define a new output index |Y : Code R → Set|
+such that we can derive a stripping function |(j : Code R) → Y j → X (down j)|.
+Directly defining |Y| together with this second striping function would not
+have been practical\footnote{Later we would have needed to define preimages
+which necessarily embed some notion of equality. As explained in
+\ref{sec:index-first} we want to avoid any mention of equality when formalizing
+the unrelated matters of data types.}. Thus instead of the stripping function,
+we ask for its fibers (called its graph), given by |decode R|. This reversal is
+the classical choice between families |(A : Set) × A → X| and powersets |X →
+Set| to represent indexation.
+
+Because of the small fiber twist we operated, we have a bit of work to get the
+new indexing pair (in |ISet|) from a |PRef|.
+
+\ExecuteMetaData[ornaments/pow.tex]{pfam}
+
+In substance, the new output index is simply the old one to which we add some
+information that can depend on it. The stripping function is thus simply the
+projection |π₀|.
+
 \subsection{A Universe of Ornaments}
+
+Step by step, following the construction of induction--recursion I will start
+by describing ornaments of |poly|, the inductive part of the definition. For |R
+: PRef α₁ β₁ X| and |ρ : poly γ₀ X| I define a universe of decriptions |orn₀ γ
+R ρ : Set _|. Simultaneously I define an interpretation |⌊ o ⌋₀ : poly (γ₀ ⊔
+γ₁) (PFam R)| taking the description of the ``delta'' to the actual fancy
+description it represents, and a stripping function |info↓ : info ⌊ o ⌋₀ → info
+ρ| taking new node informations to old ones.
+
+\ExecuteMetaData[ornaments/orn.tex]{code-def}
+\ExecuteMetaData[ornaments/orn.tex]{code-impl}
+\ExecuteMetaData[ornaments/orn.tex]{p-interp}
+\ExecuteMetaData[ornaments/orn.tex]{infodown-impl}
+
+Lets break down the constructors. First we have the constructors that look like
+|poly|: |ι|, |κ|, |σ| and |π|. They essentially say that nothing is changed. |ι
+j| ornaments |poly| of the form |ι i| where |down R j ≡ i| \textit{ie} we
+replace inductive positions by a fancy index such that the stripping matches.
+|σ A B| has to use the interpretation |⌊_⌋₀| and |info↓| to express how the
+family |B| depends on the info of |A|. |κ| and |σ B| change nothing and as such
+some of their arguments are implicit because there is no choice possible.
+
+The next 3 constructors allow to change things. |add₀| allows to delay the
+ornamenting, it interprets into a |σ| where the first component has no
+counterpart in the initial data. In other words we add a new argument to the
+constructor and then give an ornament which might depend on it. |add₁| is the
+other way around, it gives an ornament and then adds new arguments which might
+depend on it. And finally |del-κ| allows you to erase a constant argument given
+that you can provide an element of it. It is restricted to delete only
+constants because for an inductive position it is not really clear what the
+notion of ``element of it'' is.
+
+|⌊_⌋₀| and |info↓| are straightforward, the first 4 constructors are
+unsurprising, the additions interpret into sigmas where |info↓| ignores the new
+component and the deletion interprets into a trivial constant, |info↓| giving
+back the element we have provided in the definition.
+
+As for inductive--recursive types in this part of the construction we are not
+yet taking input indexes into account so we can't give the ornament of lists
+into vectors yet. But we can give the ornament of natural numbers into lists:
+we identify |zero| with |nil| and |suc| with |cons| where |cons| demands an
+additional constant argument in addition to the recursive position.
+
+%{
+%format ℕ-tag = "\DATA{ℕ\!\!-\!\!tag}"
+%format `ze = "\CON{`ze}"
+%format `su = "\CON{`su}"
+%format nat-c = "\VAR{nat\!\!-\!\!c}"
+%format list-R = "\VAR{list\!\!-\!\!R}"
+%format list-o = "\VAR{list\!\!-\!\!o}"
+\begin{code}
+data ℕ-tag : Set where `ze `su : ℕ-tag
+
+nat-c : poly lzero (⊤{-<-}{lzero}{->-} , λ _ → ⊤{-<-}{lzero}{->-})
+nat-c = σ (κ ℕ-tag) λ {
+  (lift `ze) → κ ⊤  ;
+  (lift `su) → ι *  }
+
+list-R : PRef lzero lzero (⊤{-<-}{lzero}{->-} , λ _ → ⊤{-<-}{lzero}{->-})
+Code list-R = ⊤{-<-}{lzero}{->-}
+down list-R _ = *
+decode list-R _ _ = ⊤{-<-}{lzero}{->-}
+
+list-o : (X : Set) → orn₀ lzero list-R nat-c
+list-o X = σ κ λ {
+  (lift (lift `ze)) → κ                     ;
+  (lift (lift `su)) → add₀ (κ X) λ _ → ι *  }
+\end{code}
+
+I define the type |orn γ₁ R S ρ : Set| ornamenting |ρ : IIR γ₀ X Y|.
+
+\ExecuteMetaData[ornaments/orn.tex]{orn}
+
+|node| is not surprising, for every fancy input index we give an ornament of
+the description with the corresponding old index. The |emit| function starts
+off like the one for |IIR|, taking an input index and the info, here of the
+interpretation of the ornament. Having that, we can already compute the old
+decoding using |info↓| and |emit ρ (down R j)|. We thus require to generate an
+output index compatible with the old output index we have derived.
+
+We eventually reach the full interpretation |⌊_⌋| taking an ornament to a fancy
+|IIR|.
+
+
+\ExecuteMetaData[ornaments/orn.tex]{interp}
+
+\todo{list to vec here?}
+
+
+
+
+
 \subsection{Ornamental Algebra}
 \subsection{}
 
@@ -580,6 +739,7 @@ index |n| gets unified with |suc m|, which implies that the second argument has 
 \section{Discussion}
 
 \subsection{Index-First Datatypes and a Principled Treatment of Equality}
+\ref{sec:index-first}
 \todo{bidirectional flow discipline in formalizations}
 \todo{no choice about equality, explicit proof obligation instead of weird
 pattern matching conditions}

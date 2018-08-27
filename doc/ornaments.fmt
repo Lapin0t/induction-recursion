@@ -95,6 +95,12 @@
 %format ⊙-assoc = "\FCT{⊙\!\!-\!\!assoc}"
 %format !< = "\FCT{\mathbin{\triangleleft\!\!\shortmid}}"
 
+%%%%%%%%%
+%%% Pow
+
+%format PRef = "\DATA{PRef}"
+%format PFam = "\FCT{PFam}"
+
 
 %%%%%%%%%
 %%% IIR
@@ -163,7 +169,8 @@
 %format orn₀ = "\DATA{orn₀}"
 %format info+ = "\DATA{info\!+}"
 %format info↓ = "\FCT{info\!\!↓}"
-%format add = "\CON{add}"
+%format add₀ = "\CON{add₀}"
+%format add₁ = "\CON{add₁}"
 %format del = "\CON{del}"
 %format add-κ = "\CON{add\!\!-\!\!κ}"
 %format del-κ = "\CON{del\!\!-\!\!κ}"

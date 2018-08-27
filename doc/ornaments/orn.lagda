@@ -24,37 +24,39 @@ variable
 
 %<*code-def>
 \begin{code}
-data orn₀ {-<-}{α₀ α₁ β₀ β₁ γ₀ : Level}{X : ISet α₀ β₀}{->-}(γ₁ : Level)(R : PRef α₁ β₁ X) : poly γ₀ X → Set (α₀ ⊔ β₀ ⊔ β₁ ⊔ lsuc (α₁ ⊔ γ₀ ⊔ γ₁))
+data orn₀ {-<-}{α₀ α₁ β₀ β₁ γ₀ : Level}{X : ISet α₀ β₀}{->-}(γ₁ : Level)(R : PRef α₁ β₁ X) : poly γ₀ X → Set {-<-}(α₀ ⊔ β₀ ⊔ β₁ ⊔ lsuc (α₁ ⊔ γ₀ ⊔ γ₁)){->-}
 ⌊_⌋₀  : {-<-}{R : PRef α₁ β₁ X}{ρ : poly γ₀ X}{->-}(o : orn₀ γ₁ R ρ) → poly (γ₀ ⊔ γ₁) (PFam R)
-info↓ : {-<-}{R : PRef α₁ β₁ X}{ρ : poly γ₀ X}{o : orn₀ γ₁ R ρ}{->-} → info ⌊ o ⌋₀ → info ρ
+info↓ : {-<-}{R : PRef α₁ β₁ X}{ρ : poly γ₀ X}{o : orn₀ γ₁ R ρ} →{->-}info ⌊ o ⌋₀ → info ρ
 \end{code}
 %</code-def>
 
 %<*code-impl>
 \begin{code}
 data orn₀ {-<-}{α₀}{α₁}{β₀}{β₁}{γ₀}{X}{->-}γ₁ R where
-  ι      : (j : Code R)                                                                        → orn₀ γ₁ R (ι (down R j))
-  κ      : {A : Set γ₀}                                                                        → orn₀ γ₁ R (κ A)
-  σ      : {-<-}∀{U V}{->-}(A : orn₀ γ₁ R U)(B : (a : info ⌊ A ⌋₀) → orn₀ γ₁ R (V (info↓ a)))  → orn₀ γ₁ R (σ U V)
-  π      : {-<-}∀{A V}{->-}(B : (a : A) → orn₀ γ₁ R (V a))                                     → orn₀ γ₁ R (π A V)
+  ι      : (j : Code R)                                       → orn₀ γ₁ R (ι (down R j))
+  κ      : {A : Set γ₀}                                       → orn₀ γ₁ R (κ A)
+  σ      : {-<-}∀{U V}{->-}(A : orn₀ γ₁ R U)
+           (B : (a : info ⌊ A ⌋₀) → orn₀ γ₁ R (V (info↓ a)))
+                           → orn₀ γ₁ R (σ U V)
+  π      : {-<-}∀{A V}{->-}(B : (a : A) → orn₀ γ₁ R (V a))→ orn₀ γ₁ R (π A V)
 
-  add₀   : (A : poly (γ₀ ⊔ γ₁) (PFam R)){-<-}{U : _}{->-}(B : info A → orn₀ γ₁ R U)            → orn₀ γ₁ R U
-  add₁   : {-<-}∀{U}{->-}(A : orn₀ γ₁ R U)(B : info ⌊ A ⌋₀ → poly (γ₀ ⊔ γ₁) (PFam R))          → orn₀ γ₁ R U
-  del-κ  : {-<-}∀{A}{->-}(a : A)                                                               → orn₀ γ₁ R (κ A)
---  wrap   : {-<-}∀{U}{->-}(f : (i : Code X) → orn₀ γ₁ R (ι i))                                  → orn₀ γ₁ R U
+  add₀   : (A : poly (γ₀ ⊔ γ₁) (PFam R)){-<-}{U : _}{->-}
+           (B : info A → orn₀ γ₁ R U)                         → orn₀ γ₁ R U
+  add₁   : {-<-}∀{U}{->-}(A : orn₀ γ₁ R U)
+           (B : info ⌊ A ⌋₀ → poly (γ₀ ⊔ γ₁) (PFam R))        → orn₀ γ₁ R U
+  del-κ  : {-<-}∀{A}{->-}(a : A)                              → orn₀ γ₁ R (κ A)
 \end{code}
 %</code-impl>
 
 %<*p-interp>
 \begin{code}
 ⌊ ι j        ⌋₀ = ι j
-⌊_⌋₀ {γ₁ = γ₁} (κ {A}) = κ (Lift γ₁ A)
+⌊_⌋₀ {-<-}{γ₁ = γ₁}{->-} (κ {A}) = κ (Lift γ₁ A)
 ⌊ σ A B      ⌋₀ = σ ⌊ A ⌋₀ λ a → ⌊ B a ⌋₀
-⌊_⌋₀ {γ₁ = γ₁} (π {A} B) = π (Lift γ₁ A) λ { (lift a) → ⌊ B a ⌋₀ }
+⌊_⌋₀ {-<-}{γ₁ = γ₁}{->-} (π {A} B) = π (Lift γ₁ A) λ { (lift a) → ⌊ B a ⌋₀ }
 ⌊ add₀ A B   ⌋₀ = σ A λ a → ⌊ B a ⌋₀
 ⌊ add₁ A B   ⌋₀ = σ ⌊ A ⌋₀ B
 ⌊ del-κ _    ⌋₀ = κ ⊤
---⌊ wrap f     ⌋₀ = ⌊ f ? ⌋₀
 \end{code}
 %</p-interp>
 
@@ -74,7 +76,7 @@ info↓ {o = del-κ a}    _               = lift a
 
 %<*orn>
 \begin{code}
-record orn {α₀ α₁ β₀ β₁ γ₀}{X Y : ISet α₀ β₀}(γ₁ : Level)(R : PRef α₁ β₁ X)(S : PRef α₁ β₁ Y)(ρ : IIR γ₀ X Y) : Set (α₀ ⊔ β₀ ⊔ β₁ ⊔ lsuc (α₁ ⊔ γ₀ ⊔ γ₁)) where
+record orn {-<-}{α₀ α₁ β₀ β₁ γ₀}{X Y : ISet α₀ β₀}{->-}(γ₁ : Level)(R : PRef α₁ β₁ X)(S : PRef α₁ β₁ Y)(ρ : IIR γ₀ X Y) : Set {-<-}(α₀ ⊔ β₀ ⊔ β₁ ⊔ lsuc (α₁ ⊔ γ₀ ⊔ γ₁)){->-} where
   field
     node :  (j : Code S) → orn₀ γ₁ R (node ρ (down S j))
     emit :  (j : Code S) → (x : info ⌊ node j ⌋₀) → decode S j (emit ρ (down S j) (info↓ x))
@@ -88,7 +90,7 @@ open orn public
 
 %<*interp>
 \begin{code}
-⌊_⌋ : {X Y : ISet α₀ β₀}{R : PRef α₁ β₁ X}{S : PRef α₁ β₁ Y}{ρ : IIR γ₀ X Y}(o : orn γ₁ R S ρ) → IIR (γ₀ ⊔ γ₁) (PFam R) (PFam S)
+⌊_⌋ : {-<-}{X Y : ISet α₀ β₀}{R : PRef α₁ β₁ X}{S : PRef α₁ β₁ Y}{ρ : IIR γ₀ X Y}{->-}(o : orn γ₁ R S ρ) → IIR (γ₀ ⊔ γ₁) (PFam R) (PFam S)
 node ⌊ o ⌋ j = ⌊ node o j ⌋₀
 emit ⌊ o ⌋ j = λ x → _ , emit o j x
 \end{code}
@@ -96,7 +98,7 @@ emit ⌊ o ⌋ j = λ x → _ , emit o j x
 
 %<*foldout>
 \begin{code}
-POut : {X : ISet α₀ β₀}(f : (i : Code X) → decode X i → Set β₁) → PRef α₀ β₁ X
+POut : {-<-}{X : ISet α₀ β₀}{->-}(f : (i : Code X) → decode X i → Set β₁) → PRef α₀ β₁ X
 Code (POut f) = _
 down (POut f) = λ x → x
 decode (POut f) = f
