@@ -135,63 +135,95 @@ emit (o-fold ρ φ) i x =
 \end{code}
 %</foldout>
 
-%<*algorn>
+%<*algR>
 \begin{code}
-Foo : {X : ISet α₀ β₀}(F : 𝔽 α₁ X) → PRef (α₀ ⊔ α₁) β₀ X
-Code (Foo {X = X} F) = Σ (Code X) λ i → Code (F i)
-down (Foo F) (i , _) = i
-decode (Foo F) (i , c) x = decode (F i) c ≡ x
+AlgR : {-<-}{X : ISet α₀ β₀}{->-}(F : 𝔽 α₁ X) → PRef (α₀ ⊔ α₁) β₀ X
+Code (AlgR {-<-}{X = X}{->-}F) = Σ (Code X) λ i → Code (F i)
+down (AlgR F) (i , _) = i
+decode (AlgR F) (i , c) x = decode (F i) c ≡ x
+\end{code}
+%</algR>
 
-algorn₀ : ∀ {α₀ α₁ β₀ γ₀} {X : ISet α₀ β₀} (ρ : poly γ₀ X) (F : 𝔽 α₁ X) (x : Code (⟦ ρ ⟧₀ F)) → Σ (orn₀ (γ₀ ⊔ α₁) (Foo F) ρ) λ o → (y : info ⌊ o ⌋₀) → decode (⟦ ρ ⟧₀ F) x ≡ info↓ y
+%<*algorn0>
+\begin{code}
+algorn₀ : {-<-}∀ {α₀ α₁ β₀ γ₀} {X : ISet α₀ β₀}{->-}(ρ : poly γ₀ X) (F : 𝔽 α₁ X) (x : Code (⟦ ρ ⟧₀ F)) →
+  Σ (orn₀ (γ₀ ⊔ α₁) (AlgR F) ρ) λ o → (y : info ⌊ o ⌋₀) → decode (⟦ ρ ⟧₀ F) x ≡ info↓ y
 algorn₀ (ι i) F (lift x) = ι (i , x) , λ { (lift (a , b)) → cong lift b }
 algorn₀ (κ A) F (lift x) = del-κ x , λ _ → refl
 algorn₀ (σ A B) F (a , b) =
   let (oa , p) = algorn₀ A F a in
   let aux x = algorn₀ (B _) F (subst (λ x → Code (⟦ B x ⟧₀ F)) (p x) b) in
   (σ oa (π₀ ∘ aux)) ,
-  λ { (x , y) → cong-Σ (p x) (trans (cong₂ (λ x₁ → decode (⟦ B x₁ ⟧₀ F)) (p x) (sym $ subst-elim _ _)) (π₁ (aux x) y)) }
+  λ { (x , y) → cong-Σ (p x) (trans  (cong₂  (λ x₁ → decode (⟦ B x₁ ⟧₀ F)) (p x)
+                                             (sym $ subst-elim _ _))
+                                     (π₁ (aux x) y)) }
 algorn₀ (π A B) F x =
   let aux a = algorn₀ (B a) F (x a) in
   π (π₀ ∘ aux) , (λ f → funext λ a → π₁ (aux a) (f $ lift a))
+\end{code}
+%</algorn0>
 
-algorn : ∀ {α₀ α₁ β₀ γ₀}{X : ISet α₀ β₀}(ρ : IIR γ₀ X X)(φ : alg α₁ ρ) → orn (γ₀ ⊔ α₁) (Foo (obj φ)) (Foo (obj φ)) ρ
-node (algorn ρ φ) (i , c) = add₀ (κ ((π₀ ∘ mor φ i) ⁻¹ c)) λ { (lift (ok x)) → π₀ $ algorn₀ (node ρ i) (obj φ) x }
-emit (algorn ρ φ) (i , c) (lift (ok x) , y) = trans (π₁ $ mor φ i x) (cong (emit ρ i) $ π₁ (algorn₀ (node ρ i) (obj φ) x) y)
+%<*algorn>
+\begin{code}
+algorn : {-<-}∀ {α₀ α₁ β₀ γ₀}{X : ISet α₀ β₀}{->-}(ρ : IIR γ₀ X X)(φ : alg α₁ ρ) → orn (γ₀ ⊔ α₁) (AlgR (obj φ)) (AlgR (obj φ)) ρ
+node (algorn ρ φ) (i , c) =
+  add₀  (κ ((π₀ ∘ mor φ i) ⁻¹ c))
+        λ { (lift (ok x)) → π₀ $ algorn₀ (node ρ i) (obj φ) x }
+emit (algorn ρ φ) (i , c) (lift (ok x) , y) =
+  trans  (π₁ $ mor φ i x)
+         (cong (emit ρ i) $ π₁ (algorn₀ (node ρ i) (obj φ) x) y)
+\end{code}
+%</algorn>
 
-{-to-algorn : ∀ {α₀ α₁ β₀ γ₀}{X : ISet α₀ β₀}{ρ : IIR γ₀ X X}{φ : alg α₁ ρ} {s : Size} {i : Code X} → (x : μ-c ρ {s} i) → μ-c ⌊ algorn ρ φ ⌋ {s} (i , π₀ $ fold φ i x)
-to-algorn {γ₀ = γ₀} {X = X} {ρ = ρ} {φ} = induction ρ P rec
+%<*algorn-inj>
+\begin{code}
+algorn-inj : {-<-}∀ {α₀ α₁ β₀ γ₀}{X : ISet α₀ β₀}{ρ : IIR γ₀ X X}{φ : alg α₁ ρ} ..{s : Size}{->-}(i : Code X) (x : μ-c ρ {s} i) → μ-c ⌊ algorn ρ φ ⌋ {-<-}{s}{->-}(i , π₀ $ fold φ i x)
+algorn-inj {-<-}{γ₀ = γ₀} {X = X} {ρ = ρ} {φ}{->-} = induction ρ P rec
   where
-    P : ..{s : Size} {i : Code X} → (x : μ-c ρ {s} i) → Set _
-    P {s} {i} x = μ-c ⌊ algorn ρ φ ⌋ {s} (i , π₀ $ fold φ i x)
+    P : {-<-}..{s : Size}{->-}(i : Code X) (x : μ-c ρ {s} i) → Set _
+    P {-<-}{s}{->-}i x = μ-c ⌊ algorn ρ φ ⌋ {-<-}{s}{->-}(i , π₀ $ fold φ i x)
 
-    aux : ..{s : Size} ..{t : Size< s} (ρ₀ : poly γ₀ X) (x : Code (⟦ ρ₀ ⟧₀ (μ ρ {t}))) (p : all ρ₀ P x) →
-          Σ (Code (⟦ ⌊ π₀ $ algorn₀ ρ₀ (obj φ) (π₀ $ ⟦ ρ₀ ⟧[ fold φ ]₀ x) ⌋₀ ⟧₀ (μ ⌊ algorn ρ φ ⌋ {t})))
-            λ y → decode (⟦ ρ₀ ⟧₀ (μ ρ {t})) x ≡ info↓ (decode (⟦ ⌊ π₀ $ algorn₀ ρ₀ (obj φ) (π₀ $ ⟦ ρ₀ ⟧[ fold φ ]₀ x) ⌋₀ ⟧₀ (μ ⌊ algorn ρ φ ⌋ {t})) y)
+    aux : {-<-}..{s : Size} ..{t : Size< s}{->-}(ρ₀ : poly γ₀ X) (x : Code (⟦ ρ₀ ⟧₀ (μ ρ{-<-}{t}{->-}))) (p : all ρ₀ P x) →
+          Σ (Code (⟦ ⌊ π₀ $ algorn₀ ρ₀ (obj φ) (π₀ $ ⟦ ρ₀ ⟧[ fold φ ]₀ x) ⌋₀ ⟧₀ (μ ⌊ algorn ρ φ ⌋{-<-}{t}{->-})))
+            λ y →  decode (⟦ ρ₀ ⟧₀ (μ ρ{-<-}{t}{->-})) x
+                   ≡ info↓ (decode (  ⟦ ⌊ π₀ $ algorn₀ ρ₀ (obj φ) (π₀ $ ⟦ ρ₀ ⟧[ fold φ ]₀ x) ⌋₀ ⟧₀
+                                      (μ ⌊ algorn ρ φ ⌋{-<-}{t}{->-})) y)
 
-    aux (ι i) (lift x) (lift p) = lift p , cong lift {!   !}
+    aux (ι i) (lift x) (lift p) = lift p , cong lift ?
     aux (κ A) x p = lift * , refl
     aux (σ A B) (x , y) (p , q) = ?
-      --let a , p' = aux A x p in
-      --let b , q' = aux (B _) y q in
-      --(a , ?) ,
-      --cong-Σ p' (trans q' {!cong₂ (λ x y → info↓ (decode (⟦ ⌊ π₀ $ algorn₀ (B x) (obj φ) (π₀ $ ⟦ B x ⟧[ fold φ ]₀ y) ⌋₀ ⟧₀ (μ ⌊ algorn ρ φ ⌋)) y)) ? ? !})
     aux (π A B) x p =
       let aux a = aux (B a) (x a) (p a) in
       π₀ ∘ aux ∘ lower , funext (π₁ ∘ aux)
 
-    rec : ..{s : Size} ..{t : Size< s} {i : Code X} (x : Code (⟦ ρ ⟧ (μ ρ {t}) i)) → all (node ρ i) P x → P (⟨_⟩ {s = s} x)
-    rec {i = i} x p =
+    rec : {-<-}..{s : Size} ..{t : Size< s}{->-}(i : Code X) (x : Code (⟦ ρ ⟧ (μ ρ{-<-}{t}{->-}) i)) → all (node ρ i) P x → P i (⟨_⟩ {-<-}{s = s}{->-}x)
+    rec i x p =
       let c = ⟦ ρ ⟧[ fold φ ] i x in
-      ⟨ lift (ok $ π₀ c) , π₀ $ aux (node ρ i) x p ⟩-}
+      ⟨ lift (ok $ π₀ c) , π₀ $ aux (node ρ i) x p ⟩
 
 \end{code}
-%</algorn>
+%</algorn-inj>
 
 %<*erase>
 \begin{code}
-erase₀ : {-<-}{X : ISet α₀ β₀}{ρ : poly γ₀ X}{R : PRef α₁ β₁ X}{->-}(o : orn₀ γ₁ R ρ)
-         (F : 𝔽 γ₀ X) (G : PObj γ₁ R F) → info↓ {o = o} << ⟦ ⌊ o ⌋₀ ⟧₀ (pfam G) ⟶̃ ⟦ ρ ⟧₀ F
-erase₀ (ι i) F G (lift (x , y)) = _ , refl
+
+{-erase₀ : {-<-}{X : ISet α₀ β₀}{ρ : poly γ₀ X}{R : PRef α₁ β₁ X}{->-}(o : orn₀ γ₁ R ρ)
+         (F : 𝔽 γ₀ X) (G : (j : Code $ PFam R) → (x : Code (F $ down R j)) → Fam (γ₀ ⊔ γ₁) (decode R j (decode (F $ down R j) x))) → info↓ {o = o} << ⟦ ⌊ o ⌋₀ ⟧₀ (foo {γ₁ = γ₁} F G) ⟶̃ ⟦ ρ ⟧₀ F
+erase₀ (ι j) F G _ = _ , refl
+erase₀ κ F G _ = _ , refl
+erase₀ (σ A B) F G i = σ→ _ _ (erase₀ A F G) (λ a → erase₀ (B (decode (⟦ ⌊ A ⌋₀ ⟧₀ (foo F G)) a)) F G) i
+erase₀ (π B) F G f = π→ (λ a → erase₀ (B a) F G) (f ∘ lift)
+erase₀ (add₀ A B) F G (a , b) = erase₀ (B _) F G b
+erase₀ (add₁ A B) F G (a , b) = erase₀ A F G a
+erase₀ (del-κ a) F G i = _ , refl
+
+erase : {-<-}{X : ISet α₀ β₀}{R : PRef α₁ β₁ X}{ρ : IIR γ₀ X X}{->-}(o : orn γ₁ R R ρ)
+        (F : 𝔽 γ₀ X) ..{s : Size} → π₀< ⟦ ⌊ o ⌋ ⟧ (μ ⌊ o ⌋ {s} & (F ∘ down R)) ⇒ (⟦ ρ ⟧ F ∘ down R)
+erase {R = R} {ρ} o F i = emit ρ (down R i) <<$> {!   !}
+--emit ρ (down S j) <<$> erase₀ (node o j) F G-}
+
+
+{-erase₀ (ι i) F G (lift (x , y)) = _ , refl
 erase₀ κ F G (lift x) = _ , refl
 erase₀ (σ {V = V} A B) F G (a , b) =
   let (a' , p) = erase₀ A F G a in
@@ -205,7 +237,7 @@ erase₀ (del-κ a) F G x = _ , refl
 
 erase : {-<-}{X Y : ISet α₀ β₀}{R : PRef α₁ β₁ X}{S : PRef α₁ β₁ Y}{ρ : IIR γ₀ X Y}{->-}(o : orn γ₁ R S ρ)
         (F : 𝔽 γ₀ X)(G : PObj γ₁ R F) → π₀< ⟦ ⌊ o ⌋ ⟧ (pfam G) ⇒ (⟦ ρ ⟧ F ∘ down S)
-erase {S = S} {ρ} o F G j = emit ρ (down S j) <<$> erase₀ (node o j) F G
+erase {S = S} {ρ} o F G j = emit ρ (down S j) <<$> erase₀ (node o j) F G-}
 
 --Bla : ∀ {α₀ α₁ β₀ β₁ γ₀ γ₁}{X : ISet α₀ β₀}{R : PRef α₁ β₁ X}{ρ : IIR γ₀ X X}(o : orn γ₁ R R ρ)(F : 𝔽 γ₀ X) → PObj γ₁ R F
 --Code (addon (Bla o F) j x) = μ-c ⌊ o ⌋ j

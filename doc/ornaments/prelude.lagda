@@ -169,7 +169,7 @@ funext p = funext₁ refl p
 
 %<*inv>
 \begin{code}
-data _⁻¹_ {α β}{X : Set α}{Y : Set β}(f : X → Y) : Y → Set α where
+data _⁻¹_ {-<-}{α β}{X : Set α}{Y : Set β}{->-}(f : X → Y) : Y → Set α where
   ok : (x : X) → f ⁻¹ (f x)
 \end{code}
 %</inv>

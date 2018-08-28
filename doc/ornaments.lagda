@@ -229,7 +229,7 @@ D| and a mapping of arrows |F[_] : ∀ {X Y} → X ⇒ F → F X ⇒ F Y|.
 
 The different notions of data types, by which we mean inductive types,
 inductive--recursive types and their indexed variants, share their semantics:
-initial algebras of endfunctors. In a first approximation, we can think of an
+initial algebras of endofunctors. In a first approximation, we can think of an
 ``initial algebra'' as the categorical notion for the ``least closed set''
 (just not only for sets). As such, we will study a certain class of functors
 with initial algebras that give rise to our indexed inductive--recursive types.
@@ -720,12 +720,148 @@ We eventually reach the full interpretation |⌊_⌋| taking an ornament to a fa
 
 \todo{list to vec here?}
 
-
-
-
-
 \subsection{Ornamental Algebra}
-\subsection{}
+
+Recalling the first remark we made on the relation between an ornamented data
+type and it's original version, we want to generically derive an arrow mapping
+the new fancy one to the old one. Note that I did write arrow and not simply
+function: because we work in the category of indexed type families we don't
+simply want a map from new inductive nodes to old ones, we want it to assign
+output indexes consistently with the reindexing. The function we want to write
+has the following type.
+
+\begin{code}
+forget : {-<-}∀ {α₀ β₀ α₁ β₁ γ₀ γ₁}{X : ISet α₀ β₀}{R : PRef α₁ β₁ X}{ρ : IIR γ₀ X X}{->-}(o : orn γ₁ R R ρ){s} → π₀< (μ ⌊ o ⌋ {-<-}{s}{->-}) ⇒ (μ ρ{-<-}{s}{->-} ∘ down R)
+forget = ?
+\end{code}
+
+Because of some complications I didn't manage to implement it, but I am
+convinced that the missing parts are not very consequent. Indeed for inductive
+types, the proof is done by a fold, on the ornamental algebra |⟦ ⌊ o ⌋ ⟧ (F ∘
+down R) ⇒ (⟦ ρ ⟧ F ∘ down R)|. The complication for induction--recursion is
+that this arrow cannot exist since because of the output index the two objects
+do not live in the same category and |F ∘ down R| is not a valid argument to |⟦
+⌊ o ⌋ ⟧|.
+
+Some analysis has shown that in fact |fold| is not powerful enough to express
+|forget| and we need to resort to a paramorphism. To provide some intuition
+lets break down |forget|. It has to turn an instance of a fancy datatype into
+the base one. Naturally it will proceed by structural recursion, simplifying
+the structure bottom up. This is what the ornamental algebra |erase : ⟦ ⌊ o ⌋ ⟧
+(F ∘ down R) ⇒ (μ ρ ∘ down R)| should implement: given a node where every
+subnode already has been simplified, simplify the current node. The reason why
+this halfway simplified data structure cannot exist (signified by the type
+mismatch of the object fed to the functor) is that this object |F ∘ down R|
+does not contain enough information. In a fancy |σ A B| node, |A| might contain
+inductive positions, such that the family |B| may depend on their (fancy)
+output index, something we cannot get because being a subnode, |A| has already
+been replaced by a simplified version that no longer contains this fancy output
+index. As such, while simplifying the datastructure, we need to keep track not
+only of simplified subnodes, but also of their original version, to be able to
+simplify the current node. This makes explicit the need for paramorphisms,
+which is the reason why I introduced them earlier.
+
+Note that a finer approach would be not to resort to fully featured
+paramorphisms. Indeed, to simplify a node we don't need the full couple of the
+simplification and the fancy subnodes, we just need to reconstruct the fancy
+output index and we already have the simplified subnode. Thus what we exactely
+need is the information that is in the fancy node that isn't in the simplified
+one. While seemingly tortuous, this notion is very familiar and we call it a
+\textit{reornament}. Indeed we have seen that lists are an ornament of natural
+numbers and vectors are lists indexed by natural number. Then what is a vector
+if it is not \textit{all the information that is in a list but not in it's
+length}? This builds up a nice transition because reornaments will arise in the
+next subsection. This last remark that the construction of the forgetful map
+depends on the prior formalization of reornaments is a small funny discovery
+because the notion had previously been presented only afterwards. It is indeed
+not excluded that the two construction actually depend on each other and must
+be constructed simultaneously.
+
+\subsection{Algebraic Ornaments}
+
+Lets focus on the second remark we stated on the relationship between lists and
+vectors: the isomorphism between |list| and |Σ ℕ vec|. More precisely to for
+each |xs : list| we can naturally associate |xs' : vec (length xs)|. |length|
+is no stranger, it is a very simple fold, \textit{eg} the underlying core is an
+algebra |⟦ list-c ⟧ ℕ ⇒ ℕ|. A natural generalization follows in which for a
+given algebra |⟦ ρ ⟧ X ⇒ X| we create an ornament indexing elements of |μ ρ| by
+the result of their fold. This is what we call an algebraic ornament.
+
+In the theory of ornaments on inductive definitions there is only one index,
+the input index. But since we now also have an output index we might ask wether
+we want to algebraically ornament on the input or the output. In the case of
+the length algebra of lists, the input algebraic ornament gives rise to
+vectors, whereas the output algebraic ornament gives rise to an
+inductive--recursive definition where the inductive part is still list and the
+recursive part is the length function. As such, it seems to be a waste of power
+to redefine lists inductive--recursively with their length if we already
+separately have defined lists and the length algebra, from which we can derive
+|length| with the generic fold. We will thus only present input algebraic
+ornaments.
+
+First lets define the reindexing. We suppose the indexes of our data type are
+|X : ISet α₀ β₀| and the carrier of our algebra is |F : 𝔽 α₁ X|.
+
+\ExecuteMetaData[ornaments/orn.tex]{algR}
+
+This definition simply extends the input index by an inductive element of the
+carrier, \textit{eg} the specification of what output we want for the fold.
+Note that we also add something to the output index, namely a proof that the
+recursive part of the carrier matches the original output index. This is not
+just a \textit{by--the--way} property, it is provable but also a crucial lemma
+for the construction.
+
+As usual now I first give the pre--ornament |orn₀| for a |poly|, which we will
+expand in a second step to full ornaments on |IIR|.
+
+\ExecuteMetaData[ornaments/orn.tex]{algorn0}
+
+Note that the two last parts of the type are similar to an arrow between on
+|Fam|. I didn't look deeply into that but it seems like this is some sort of
+arrow family from |⟦ ρ ⟧₀ F| to |(orn₀ (γ₀ ⊔ α₁) (AlgR F) ρ , λ o → (y : info ⌊
+o ⌋₀) → info↓ y)|.
+
+More importantly, |F| is still the carrier of the algebra and we recursively
+construct an ornament whose |info↓| matches with the output of |⟦ ρ ⟧₀ F|. This
+ensures that we propagate good shape constraints throughout the structure,
+ensuring that we indeed constrain the node shapes to fold to a given target.
+Before proceeding with the full definition I introduce the type of fibers for a
+function\footnote{The careful reader will be puzzled by the fact that I
+previously said wanting to avoid fibers and any mentionning of equality. But
+here there is no way around and we really want this fiber. As a consolation we
+can argue that this is no longer part of our \textit{core theory of datatypes}
+and sidesteps are thus less consequential.}.
+
+\ExecuteMetaData[ornaments/prelude.tex]{inv}
+
+Now we have the building blocks for the final definition.
+
+\ExecuteMetaData[ornaments/orn.tex]{algorn}
+
+The type is straightforward but an interesting fact is that we don't directly
+delegate the implementation of |node| to |algorn₀|. Indeed we have to come up
+with an element |x : Code (⟦ ρ ⟧₀ F)|. The explaination for this is that unlike
+our list and vector example, not every algebraic ornament has a single choice
+for a given index: there might still be several possible choices of
+constructors that will have a given fold value. We can't (and shouldn't) make
+that choice so we have to ask it beforehand. This choice then uniquely
+determines the shape of the ornament which we can unroll by a call to
+|algorn₀|. The |emit| part simply fulfills the proof obligation that we added
+in the output index.
+
+The next step is to provide the injection from simple data into the new data
+indexed by the value of its fold. Again I didn't fully finish this part because
+the proof is tremendously hairy. The proof is done by induction, but it is
+completely unscrutinable because since we are working not on native Agda
+datatypes but on our constructed versions, we cannot use native pattern
+matching and recursion but have to call our generic induction principle. It's
+not that there is much choice on what to do, but simply that because of all the
+highly generic objects in use, Agda has a hard time helping us out and
+expanding the the right definitions just as much as we want. All in all this
+leads to huge theorem statements from which it is hard to tell apart the head
+and the tail. The beginning goes as follows.
+
+\ExecuteMetaData[ornaments/orn.tex]{algorn-inj}
 
 
 
@@ -746,10 +882,9 @@ pattern matching conditions}
 
 \subsection{Further Work}
 \todo{extend to fibred IR}
-
 \todo{precise the paramorphism thing}
-
 \todo{study datastructure reorganizations (eg optimizations)}
+\todo{coalgebraic ornaments to make use of index--first}
 
 
 

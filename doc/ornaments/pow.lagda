@@ -43,7 +43,22 @@ decode (Ref F) (i , j) x = decode (F i) j ≡ x
 
 
 \begin{code}
-record PObj {α₀ α₁ β₀ β₁ γ₀} {X : ISet α₀ β₀} (γ₁ : Level) (R : PRef α₁ β₁ X) (F : 𝔽 γ₀ X) : Set (α₁ ⊔ β₁ ⊔ lsuc (γ₀ ⊔ γ₁)) where
+
+
+PObj : {X : ISet α₀ β₀}(γ₁ : Level) (R : PRef α₁ β₁ X) (F : 𝔽 γ₀ X) → Set (α₁ ⊔ β₁ ⊔ lsuc (γ₀ ⊔ γ₁))
+PObj {γ₀ = γ₀} γ₁ R F = (j : Code $ PFam R) → (x : Code (F $ down R j)) → Fam (γ₀ ⊔ γ₁) (decode R j (decode (F $ down R j) x))
+
+
+{-infix 30 _&_
+_&_ : {X : ISet α₀ β₀}{R : PRef α₁ β₁ X}(F : 𝔽 γ₀ X) (G : PObj γ₁ R F) → 𝔽 (γ₀ ⊔ γ₁) (PFam R)
+Code ((F & G) j) = Σ _ (Code ∘ G j)
+decode ((F & G) j) (x , y) = _ , decode (G j x) y-}
+
+
+
+
+
+{-record PObj {α₀ α₁ β₀ β₁ γ₀} {X : ISet α₀ β₀} (γ₁ : Level) (R : PRef α₁ β₁ X) (F : 𝔽 γ₀ X) : Set (α₁ ⊔ β₁ ⊔ lsuc (γ₀ ⊔ γ₁)) where
   field
     addon : (j : Code $ PFam R) → (x : Code (F $ down R j)) → Fam (γ₀ ⊔ γ₁) (decode R j (decode (F $ down R j) x))
 
@@ -51,5 +66,5 @@ record PObj {α₀ α₁ β₀ β₁ γ₀} {X : ISet α₀ β₀} (γ₁ : Leve
   Code (pfam j) = Σ _ (Code ∘ addon j)
   decode (pfam j) (x , y) = _ , decode (addon j x) y
 
-open PObj public
+open PObj public-}
 \end{code}

@@ -176,6 +176,7 @@ _&_ : ∀ {α β γ δ₀ δ₁} {I : Set α} {X : I → Set β} {Y : I → Set 
 Code ((F & G) i) = Code (F i) × Code (G i)
 decode ((F & G) i) (x , _) = decode (F i) x
 
+
 \end{code}
 %</fam-and>
 
