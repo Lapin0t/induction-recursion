@@ -7,6 +7,7 @@
 \usepackage{amssymb}
 \usepackage{prftree}
 \usepackage{tikz-cd}
+\usepackage{hyperref}
 \usepackage[a4paper, margin=1.2in]{geometry}
 
 %include agda.fmt
@@ -16,9 +17,6 @@
 \author{Peio Borthelle, Conor McBride}
 
 
-\newcommand{\Hom}{\operatorname{hom}}
-\newcommand{\Ob}{\operatorname{ob}}
-\newcommand{\CSet}{\mathbf{Set}}
 \newcommand{\todo}[1]{\textbf{TODO:}\textit{#1}}
 \setlength\parindent{.7em}
 
@@ -208,6 +206,10 @@ looser constructivist sense: it arguably has bottom--to--top construction.
 %format ∘ = "\FCT{∘}"
 %format _∘_ = _ "\!" ∘ "\!" _
 %format F = "\FCT{F}"
+b
+b
+b
+b
 %format F[_] = "\FCT{F[\anonymous]}"
 
 Since we will use category theory as our main language we first recall the
@@ -524,7 +526,7 @@ doesn't mean we should.
 
 %{
 %format list = "\DATA{list}"
-%format list = "\DATA{vec}"
+%format vec = "\DATA{vec}"
 %format nil = "\CON{nil}"
 %format cons = "\CON{cons}"
 %format zip = "\FCT{zip}"
@@ -567,7 +569,7 @@ I wrote the constructors such that they maintain the invariant that |vec X n|
 is only inhabited by sequences of length |n|. I may now write the stronger
 version of |zip| which explicitely states what is possible to zip.
 \begin{code}
-zip : {X Y : Set} {n : ℕ} → vec X n → vec Y n → vec (X × Y) n
+zip : {-<-}{X Y : Set} {n : ℕ} → {->-}vec X n → vec Y n → vec (X × Y) n
 zip nil          nil          = nil
 zip (cons x xs)  (cons y ys)  = cons (x , y) (zip xs ys)
 \end{code}
@@ -863,37 +865,489 @@ and the tail. The beginning goes as follows.
 
 \ExecuteMetaData[ornaments/orn.tex]{algorn-inj}
 
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Case Study: Bidirectional Simply-Typed Lambda Calculus}
-\ref{sec:stlc}
+We have now finished all our constructions. To familiarize themselves further
+with them, the reader might continue with the case study in appendix
+\ref{sec:stlc}, studying an example formalization of simply--typed λ→ calculus.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
 
 \subsection{Index-First Datatypes and a Principled Treatment of Equality}
 \ref{sec:index-first}
-\todo{bidirectional flow discipline in formalizations}
-\todo{no choice about equality, explicit proof obligation instead of weird
-pattern matching conditions}
+
+Intuitionistic Type Theory has long realised the unsufficient study of the
+equality type, streched between a convenient extensional equality and
+complicated computational interpretation. Already in 2007, Altenkirch and
+McBride presented Observation Type Theory which suggests an alternative to
+inductive propositional equality, which can be related to the
+non--higher--order fragment of the newer Homotopy Type Theory by Voevodsky
+(amusingly \textit{HoTT} without the \textit{H}).
+
+The inductive definition of propositional equality is deceptive on several
+matters. First it pollutes the formalization of datatypes, a matter which has
+no reason not to be orthogonal to equality. More than that, because we had no
+compelling alternative, the fantastic index--first presentation of datatypes
+with pattern matching on the index has been left behind. Indeed index--first
+presentation religously follows the bidirectional philosophy, ensuring that
+there cannot be several converging information flows triggering local
+definitional equality between expressions. This rules out every equality--like
+definition (like our definition of fiber) whose use is to pattern match on the
+proof to locally unify terms.
+
+Regarding pattern matching on the index, from a very practical point of view it
+is reassuring that most types encountered in formal developments are not
+equality--like. When we do make use of input indexes depending on constructor
+argument, most of the time these arguments are marked implicit and this is the
+symptom of a hidden pattern matching: the two information flows don't really
+collide since we delegate one of the sides to the implicits--solving machinery.
+It is thus explicit that the only information flow indeed comes from the index,
+confirming it's qualification as an \textit{input} index. Acknowledging that
+internaly in the language construction would mean cheap eradication of a big
+source of inefficiency that has already been investigated\todo{ref inductive
+families need not store their indices}.
+
+Homotopy Type Theory seems to be where most of the research on equality is
+currently at, already with several experimental implementation \todo{ref}.
+Because of this promising ongoing research, now seems the good time to build
+tools that will enable the datatype theory to smoothly adapt to any new
+development of equality.
 
 \subsection{Further Work}
-\todo{extend to fibred IR}
-\todo{precise the paramorphism thing}
-\todo{study datastructure reorganizations (eg optimizations)}
-\todo{coalgebraic ornaments to make use of index--first}
 
+I hit the surprising obstactle of |forget| not being a fold quite late in the
+internship and as such, the study on paramorphisms is incomplete. The question of
+non--dependent elimination rules be further investigated.
+
+In the same veine, the story for algebraic ornaments is missing a finishing
+touch. Given that we have formalized paramorphisms, there is a natural
+generalization from algebraic ornaments to paramorphic ornaments, possibly
+deriving the injection function for a wider array of ornaments. Additionally,
+it is unsatisfactory that reornaments are not yet able to make use of
+pattern--matching on the index to drive away more equality proofs (by
+eliminating contradictory information sources). Indeed in a reornament, we
+know the code of the index (which is the first in the sequence of the 3) and
+the |erase| algebra gives us the raw expression of the fold.
+
+When we start to have first--class description of datatypes, a new world is
+open for exploration. \todo{ref gallais} has characterised the datatypes
+behaving like simply--typed syntaxes with binders. We might ask how it fits
+with this development. What is the best way for a language to expose primitive
+for syntax reflection, tying together the internal description of datatypes
+with their native counter--part?
+
+Induction--recursion has recently been generalized even further than indexation
+by Ghani et al \todo{ref} in the form of induction--recursion for arbitrary
+fibers. Fibers are a category theory notion giving a general account of
+indexation. Indexed induction--recursion arises as a special case, but also
+setoid induction--recursion or category with families\footnote{A model of type
+theories introduced by Setzer \todo{ref}.} induction--recursion (allowing one
+to define a universe equiped with a notion of substitution). This seems like an
+interesting step forward since by allowing one to explicitely state which
+\textit{more specific than the most generic} notion of indexation we want, it
+degenerates gracefully (even to basic inductive types) with no need for the
+trivial indexation trick that I have used.
+
+The last attack surface I can suggest is to work to achieving perhaps a more
+principled set of operations for the universe of ornaments as we have seen that
+they don't always mesh up very well and leave some trivial artifacts hanging
+when they are interpreted. A related question but which should not be taken as
+a reliable solution for the previous issue is the reorganization of
+datastructures, otherwise said the optimization of descriptions. Although this
+last project can probably only be effectively implemented in a language
+typechecker or depends on good reflection primitives.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix
-\section{Introduction to Agda}
-\label{sec:agda}
-
 \section{Bibliography}
 \bibliographystyle{plain}
 \bibliography{ornaments.bib}
+
+\section{Introduction to Agda}
+\label{sec:agda}
+
+%{
+
+Good introductory material is available
+online\footnote{\url{http://www.cse.chalmers.se/~ulfn/papers/afp08/tutorial.pdf}
+(Norell and Chapman, \todo{ref})}. I present here a speed--run through it.
+
+\subsection{Syntax and concepts}
+Data types are introduced using the |data| keyword. Types are written in
+\blueFG{blue} and constructors in \redFG{red}.
+
+%format bool = "\DATA{bool}"
+%format true = "\CON{true}"
+%format false = "\CON{false}"
+
+\begin{code}
+data bool : Set where
+  true : bool
+  false : bool
+\end{code}
+
+|Set| is the type of small types. There is a hierarchy of types |Set : Set₁|,
+|Set₁ : Set₂| and so one. More on that later.
+
+Total functions can be defined by pattern matching in a similar way to haskell by
+specifying several independent clauses. I write them in in \greenFG{green}.
+
+%format not = "\FCT{not}"
+%format && = "\FCT{\&\&}"
+%format _&&_ = _ "\!" && "\!" _
+%format if = "\FCT{if}"
+%format then = "\FCT{then}"
+%format else = "\FCT{else}"
+%format if_then_else_ = if _ then _ else _
+%format A = "\DATA{A}"
+
+\begin{code}
+not : bool → bool
+not true = false
+not false = true
+
+_&&_ : bool → bool → bool
+true   && true   = true
+true   && false  = false
+false  && true   = false
+false  && false  = false
+
+if_then_else_ : {A : Set} → bool → A → A → A
+if true   then a else b = a
+if false  then a else b = b
+\end{code}
+
+As we can see above, Agda has a powerful way of specifying mixfix operators,
+where arguments might be placed in order in place of underscores in the
+identifier. In other words, |x && y| is a shorthand for |_&&_ x y|. In fact
+almost every unicode character is valid in an identifier (apart from
+parenthesis, braces, dots, semicolons and at). The downside is that
+ is a valid identifier and as such tokens must be separated by
+spaces.
+
+Function expressions are introduced by the |λ| keyword: |λ x → x|. They can
+take several (curried) argument |λ x y → y| and can perform pattern matching
+when enclosed in braces: |λ { true → false; false → true }|.
+
+Recursion, self or mutual doesn't have to be declared, the only requirement is
+scoping: an implementation has to follow (anywhere after) any declaration and
+for every identifier used, it's declaration must preceed.
+
+%format nat = "\DATA{nat}"
+%format zero = "\CON{zero}"
+%format suc = "\CON{suc}"
+%format even = "\FCT{even}"
+%format odd = "\FCT{odd}"
+\begin{code}
+data nat : Set where
+  zero : nat
+  suc : nat → nat
+
+even : nat → bool
+odd : nat → bool
+
+even zero = true
+even (suc n) = odd n
+
+odd zero = false
+odd (suc n) = even n
+\end{code}
+
+%format B = "\DATA{B}"
+The dependent function type is written |(x : A) → B| where |B| may mention |x|.
+
+%format id = "\FCT{id}"
+%format id' = "\FCT{id′}"
+
+\begin{code}
+id : {A : Set} → A → A
+id x = x
+\end{code}
+
+%format Y = "\DATA{Y}"
+
+As shown, implicit argument are marked by curly braces, we are not required to
+pass them when calling or defining the function and they will be solved by
+unification (not search). The |∀| symbol is a helper when we want to make the
+range of an argument implicit: we could have written |id : ∀ {A} → A → A|. Note
+that this also works with explicit arguments like |id' : ∀ A → A → A|. We may
+drop arrows for dependent type: |(X : Set)(Y : Set) → X → Y| is a
+shorthand for |(X : Set) → (Y : Set) → X → Y|. We can resort to
+unification on explicit arguments by using an underscore in place of the
+argument, \textit{eg} |id' _ x|.
+
+Records are introduced by the |record| and |field| keywords. I write projectors
+in \orangeFG{orange}.
+
+\begin{spec}
+record Σ (A : Set) (B : A → Set) : Set where
+  constructor _,_
+  field
+    π₀ : A
+    π₁ : B π₀
+open Σ
+\end{spec}
+
+%format Σ.π₀ = "\PRO{Σ.π₀}"
+%format Σ.π₁ = "\PRO{Σ.π₁}"
+
+The last line brings into scope the projectors |π₀ : ∀ {A B} → Σ A B → A| and
+|π₁ : ∀ {A B} (p : Σ A B) → B (π₀ p)|. Before that we would have referred to
+them as |Σ.π₀| and |Σ.π₁|. To construct an element there are 3 methods: using
+the defined constructor |x , y|, using generic record notation |record { π₀ =
+x; π₁ = y}| or by using copatterns (the preferred method, especially for the
+functions returning records):
+
+\begin{spec}
+p : Σ A B
+π₀ p = foo
+π₁ p = bar
+\end{spec}
+
+\subsection{Universe Levels}
+
+As explained previously, Agda has a tower of universes. The first ones have
+names like |Set₂| but we can access any one by using levels (which are natural
+numbers where the constructors are axioms to disable pattern matching). The
+zero level is |lzero| and the sucessor is |lsuc|. We also have access to a max
+function |_⊔_ : Level → Level → Level|. We can write
+\textit{level--polymorphic} functions.
+
+\begin{code}
+id' : {α : Level} {X : Set α} → X → X
+id' x = x
+\end{code}
+
+The tower of universes is not cumulative, if |X : Set α|, then we |X : Set
+(lsuc α)| is not true. This is particularly painful as it adds a lot of noise: to embed a small set into a higher one we have to resort to a record (or a datatype) as they can be given any level which is high enough.
+
+\ExecuteMetaData[ornaments/prelude.tex]{lift}
+
+In the report i have hidden most prenex implicit arguments from function (using
+a mix of an existing feature resembling Coq's \textit{Variable} and pure
+typographic hacks) as these are mostly related to level polymorphism
+bookkeeping. You should try to mentally remove every occurence of |Lift|,
+|lift|, |lower| and of level variables (to which I reserved the first 4 greek
+letters). \textit{Ie} instead of |∀ {α β} → Set α → Set β → Set (α ⊔ β)| I
+might write |Set α → Set β → Set _|.
+
+\subsection{Prelude}
+I will briefly introduce the most important utility definitions I will use
+throughout the report.
+
+We already have seen the |Σ A B| type with projectors |π₀| and |π₁|. Its
+non--dependent counterpart is |_×_ : Set α → Set β → Set _|.
+
+Level polymorphic empty and unit types:
+\ExecuteMetaData[ornaments/prelude.tex]{prop}
+
+Dependent function composition is written |g ∘ f| and dependent application is
+|f $ x|. I use this last definition a lot to escape a parenthesis hell.
+
+Heterogeneous inductive equality is defined by:
+\ExecuteMetaData[ornaments/prelude.tex]{equality}
+
+I will use the usual lemmas |subst : (P : A → Set β) → x ≡ y → P x → P y|,
+|cong : (f : (x : A) → B x) → x ≡ y → f x ≡ f y|, |trans : x ≡ y → y ≡ z → x ≡
+z| and |sym : x ≡ y → y ≡ x|. Also their two argument version |subst₂ : (P : (a
+: A) → B a → Set γ) → x₀ ≡ x₁ → y₀ ≡ y₁ → P x₀ y₀ → P x₁ y₁|, |cong₂ :
+{-"\dots"-}| and |cong-Σ : π₀ p ≡ π₀ q → π₁ p ≡ π₁ q → p ≡ q|. I also make use of a postulated function extensionality:
+
+\ExecuteMetaData[ornaments/prelude.tex]{funext}
+
+This is about it!
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Case Study: Bidirectional Simply-Typed Lambda Calculus}
+\ref{sec:stlc}
+
+As an application of the theories that I constructed, I will present in this
+section a formalization of the bidirectional simply-typed λ→ calculus. This
+will also provide a nice spot to take some time to motivate and explain
+bidirectional typing.
+
+\subsection{Bidirectional Typing}
+Bidirectional typing has been devised by \todo{ref} as a particular school of
+formalizing typing rules. Bidirectional typing has been particularly successful
+in taking over formalization but most importantly implementation of
+typecheckers for complex languages like dependent or substructural theories
+\todo{examples}. A motivation is the shortcoming of the Hindley--Milner
+algorithm for type inferance: in these theories a most generic type is usually
+not computable or may not even exist, yet we would like to avoid the necessity
+of annotating every single expression. Thus it arises with the need for a finer
+understanding of where type annotations are definitely not need and where they
+are, in the absence of an inferance engine.
+
+%{
+%format ⊢ = "\DATA{⊢}"
+%format ∈ = "\DATA{∈}"
+%format ∋ = "\DATA{∋}"
+%format <: = "\DATA{<\!:}"
+%format lookup = "\FCT{lookup}"
+
+Bidirectional typing emphasises the flow of information. One way to view a
+typechecker is as a server, responding to judgment queries either directly by a
+final answer or by a query itself, some sort of challenge. For example to the
+query ``Does this variable |x| check to type |T| in context |Γ|?'' a
+typechecker might offer responses such as ``Yes, because |lookup Γ x ≡ T|.'',
+``Give me a proof that |U| is a type, |U <: T| and |x : U|.''. In these
+dialogs, we refer to input judgments as judgments implied by the hypothesis
+that the query is well-formed. A client might better be convinced that |T| is a
+valid type when asking if |x : T| holds because the server will assume it. On
+the other hand, if the query is ``What type has |x|?'' then if given the answer
+|T|, the client can rightly assume that |T| is a valid type.
+
+Precising things a bit we introduce not one but two typing judgement, with the
+information flow from left to right. |Γ ⊢ x ∈ T| represents the query ``What is
+the type |T| that |x| has?'' and |Γ ⊢ T ∋ x| represents ``Does |x| have type
+|T|''. The first mode of operation is called \textit{synthesis}, with a |⊤| as
+input and a type as output and the second is called \textit{checking}, with a
+type as input and |⊤| as output.
+
+%}
+
+\subsection{Native Agda}
+
+Before formalizing it with our encoding, we start of by giving the construction
+as we would normally in Agda. Let's start off by some tools. First natural
+numbers and finite sets.
+
+ℕε⇒
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{nat}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{fin}
+
+Then contexts, also known as snoc--lists, together with a length, indexation
+and lookup.
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{bwd}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{length}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{idx}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{get}
+
+The first judgements are |type| and |env|, giving the sets of types and valid
+contexts.
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{type}
+
+Know we can give the typing judgements. We will represent it by an indexed
+inductive--recursive type with as input index a context, a direction (synthesis
+or checking) and the associated input (|type| or |⊤|, depending on the
+direction) and as output index the associated output (again |type| or |⊤|).
+₀
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{dir}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{IN}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{OUT}
+
+%{
+%format aux = "\DATA{aux}"
+%format app = "\CON{app}"
+\begin{code}
+{-<-}
+open import ornaments.examples.lambda2
+{->-}
+data tlam₀ (Γ : env) : (d : dir) (i : IN d) → Set
+out₀ : ∀ {Γ d i} → tlam₀ Γ d i → OUT d
+
+aux : env → type → Set
+aux Γ `base    = ⊥ {lzero}
+aux Γ (r `⇒ s) = tlam₀ Γ chk r
+
+data tlam₀ Γ where
+  lam : ∀ {r s} → tlam₀ (Γ ,, r) chk s            → tlam₀ Γ chk (r `⇒ s)
+  vrf : ∀ {r} (e : tlam₀ Γ syn *) → out₀ e ≡ r    → tlam₀ Γ chk r
+  var : idx Γ                                     → tlam₀ Γ syn *
+  app : (f : tlam₀ Γ syn *) (x : aux Γ (out₀ f))  → tlam₀ Γ syn *
+  ann : ∀ {r} → tlam₀ Γ chk r                     → tlam₀ Γ syn *
+
+out₀ {Γ} {chk} {i} _            = *
+out₀ {Γ} {syn} {*} (var i)      = get Γ i
+out₀ {Γ} {syn} {*} (app f x)    with out₀ f  | x
+...                             | `base      | ()
+...                             | r `⇒ s     | _ = s
+out₀ {Γ} {syn} {*} (ann {r} _)  = r
+\end{code}
+%}
+
+Let's make sense from this mess! Looking at the constructors, we have the usual
+|lam|, |var| and |app|. The constructor |lam| is in checking mode (it builds up
+larger types using small parts of given information) and the two destructors
+|var| and |app| (|var| can be interpreted as a destructor for the binding,
+|app| for the function themselves) are in synthesis mode as they take big
+arguments containing lots of information and represent smaller terms
+constrained by them.
+
+There is a little trick in the type of |app|, indeed it is key to have the
+function argument |f| in synthesis mode, yet we want to \textit{panic} when |f|
+doesn't synthetise a function type. For that we simply build a little helper
+that will match on the type and demand an element of the empty type when the
+type is |`base|. This way we are sure that no such element will be
+constructible.
+
+The output function is trivial in the checking mode and shouldn't be
+challenging in the synthesis mode. We crucially make use of Agda's
+\textit{|with|--abstraction}, a feature ressembling a case expression performed
+left of the clause equation (which do not exist natively in Agda).
+
+\subsection{Well--Scoped Terms}
+
+We don't want to directly jump to encoding this syntax of λ→ calculus because
+the funny part is that we will express it as an ornament on well--scoped
+syntax. Well--scoped syntax is expressed as an |IIR| definition with natural
+numbers as input index (the number of free variables) and a trivial output
+index.
+
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{ulam-ix}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{ulam-c}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{ulam}
+
+There is one surprise: the |`wrap| constructor, that---as its name hints---does
+nothing really interesting, just adding a constructor layer for the sake of it.
+It is only here as an artifact of my definition of the universe of ornaments
+but I am not sure it could have been avoided. For now we can ignore it, the
+reason will appear in the following section.
+
+\subsection{Well--Typed Terms}
+
+First we give the reindexation and the constructor tags, the new indexes being
+as we have seen for |tlam₀| and the stripping function being the length of the
+context.
+
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{tlam-ix}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{tlam-tags}
+
+First let's look at the inductive part of the encoding.
+
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{tlam-node}
+
+The first comment is probably that this is a bit clumsy. I could've written
+special |syntax| rules to ease the programming with the encoding and the choice
+of operation for ornaments is not set in stone, it may be later changed to
+another combination.
+
+We can note that we pattern match on the index, \textit{eg} before giving the
+shape of the datatype (in this case the ornament). This is the full power of
+index--first datatypes unleashed, as such we have constructors that don't have
+any of the implicit quantification like in native Agda.
+
+A pattern we notice is |add₀ (κ {-"…"-}) λ { (lift {-"…"-}) →
+σ (del-κ {-"…"-}) {-"…"-} }|. The high--level operation going
+on here is the replacement of some constant by another one (given a stripping
+function which is implicit here). We might want to add special syntax for that.
+
+Now it is clear what |`wrap| stood for: the ornament introduces new
+constructors |`vrf| and |`ann| that don't exist in the original datatype.
+Without |`wrap| we wouldn't know what constructor to choose from in the old
+datatype. Note that this is an artifact in the sense that it might be
+avoidable. Indeed these added constructors do not really change the shape from
+untyped λ→ (without wrap), as they just add a \textit{transparent} layer that
+we could very much erase systematically. It thus simply a matter of getting the
+axiom right and adding it as a constructor to |orn₀|.
+
+Finishing with the unsurprising recursive part and the fixed--point:
+
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{tlam-emit}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{tlam}
+\ExecuteMetaData[ornaments/examples/lambda2.tex]{out}
+
+We are now done! In the end the encoding has gone well but it stressed the need
+for syntactic sugar and it raised the issue of wrapper--like constructors that
+we should be allowed to add when ornamenting.
 \end{document}

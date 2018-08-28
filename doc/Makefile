@@ -1,6 +1,6 @@
 FILES:=ornaments/prelude.lagda ornaments/fam.lagda ornaments/pow.lagda \
 	ornaments/iir.lagda ornaments/orn.lagda ornaments/induction.lagda \
-	ornaments/graph.lagda ornaments.lagda
+	ornaments/graph.lagda ornaments.lagda ornaments/examples/lambda2.lagda
 
 OUT:=$(patsubst %.lagda,latex/%.tex,$(FILES))
 

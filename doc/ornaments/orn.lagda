@@ -176,6 +176,10 @@ emit (algorn ρ φ) (i , c) (lift (ok x) , y) =
 %</algorn>
 
 %<*algorn-inj>
+%{
+%format P = "\DATA{P}"
+%format aux = "\FCT{aux}"
+%format rec = "\FCT{rec}"
 \begin{code}
 algorn-inj : {-<-}∀ {α₀ α₁ β₀ γ₀}{X : ISet α₀ β₀}{ρ : IIR γ₀ X X}{φ : alg α₁ ρ} ..{s : Size}{->-}(i : Code X) (x : μ-c ρ {s} i) → μ-c ⌊ algorn ρ φ ⌋ {-<-}{s}{->-}(i , π₀ $ fold φ i x)
 algorn-inj {-<-}{γ₀ = γ₀} {X = X} {ρ = ρ} {φ}{->-} = induction ρ P rec
@@ -202,6 +206,7 @@ algorn-inj {-<-}{γ₀ = γ₀} {X = X} {ρ = ρ} {φ}{->-} = induction ρ P rec
       ⟨ lift (ok $ π₀ c) , π₀ $ aux (node ρ i) x p ⟩
 
 \end{code}
+%}
 %</algorn-inj>
 
 %<*erase>

@@ -63,6 +63,7 @@ data _+_ {α β} (A : Set α) (B : Set β): Set (α ⊔ β) where
 %<*prop>
 \begin{code}
 data ⊥ {α} : Set α where
+
 record ⊤ {α} : Set α where constructor *
 \end{code}
 %</prop>
@@ -96,7 +97,8 @@ _⟶̇_ {-<-}{I = I}{->-} X Y = (i : I) → X i → Y i
 
 %<*equality>
 \begin{code}
-data _≡_ {-<-}{α} {A : Set α}{->-} (x : A) : {-<-}{B : Set α} →{->-} B → Set α where refl : x ≡ x
+data _≡_ {-<-}{α} {A : Set α}{->-} (x : A) : {-<-}{B : Set α} →{->-} B → Set α where
+  refl : x ≡ x
 \end{code}
 %</equality>
 
@@ -154,16 +156,21 @@ subst-≡ refl refl = refl
 \end{code}
 
 \begin{code}
-postulate
 \end{code}
 
-%<*funext>
+%<*funext1>
 \begin{code}
+postulate
   funext₁ : {-<-}∀ {α β} {A₀ A₁ : Set α} {B₀ : A₀ → Set β} {B₁ : A₁ → Set β}
            {f : (x : A₀) → B₀ x} {g : (x : A₁) → B₁ x} → {->-} (p : A₀ ≡ A₁) →
            ((x : A₀) → f x ≡ g (subst (λ s → s) p x)) → f ≡ g
-funext : {-<-}∀ {α β} {A : Set α} {B₀ B₁ : A → Set β} {f : (x : A) → B₀ x} {g : (x : A) → B₁ x} → {->-} ((x : A) → f x ≡ g x) → f ≡ g
-funext p = funext₁ refl p
+\end{code}
+%</funext1>
+
+%<*funext>
+\begin{code}
+postulate
+  funext : {-<-}∀ {α β} {A : Set α} {B₀ B₁ : A → Set β}{->-}{f : (x : A) → B₀ x} {g : (x : A) → B₁ x} → ((x : A) → f x ≡ g x) → f ≡ g
 \end{code}
 %</funext>
 

@@ -3,7 +3,7 @@ module ornaments.examples.palmgren where
 
 open import ornaments.prelude
 open import ornaments.fam hiding (σ; π)
-open import ornaments.iir hiding (fold)
+open import ornaments.iir
 
 --open import Relation.Binary.PropositionalEquality using (cong; sym; subst)
 open import Data.Nat renaming (zero to zz; suc to ss)
@@ -78,7 +78,7 @@ module _ {n : ℕ} (A : Fin (ss n) → Set) (B : (i : Fin (ss n)) → A i → O�
       T _ (lift ππ , lift refl , a , b)                         = (x : a) → b x
       T _ (lift ww , lift refl , a , b)                         = W a b
       T _ (lift Ȧ , lift refl , lift j)                         = A j
-      T i (lift Ḃ , lift a)                                     = B i a
+      T _ (lift Ḃ , lift a)                                     = B _ a
       T _ (lift ap₀ , lift refl , lift j , f , a , b)           = π₀ (f (a , λ x → ↓ (b x)))
       T _ (lift ap₁ , lift j , lift refl , f , a , b , lift x)  = ↑ (π₁ (f (a , λ x → ↓ (b x))) x)
 
