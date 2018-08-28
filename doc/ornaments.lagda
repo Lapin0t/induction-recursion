@@ -16,6 +16,7 @@
 \title{Ornamenting Inductive-Recursive Definitions}
 \author{Peio Borthelle, Conor McBride}
 
+\setlength{\abovedisplayskip}{10pt}
 
 \newcommand{\todo}[1]{\textbf{TODO:}\textit{#1}}
 \setlength\parindent{.7em}
@@ -27,49 +28,57 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newpage
+%\newpage
 \paragraph{Abstract}
+We present a universe (a datatype of datatype descriptions) of endofunctors
+with initial algebras that give rise to indexed inductive--recursive types,
+\textit{eg} simultaneous definition of an inductive type family and a recursive
+function on it. We provide a generic induction principle as well as some other
+elimination rules.  Building upon that, we define a universe of
+\textit{ornaments}, describing how to create an fancy version of a given
+datatype by enriching its indexing sets while keeping the same inductive tree
+shape. This allows us to introduce datatypes by giving more high--level
+definitions than just their description, which in turns allows to collect free
+theorems stated generically.
 
-\hrulefill
 
 \tableofcontents
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
+%\newpage
 \section{Introduction}
 \label{sec:intro}
 
 \paragraph{A Technical Preliminary} This research development has been
-exclusively done formally, using the dependently--typed language Agda
-(\cite{agda}) as an interactive theorem--prover. As such this report is full of
-code snippets, following the methodology of literate programming
-(\cite{knuth84}). Theorems are presented as type declaration, proofs are
+exclusively done formally, using the dependently--typed language Agda (U.
+Norell, \cite{norell07}) as an interactive theorem--prover. As such this report is
+full of code snippets, following the methodology of literate programming (D.
+Knuth, \cite{knuth84}). Theorems are presented as type declaration, proofs are
 implementations of such declarations and definitions are usually some kind of
 datastructure introduction: it definitely lies on the \textit{program} side of
 the Curry--Howard correspondance. The syntax and concepts of Agda should not be
 too alien to a Haskell or Coq programmer but it might be interesting to start
 out by reading the appendix \ref{sec:agda} which presents its most important
-features.
+features. The full code can be found on
+github\footnote{\url{https://github.com/Lapin0t/induction-recursion}}.
 
 \paragraph{Motivations} Although they were probably first intended as theorem
 provers, dependently--typed languages are currently evolving into
 general--purpose programming languages, leveraging their expressivity to enable
 correct--by--construction type--driven programming. But without the right tools
 this new power is unmanageable. One issues is the need to prove over and over
-again the same properties for similar datastructures. Ornaments (\todo{ref
-mcbride}) tackle this problem by giving a formal syntax to describe how
-datastructures might be \textit{similar}. Using these objects, we can prove
-generic theorems once and for all. The broad idea behind this approach is to
-``speak in a more intelligible way to the computer'': if instead of giving a
-concrete declarations we gave defining properties, we would be able to
-systematically collect free theorems which hold by (some high level)
+again the same properties for similar datastructures. Ornaments (P-E. Dagand
+and C. McBride \cite{dagand12}) tackle this problem by giving a formal syntax
+to describe how datastructures might be \textit{similar}. Using these objects,
+we can prove generic theorems once and for all. The broad idea behind this
+approach is to ``speak in a more intelligible way to the computer'': if instead
+of giving a concrete declarations we gave defining properties, we would be able
+to systematically collect free theorems which hold by (some high level)
 definition.
 
 The present work aims to generalize ornaments to the widest possible notion of
 datatypes: inductive--recursive families (or indexed inductive--recursive
-types) as recently axiomatized by Ghani et al (\ref{ghani17}).
-
-\paragraph{Related Work}
+types) as recently axiomatized by N. Ghani et al (\cite{ghani17}).
 
 \paragraph{Acknowledgements}
 This 3 month internship research project was conducted in the Mathematically
@@ -113,12 +122,12 @@ open import ornaments.orn
 
 The motivation behind indexed induction--recursion is to provide a single rule
 that can be specialized to create most of the types that are encountered in
-Martin Loef's Intuitionistic Type Theory (ITT) such as inductive types
-(W--types), inductive families \textit{etc}. This rule has been inspired to
-Dybjer (\todo{ref}) by Martin Loef's definition of a universe à--la--Tarski, an
-inductive set of codes |data U : Set| and a recursive function |el : U → Set|
-reflecting codes into actual sets (here a simple version with only natural
-numbers and Π--types).
+Martin Loef's Intuitionistic Type Theory (ITT)\cite{loef84} such as inductive
+types (W--types), inductive families \textit{etc}. This rule has been inspired
+to P. Dybjer and A. Setzer (\cite{dybjer99,dybjer03}) by Martin Loef's
+definition of a universe à--la--Tarski, an inductive set of codes |data U :
+Set| and a recursive function |el : U → Set| reflecting codes into actual sets
+(here a simple version with only natural numbers and Π--types).
 
 {-<-}
 \begin{code}
@@ -173,23 +182,25 @@ with the ability to use the recursive function in the type of the constructors,
 even in negative positions (left of an arrow). \textit{Indexed}
 inductive-recursive definitions are a slight generalization, similar to the
 relationship between inductive types and inductive families. In its full
-generality, indexed induction recursion allows to simultaneously define an
-inductive predicate |U : I → Set| and an indexed recursive function |f : (i :
-I) → U i → X i| for any |I : Set| and |X : I → Set₁|. Using a vocabulary
-influenced by the \textit{bidirectional} paradigm for typing (\todo{ref}) we
-will call |i : I| the \textit{input index} and |X i| the \textit{output index}.
-Indeed if we think of the judgement |a : U i| as a typechecker would, the
-judgment requires the validity of |i : I| and suffices to demonstrate the validity of |f a
-: X i|. We will explore bidirectionality further in section \ref{sec:stlc}.
+generality, indexed induction recursion \cite{dybjer06} allows to
+simultaneously define an inductive predicate |U : I → Set| and an indexed
+recursive function |f : (i : I) → U i → X i| for any |I : Set| and |X : I →
+Set₁|. Using a vocabulary influenced by the \textit{bidirectional} paradigm for
+typing (B. Pierce and D. Turner \cite{pierce00}) we will call |i : I| the
+\textit{input index} and |X i| the \textit{output index}.  Indeed if we think
+of the judgement |a : U i| as a typechecker would, the judgment requires the
+validity of |i : I| and suffices to demonstrate the validity of |f a : X i|. We
+will explore bidirectionality further in section \ref{sec:stlc}.
 
 %}
 
 Induction-recursion is arguably the most powerful set former (currently known)
-for ITT. \todo{who?} has shown that its addition gives ITT a proof-theoretic
-strength slightly greater than KPM, Kripke--Platek set theory together with a
-recursive Mahlo universe. Although its proof-theoretic strength is greater
-than $Γ₀$, ITT with induction--recursion is still considered predicative in a
-looser constructivist sense: it arguably has bottom--to--top construction.
+for ITT. A. Setzer (\cite{setzer01}) has shown that its addition gives ITT a
+proof-theoretic strength slightly greater than KPM, Kripke--Platek set theory
+together with a recursive Mahlo universe. Although its proof-theoretic strength
+is greater than $Γ₀$, ITT with induction--recursion is still considered
+predicative in a looser constructivist sense: it arguably has bottom--to--top
+construction.
 
 
 %%%%%%%%%%
@@ -206,10 +217,10 @@ looser constructivist sense: it arguably has bottom--to--top construction.
 %format ∘ = "\FCT{∘}"
 %format _∘_ = _ "\!" ∘ "\!" _
 %format F = "\FCT{F}"
-b
-b
-b
-b
+
+
+
+
 %format F[_] = "\FCT{F[\anonymous]}"
 
 Since we will use category theory as our main language we first recall the
@@ -237,12 +248,12 @@ initial algebras of endofunctors. In a first approximation, we can think of an
 with initial algebras that give rise to our indexed inductive--recursive types.
 
 We shall determine the category our data types live in. The most simple data
-types, inductive types, live in the category $\DATA{Set}$.  On the other hand,
+types, inductive types, live in the category |Set|.  On the other hand,
 as we have seen, inductive--recursive data types are formed by couples in
 $(\DATA{U} : \DATA{Set})~×~(\DATA{U} → \DATA{X})$. Categorically, this an
 $\DATA{X}$-indexed set and it is an object of the slice category of $\DATA{Set}
 / \DATA{X}$. We will be representing these objects by the record type |Fam γ
-X|\footnote{See section \todo{ref} for some explainations of |Level|, but for
+X|\footnote{See section \ref{sec:levels} for some explainations of |Level|, but for
 most part it can be safely ignored, together with its artifacts |Lift|, |lift|
 and the greek letters |α|, |β|, |γ| and |δ|.}.
 
@@ -277,19 +288,18 @@ Again we might consider our universe example as a trivially indexed type.
 Πℕ-univᵢ _ = U , el
 \end{code}
 
-\todo{mention |FΣ| and |FΠ|}
-
 \subsection{A Universe of Strictly Positive Functors}
 
-Dybjer and Setzer have first presented codes for (indexed) inductive-recursive
-definitions (\todo{ref}) by constructing a universe of functors. However, as
-conjectured by \cite{ghani17}, this universe lacks closure under composition,
-\textit{eg} if given the codes of two functors, we don't know how to construct
-a code for the composition of the functors. I will thus use an alternative
-universe construction devised by McBride which we call \textit{Irish}
-induction--recursion\footnote{It has also been called \textit{polynomial}
-induction--recursion because it draws similarities to polynomial functors, yet
-they are different notions and should not be confused.}.
+P. Dybjer and A. Setzer have first presented codes for (indexed)
+inductive-recursive definitions by constructing a universe of functors.
+However, as conjectured by \cite{ghani17}, this universe lacks closure under
+composition, \textit{eg} if given the codes of two functors, we do not know how
+to construct a code for the composition of the functors. We will thus use an
+alternative universe construction devised by C. McBride (\cite{ghani17}) which
+we call \textit{Irish} induction--recursion\footnote{It has also been called
+\textit{polynomial} induction--recursion because it draws similarities to
+polynomial functors, yet they are different notions and should not be
+confused.}.
 
 In this section we fix a given pair of input/output indexes |X Y : ISet α β|
 and i will define codes |ρ : IIR δ X Y : Set| for some functors |⟦ ρ ⟧ : 𝔽 γ X → 𝔽
@@ -343,16 +353,21 @@ functor |⟦ ρ ⟧₀|.
 \ExecuteMetaData[ornaments/iir.tex]{fam-info}
 \ExecuteMetaData[ornaments/iir.tex]{fct-hom-i}
 
+The functors |f-σ| and |f-π| are functors that construct the dependent sum and
+dependent product of families, allowing us to construct families and arrows on
+them component by component. We will use them a couple more times in the same
+kind of structural recursion on |poly|.
+
 It would be time to check if this interpretation does the right thing on our
 example, alas even simple examples of induction--recursion are somewhat
-complicated, as such I don't think it would be informative to display here the
+complicated, as such I do not think it would be informative to display here the
 normalized expression of |⟦ Πℕc ⟧₀ F|. The reader is still encouraged to
 normalize it by hand to familiarize with the interpretation.
 
 While taking as parameter a indexed family |𝔽 γ X|, our intepreted functors
 only output a family |Fam (γ ⊔ δ) (info ρ)|. In other words, |ρ : poly γ X|
 only gives the structure of the definition for a given input index |i : Code
-Y|.  To account for that, the full description of the first component of
+Y|. To account for that, the full description of the first component of
 inductive--recursive functors has to be a function |node : Code Y → poly γ X|.
 We are left to describe the recursive function, which can be done with a direct
 |emit : (j : Code Y) → info (node j) → decode Y j| computing the output index
@@ -373,7 +388,7 @@ emit Πℕc _ (lift `Π , A , B)   = (a : lower A) → lower $ B a
 \ExecuteMetaData[ornaments/iir.tex]{fct-obj}
 \ExecuteMetaData[ornaments/iir.tex]{fct-hom}
 
-We have use the post--composition functor defined as follows:
+The post--composition functor we used is defined as follows:
 
 \ExecuteMetaData[ornaments/fam.tex]{pcomp}
 \ExecuteMetaData[ornaments/fam.tex]{pcomp-arr}
@@ -399,45 +414,61 @@ implementation of respectively |μ-c ρ| and |μ-d ρ|.
 \ExecuteMetaData[ornaments/induction.tex]{mu-tools}
 
 We have now completed the encoding of Πℕ and we can write pretty versions the
-constructors!
-
-\todo{minipage}
+constructors.
 
 %{
 %format U₁ = "\DATA{U₁}"
 %format el₁ = "\FCT{el₁}"
 %format `ℕ₁ = "\CON{`ℕ₁}"
 %format `Π₁ = "\CON{`Π₁}"
+
+\begin{minipage}[b]{0.5\textwidth}
 \begin{code}
 U₁ : Set
 U₁ = μ-c Πℕc *
-
+\end{code}
+\end{minipage}
+\begin{minipage}[b]{0.5\textwidth}
+\begin{code}
 el₁ : U₁ → Set
 el₁ = μ-d Πℕc *
+\end{code}
+\end{minipage}
 
+\begin{minipage}[b]{0.5\textwidth}
+\begin{code}
 `ℕ₁ : U₁
 `ℕ₁ = ⟨ lift `ℕ , lift * ⟩
-
+\end{code}
+\end{minipage}
+\begin{minipage}[b]{0.5\textwidth}
+\begin{code}
 `Π₁ : (A : U₁) (B : el₁ A → U₁) → U₁
 `Π₁ A B = ⟨ lift `Π , lift A , lift ∘ B ⟩
 \end{code}
+\end{minipage}
 %}
 
 \subsubsection{Catamorphism and Paramorphism}
 
-I previously said that this least--fixed point has in category theory the
-semantic of an initial algebra. Let's break it down. Given an endofunctor |F :
+We previously said that this least--fixed point has in category theory the
+semantic of an initial algebra. Let us break it down. Given an endofunctor |F :
 C → C|, an |F|-algebras is a carrier |X : C| together with an arrow |F X ⇒ X|.
 An arrow between two |F|-algebras |(X , φ)| and |(Y , ψ)| is an arrow |m : X ⇒
 Y| subject to the commutativity of the usual square diagram |ψ ∘ F[ m ] ≡ m ∘
 φ|.
 
+%{
+%format F = "\FCT{F}"
+%format F[ = "\FCT{F[}"
+%format ] = "\FCT{]}"
 \begin{center}
 \begin{tikzcd}
 |F X| \arrow[r, "|φ|"] \arrow[d, "{|F[ m ]|}"'] & |X| \arrow[d, "|m|"] \\
 |F Y| \arrow[r, "|ψ|"] & |Y|
 \end{tikzcd}
 \end{center}
+%}
 
 
 Additionaly, an object |X : C| is initial if for any |Y : C| we can give an
@@ -449,10 +480,9 @@ is left is to add a trivial proof.
 
 \ExecuteMetaData[ornaments/induction.tex]{roll}
 
-\todo{interlude: intro example distinct elt list}
 
-To prove the fact that our algebra is initial we have first have to formally write
-the type of algebras.
+To prove the fact that our algebra is initial we have first have to formally
+write the type of algebras.
 
 \ExecuteMetaData[ornaments/induction.tex]{alg}
 
@@ -477,12 +507,48 @@ with the associativity lemma |⊙-assoc|.
 
 As hinted by its name, the initiality arrow |fold ρ| is in fact a generic fold
 or with fancier wording an elimination rule, precisely the catamorphism (also
-called recursor). An elimination scheme is the semantic of recursive functions
+called recursor). An elimination rule is the semantic of recursive functions
 with pattern matching. Diggressing a little on elimination rules, we can notice
-that this is not the only one.
+that this is not the only one. Lets stop and write down the factorial function.
 
-\todo{introduce paramorphism, factorial on nat}
-\todo{para is the most generic (non-dependent) eliminator, ref meeertens}
+%{
+%format foldℕ = "\FCT{foldℕ}"
+%format +ℕ = "\FCT{+ℕ}"
+%format _+ℕ_ = _ +ℕ _
+%format *ℕ = "\FCT{*ℕ}"
+%format _*ℕ_ = _ *ℕ _
+%format fact = "\FCT{fact}"
+
+\begin{code}
+foldℕ : {-<-}∀ {α} {X : Set α}{->-} (f : X → X) (x : X) → ℕ → X
+foldℕ f x zero = x
+foldℕ f x (suc n) = f $ foldℕ f x n
+
+_+ℕ_ : ℕ → ℕ → ℕ
+_+ℕ_ = foldℕ suc
+
+_*ℕ_ : ℕ → ℕ → ℕ
+m *ℕ n = foldℕ (_+ℕ_ m) zero n
+
+fact : ℕ → ℕ
+fact zero = suc zero
+fact (suc n) = suc n *ℕ fact n
+\end{code}
+%}
+
+One should be convinced that |fact| cannot be expressed as |foldℕ f x|. Indeed
+for the |suc n| case, besides the recursive call |fact n|, we need the
+unchanged data |suc n|. To solve this we introduce \textit{paramorphisms} (the
+equivalent notion of primitive recursion in category theory). The specification
+is not an algebra |⟦ ρ ⟧ X ⇒ X| but an arrow |⟦ ρ ⟧ (μ ρ × X) ⇒ X|, the domain
+of which is exactely a node where to every subnode we have added the recursive
+computation (but also left them in place). Note that there is no added
+power---only expressivity---since we can construct a fold with algebra |⟦ ρ ⟧
+(μ ρ × X) ⇒ μ ρ × X| and drop the second component of the output. Every arrow
+|μ ρ ⇒ X| can be expressed as |para φ| for some arrow |φ| (L. Merteens,
+\cite{meertens92}), as such it is the most expressive (non--dependent)
+eliminator. This expressivity of paramorphisms will be crucial in a later proof
+on ornaments.
 
 \ExecuteMetaData[ornaments/induction.tex]{p-alg}
 \ExecuteMetaData[ornaments/induction.tex]{para-pre}
@@ -498,27 +564,26 @@ Code (μ ρ i)) → Set|, if given that the predicate holds for every subnode we
 can show it hold for the node itself, then we can show the predicate to hold
 for every possible node.
 
-Let's formalize that a bit. I define a predicate |all| stating that a property
-hold for all subnodes. It looks a lot like |⟦ ρ ⟧| but does something slightly
-more powerful at inductive positions.
+Let us formalize that a bit. We define a predicate |all| stating that a property
+hold for all subnodes.
 
 \ExecuteMetaData[ornaments/induction.tex]{all}
 
-Given that I can state the induction principle.
+Given that we can state the induction principle.
 
 \ExecuteMetaData[ornaments/induction.tex]{induction}
 
-I used the helper |every| which explains how to construct a proof of |all| for
+We used the helper |every| which explains how to construct a proof of |all| for
 |⟦ ρ ⟧ F| if we can prove the predicate for |F|.
 
 \ExecuteMetaData[ornaments/induction.tex]{every}
 
-Note that I could have derived the other elimination rules from this induction
+Note that we could have derived the other elimination rules from this induction
 principle, but cata-- and paramorphisms are very useful non--dependent special
 cases that diserve to be treated separately and possibly optimized.
 Non-dependent functions still have a place of choice in dependent languages:
 just because we can replace every implication by universal quantification
-doesn't mean we should.
+does not mean we should.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ornaments}
@@ -565,8 +630,8 @@ data vec (X : Set) : ℕ → Set where
   cons : ∀ {n} → X → vec X n → vec X (suc n)
 \end{code}
 
-I wrote the constructors such that they maintain the invariant that |vec X n|
-is only inhabited by sequences of length |n|. I may now write the stronger
+We wrote the constructors such that they maintain the invariant that |vec X n|
+is only inhabited by sequences of length |n|. We may now write the stronger
 version of |zip| which explicitely states what is possible to zip.
 \begin{code}
 zip : {-<-}{X Y : Set} {n : ℕ} → {->-}vec X n → vec Y n → vec (X × Y) n
@@ -635,10 +700,10 @@ projection |π₀|.
 
 \subsection{A Universe of Ornaments}
 
-Step by step, following the construction of induction--recursion I will start
+Step by step, following the construction of induction--recursion, we will start
 by describing ornaments of |poly|, the inductive part of the definition. For |R
-: PRef α₁ β₁ X| and |ρ : poly γ₀ X| I define a universe of decriptions |orn₀ γ
-R ρ : Set _|. Simultaneously I define an interpretation |⌊ o ⌋₀ : poly (γ₀ ⊔
+: PRef α₁ β₁ X| and |ρ : poly γ₀ X| we define a universe of decriptions |orn₀ γ
+R ρ : Set _|. Simultaneously we define an interpretation |⌊ o ⌋₀ : poly (γ₀ ⊔
 γ₁) (PFam R)| taking the description of the ``delta'' to the actual fancy
 description it represents, and a stripping function |info↓ : info ⌊ o ⌋₀ → info
 ρ| taking new node informations to old ones.
@@ -703,7 +768,7 @@ list-o X = σ κ λ {
   (lift (lift `su)) → add₀ (κ X) λ _ → ι *  }
 \end{code}
 
-I define the type |orn γ₁ R S ρ : Set| ornamenting |ρ : IIR γ₀ X Y|.
+We define the type |orn γ₁ R S ρ : Set| ornamenting |ρ : IIR γ₀ X Y|.
 
 \ExecuteMetaData[ornaments/orn.tex]{orn}
 
@@ -720,14 +785,13 @@ We eventually reach the full interpretation |⌊_⌋| taking an ornament to a fa
 
 \ExecuteMetaData[ornaments/orn.tex]{interp}
 
-\todo{list to vec here?}
 
 \subsection{Ornamental Algebra}
 
 Recalling the first remark we made on the relation between an ornamented data
-type and it's original version, we want to generically derive an arrow mapping
+type and its original version, we want to generically derive an arrow mapping
 the new fancy one to the old one. Note that I did write arrow and not simply
-function: because we work in the category of indexed type families we don't
+function: because we work in the category of indexed type families we do not
 simply want a map from new inductive nodes to old ones, we want it to assign
 output indexes consistently with the reindexing. The function we want to write
 has the following type.
@@ -760,18 +824,17 @@ output index, something we cannot get because being a subnode, |A| has already
 been replaced by a simplified version that no longer contains this fancy output
 index. As such, while simplifying the datastructure, we need to keep track not
 only of simplified subnodes, but also of their original version, to be able to
-simplify the current node. This makes explicit the need for paramorphisms,
-which is the reason why I introduced them earlier.
+simplify the current node. This makes explicit the need for paramorphisms.
 
 Note that a finer approach would be not to resort to fully featured
-paramorphisms. Indeed, to simplify a node we don't need the full couple of the
+paramorphisms. Indeed, to simplify a node we do not need the full couple of the
 simplification and the fancy subnodes, we just need to reconstruct the fancy
 output index and we already have the simplified subnode. Thus what we exactely
 need is the information that is in the fancy node that isn't in the simplified
 one. While seemingly tortuous, this notion is very familiar and we call it a
 \textit{reornament}. Indeed we have seen that lists are an ornament of natural
 numbers and vectors are lists indexed by natural number. Then what is a vector
-if it is not \textit{all the information that is in a list but not in it's
+if it is not \textit{all the information that is in a list but not in its
 length}? This builds up a nice transition because reornaments will arise in the
 next subsection. This last remark that the construction of the forgetful map
 depends on the prior formalization of reornaments is a small funny discovery
@@ -813,7 +876,7 @@ recursive part of the carrier matches the original output index. This is not
 just a \textit{by--the--way} property, it is provable but also a crucial lemma
 for the construction.
 
-As usual now I first give the pre--ornament |orn₀| for a |poly|, which we will
+As usual now we first give the pre--ornament |orn₀| for a |poly|, which we will
 expand in a second step to full ornaments on |IIR|.
 
 \ExecuteMetaData[ornaments/orn.tex]{algorn0}
@@ -827,7 +890,7 @@ More importantly, |F| is still the carrier of the algebra and we recursively
 construct an ornament whose |info↓| matches with the output of |⟦ ρ ⟧₀ F|. This
 ensures that we propagate good shape constraints throughout the structure,
 ensuring that we indeed constrain the node shapes to fold to a given target.
-Before proceeding with the full definition I introduce the type of fibers for a
+Before proceeding with the full definition we introduce the type of fibers for a
 function\footnote{The careful reader will be puzzled by the fact that I
 previously said wanting to avoid fibers and any mentionning of equality. But
 here there is no way around and we really want this fiber. As a consolation we
@@ -840,7 +903,7 @@ Now we have the building blocks for the final definition.
 
 \ExecuteMetaData[ornaments/orn.tex]{algorn}
 
-The type is straightforward but an interesting fact is that we don't directly
+The type is straightforward but an interesting fact is that we do not directly
 delegate the implementation of |node| to |algorn₀|. Indeed we have to come up
 with an element |x : Code (⟦ ρ ⟧₀ F)|. The explaination for this is that unlike
 our list and vector example, not every algebraic ornament has a single choice
@@ -854,7 +917,7 @@ in the output index.
 The next step is to provide the injection from simple data into the new data
 indexed by the value of its fold. Again I didn't fully finish this part because
 the proof is tremendously hairy. The proof is done by induction, but it is
-completely unscrutinable because since we are working not on native Agda
+completely unscrutinable. Since we are working not on native Agda
 datatypes but on our constructed versions, we cannot use native pattern
 matching and recursion but have to call our generic induction principle. It's
 not that there is much choice on what to do, but simply that because of all the
@@ -873,15 +936,17 @@ with them, the reader might continue with the case study in appendix
 \section{Discussion}
 
 \subsection{Index-First Datatypes and a Principled Treatment of Equality}
-\ref{sec:index-first}
+\label{sec:index-first}
 
 Intuitionistic Type Theory has long realised the unsufficient study of the
 equality type, streched between a convenient extensional equality and
-complicated computational interpretation. Already in 2007, Altenkirch and
-McBride presented Observation Type Theory which suggests an alternative to
-inductive propositional equality, which can be related to the
-non--higher--order fragment of the newer Homotopy Type Theory by Voevodsky
-(amusingly \textit{HoTT} without the \textit{H}).
+complicated computational interpretation. Already in 2007, T. Altenkirch and C.
+McBride presented Observation Type Theory (\cite{altenkirch06}) which suggests
+an alternative to inductive propositional equality, which can be related to the
+non--higher--order fragment of the newer Homotopy Type
+Theory\footnote{Amusingly \textit{OTT} is \textit{HoTT} without the
+\textit{H}.} by V. Voevodsky (\cite{voevodsky10}).
+
 
 The inductive definition of propositional equality is deceptive on several
 matters. First it pollutes the formalization of datatypes, a matter which has
@@ -898,25 +963,24 @@ Regarding pattern matching on the index, from a very practical point of view it
 is reassuring that most types encountered in formal developments are not
 equality--like. When we do make use of input indexes depending on constructor
 argument, most of the time these arguments are marked implicit and this is the
-symptom of a hidden pattern matching: the two information flows don't really
+symptom of a hidden pattern matching: the two information flows do not really
 collide since we delegate one of the sides to the implicits--solving machinery.
 It is thus explicit that the only information flow indeed comes from the index,
-confirming it's qualification as an \textit{input} index. Acknowledging that
-internaly in the language construction would mean cheap eradication of a big
-source of inefficiency that has already been investigated\todo{ref inductive
-families need not store their indices}.
+confirming its qualification as an \textit{input} index. Acknowledging that
+internally in the language construction would mean cheap eradication of a big
+source of inefficiency that has already been investigated (E. Brady et al, \cite{brady03}).
 
 Homotopy Type Theory seems to be where most of the research on equality is
-currently at, already with several experimental implementation \todo{ref}.
-Because of this promising ongoing research, now seems the good time to build
-tools that will enable the datatype theory to smoothly adapt to any new
+currently at, already with several experimental implementation namely one for
+Agda.  Because of this promising ongoing research, now seems the good time to
+build tools that will enable the datatype theory to smoothly adapt to any new
 development of equality.
 
 \subsection{Further Work}
 
-I hit the surprising obstactle of |forget| not being a fold quite late in the
-internship and as such, the study on paramorphisms is incomplete. The question of
-non--dependent elimination rules be further investigated.
+I hit the surprising obstactle of |forget| not being a catamorphism quite late
+in the internship and as such, the study on paramorphisms is incomplete. The
+question of non--dependent elimination rules be further investigated.
 
 In the same veine, the story for algebraic ornaments is missing a finishing
 touch. Given that we have formalized paramorphisms, there is a natural
@@ -929,27 +993,27 @@ know the code of the index (which is the first in the sequence of the 3) and
 the |erase| algebra gives us the raw expression of the fold.
 
 When we start to have first--class description of datatypes, a new world is
-open for exploration. \todo{ref gallais} has characterised the datatypes
-behaving like simply--typed syntaxes with binders. We might ask how it fits
-with this development. What is the best way for a language to expose primitive
-for syntax reflection, tying together the internal description of datatypes
-with their native counter--part?
+open for exploration. G. Allais et al (\cite{allais18}) have characterised the
+datatypes behaving like simply--typed syntaxes with binders. We might ask how
+it fits with this development. What is the best way for a language to expose
+primitive for syntax reflection, tying together the internal description of
+datatypes with their native counter--part?
 
 Induction--recursion has recently been generalized even further than indexation
-by Ghani et al \todo{ref} in the form of induction--recursion for arbitrary
-fibers. Fibers are a category theory notion giving a general account of
-indexation. Indexed induction--recursion arises as a special case, but also
+by N. Ghani et al \cite{ghani13} in the form of induction--recursion for
+arbitrary fibers. Fibers are a category theory notion giving a general account
+of indexation. Indexed induction--recursion arises as a special case, but also
 setoid induction--recursion or category with families\footnote{A model of type
-theories introduced by Setzer \todo{ref}.} induction--recursion (allowing one
+theories introduced by A. Setzer.} induction--recursion (allowing one
 to define a universe equiped with a notion of substitution). This seems like an
 interesting step forward since by allowing one to explicitely state which
 \textit{more specific than the most generic} notion of indexation we want, it
 degenerates gracefully (even to basic inductive types) with no need for the
-trivial indexation trick that I have used.
+trivial indexation trick that we have used.
 
 The last attack surface I can suggest is to work to achieving perhaps a more
 principled set of operations for the universe of ornaments as we have seen that
-they don't always mesh up very well and leave some trivial artifacts hanging
+they do not always mesh up very well and leave some trivial artifacts hanging
 when they are interpreted. A related question but which should not be taken as
 a reliable solution for the previous issue is the reorganization of
 datastructures, otherwise said the optimization of descriptions. Although this
@@ -970,7 +1034,7 @@ typechecker or depends on good reflection primitives.
 
 Good introductory material is available
 online\footnote{\url{http://www.cse.chalmers.se/~ulfn/papers/afp08/tutorial.pdf}
-(Norell and Chapman, \todo{ref})}. I present here a speed--run through it.
+(U. Norell and J. Chapman)}. We present here a speed--run through it.
 
 \subsection{Syntax and concepts}
 Data types are introduced using the |data| keyword. Types are written in
@@ -990,7 +1054,7 @@ data bool : Set where
 |Set₁ : Set₂| and so one. More on that later.
 
 Total functions can be defined by pattern matching in a similar way to haskell by
-specifying several independent clauses. I write them in in \greenFG{green}.
+specifying several independent clauses. We write them in in \greenFG{green}.
 
 %format not = "\FCT{not}"
 %format && = "\FCT{\&\&}"
@@ -1029,9 +1093,9 @@ Function expressions are introduced by the |λ| keyword: |λ x → x|. They can
 take several (curried) argument |λ x y → y| and can perform pattern matching
 when enclosed in braces: |λ { true → false; false → true }|.
 
-Recursion, self or mutual doesn't have to be declared, the only requirement is
+Recursion, self or mutual does not have to be declared, the only requirement is
 scoping: an implementation has to follow (anywhere after) any declaration and
-for every identifier used, it's declaration must preceed.
+for every identifier used, its declaration must preceed.
 
 %format nat = "\DATA{nat}"
 %format zero = "\CON{zero}"
@@ -1076,7 +1140,7 @@ shorthand for |(X : Set) → (Y : Set) → X → Y|. We can resort to
 unification on explicit arguments by using an underscore in place of the
 argument, \textit{eg} |id' _ x|.
 
-Records are introduced by the |record| and |field| keywords. I write projectors
+Records are introduced by the |record| and |field| keywords. We write projectors
 in \orangeFG{orange}.
 
 \begin{spec}
@@ -1105,6 +1169,7 @@ p : Σ A B
 \end{spec}
 
 \subsection{Universe Levels}
+\ref{sec:levels}
 
 As explained previously, Agda has a tower of universes. The first ones have
 names like |Set₂| but we can access any one by using levels (which are natural
@@ -1132,7 +1197,7 @@ letters). \textit{Ie} instead of |∀ {α β} → Set α → Set β → Set (α 
 might write |Set α → Set β → Set _|.
 
 \subsection{Prelude}
-I will briefly introduce the most important utility definitions I will use
+We will briefly introduce the most important utility definitions we will use
 throughout the report.
 
 We already have seen the |Σ A B| type with projectors |π₀| and |π₁|. Its
@@ -1147,36 +1212,35 @@ Dependent function composition is written |g ∘ f| and dependent application is
 Heterogeneous inductive equality is defined by:
 \ExecuteMetaData[ornaments/prelude.tex]{equality}
 
-I will use the usual lemmas |subst : (P : A → Set β) → x ≡ y → P x → P y|,
+We will use the usual lemmas |subst : (P : A → Set β) → x ≡ y → P x → P y|,
 |cong : (f : (x : A) → B x) → x ≡ y → f x ≡ f y|, |trans : x ≡ y → y ≡ z → x ≡
 z| and |sym : x ≡ y → y ≡ x|. Also their two argument version |subst₂ : (P : (a
 : A) → B a → Set γ) → x₀ ≡ x₁ → y₀ ≡ y₁ → P x₀ y₀ → P x₁ y₁|, |cong₂ :
-{-"\dots"-}| and |cong-Σ : π₀ p ≡ π₀ q → π₁ p ≡ π₁ q → p ≡ q|. I also make use of a postulated function extensionality:
+{-"\dots"-}| and |cong-Σ : π₀ p ≡ π₀ q → π₁ p ≡ π₁ q → p ≡ q|. We also make use of a postulated function extensionality:
 
 \ExecuteMetaData[ornaments/prelude.tex]{funext}
 
-This is about it!
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Case Study: Bidirectional Simply-Typed Lambda Calculus}
-\ref{sec:stlc}
+\label{sec:stlc}
 
-As an application of the theories that I constructed, I will present in this
+As an application of the theories that we constructed, we will present in this
 section a formalization of the bidirectional simply-typed λ→ calculus. This
 will also provide a nice spot to take some time to motivate and explain
 bidirectional typing.
 
 \subsection{Bidirectional Typing}
-Bidirectional typing has been devised by \todo{ref} as a particular school of
-formalizing typing rules. Bidirectional typing has been particularly successful
-in taking over formalization but most importantly implementation of
-typecheckers for complex languages like dependent or substructural theories
-\todo{examples}. A motivation is the shortcoming of the Hindley--Milner
-algorithm for type inferance: in these theories a most generic type is usually
-not computable or may not even exist, yet we would like to avoid the necessity
-of annotating every single expression. Thus it arises with the need for a finer
-understanding of where type annotations are definitely not need and where they
-are, in the absence of an inferance engine.
+Bidirectional typing has been devised by B. Pierce and D. Turner
+(\cite{pierce00}) as a particular school of formalizing typing rules.
+Bidirectional typing has been particularly successful in taking over
+formalization but most importantly implementation of typecheckers for complex
+languages like dependent or substructural theories such as Agda itself or
+Idris. A motivation is the shortcoming of the Hindley--Milner algorithm for
+type inferance: in these theories a most generic type is usually not computable
+or may not even exist, yet we would like to avoid the necessity of annotating
+every single expression. Thus it arises with the need for a finer understanding
+of where type annotations are definitely not need and where they are, in the
+absence of an inferance engine.
 
 %{
 %format ⊢ = "\DATA{⊢}"
@@ -1209,10 +1273,9 @@ type as input and |⊤| as output.
 \subsection{Native Agda}
 
 Before formalizing it with our encoding, we start of by giving the construction
-as we would normally in Agda. Let's start off by some tools. First natural
+as we would normally in Agda. Let us start off by some tools. First natural
 numbers and finite sets.
 
-ℕε⇒
 \ExecuteMetaData[ornaments/examples/lambda2.tex]{nat}
 \ExecuteMetaData[ornaments/examples/lambda2.tex]{fin}
 
@@ -1231,7 +1294,7 @@ Know we can give the typing judgements. We will represent it by an indexed
 inductive--recursive type with as input index a context, a direction (synthesis
 or checking) and the associated input (|type| or |⊤|, depending on the
 direction) and as output index the associated output (again |type| or |⊤|).
-₀
+
 \ExecuteMetaData[ornaments/examples/lambda2.tex]{dir}
 \ExecuteMetaData[ornaments/examples/lambda2.tex]{IN}
 \ExecuteMetaData[ornaments/examples/lambda2.tex]{OUT}
@@ -1266,7 +1329,7 @@ out₀ {Γ} {syn} {*} (ann {r} _)  = r
 \end{code}
 %}
 
-Let's make sense from this mess! Looking at the constructors, we have the usual
+Let us make sense from this mess! Looking at the constructors, we have the usual
 |lam|, |var| and |app|. The constructor |lam| is in checking mode (it builds up
 larger types using small parts of given information) and the two destructors
 |var| and |app| (|var| can be interpreted as a destructor for the binding,
@@ -1276,7 +1339,7 @@ constrained by them.
 
 There is a little trick in the type of |app|, indeed it is key to have the
 function argument |f| in synthesis mode, yet we want to \textit{panic} when |f|
-doesn't synthetise a function type. For that we simply build a little helper
+does not synthetise a function type. For that we simply build a little helper
 that will match on the type and demand an element of the empty type when the
 type is |`base|. This way we are sure that no such element will be
 constructible.
@@ -1288,7 +1351,7 @@ left of the clause equation (which do not exist natively in Agda).
 
 \subsection{Well--Scoped Terms}
 
-We don't want to directly jump to encoding this syntax of λ→ calculus because
+We do not want to directly jump to encoding this syntax of λ→ calculus because
 the funny part is that we will express it as an ornament on well--scoped
 syntax. Well--scoped syntax is expressed as an |IIR| definition with natural
 numbers as input index (the number of free variables) and a trivial output
@@ -1313,18 +1376,18 @@ context.
 \ExecuteMetaData[ornaments/examples/lambda2.tex]{tlam-ix}
 \ExecuteMetaData[ornaments/examples/lambda2.tex]{tlam-tags}
 
-First let's look at the inductive part of the encoding.
+First let us look at the inductive part of the encoding.
 
 \ExecuteMetaData[ornaments/examples/lambda2.tex]{tlam-node}
 
-The first comment is probably that this is a bit clumsy. I could've written
+The first comment is probably that this is a bit clumsy. We could've written
 special |syntax| rules to ease the programming with the encoding and the choice
 of operation for ornaments is not set in stone, it may be later changed to
 another combination.
 
 We can note that we pattern match on the index, \textit{eg} before giving the
 shape of the datatype (in this case the ornament). This is the full power of
-index--first datatypes unleashed, as such we have constructors that don't have
+index--first datatypes unleashed, as such we have constructors that do not have
 any of the implicit quantification like in native Agda.
 
 A pattern we notice is |add₀ (κ {-"…"-}) λ { (lift {-"…"-}) →
@@ -1333,7 +1396,7 @@ on here is the replacement of some constant by another one (given a stripping
 function which is implicit here). We might want to add special syntax for that.
 
 Now it is clear what |`wrap| stood for: the ornament introduces new
-constructors |`vrf| and |`ann| that don't exist in the original datatype.
+constructors |`vrf| and |`ann| that do not exist in the original datatype.
 Without |`wrap| we wouldn't know what constructor to choose from in the old
 datatype. Note that this is an artifact in the sense that it might be
 avoidable. Indeed these added constructors do not really change the shape from

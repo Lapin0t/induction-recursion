@@ -185,7 +185,7 @@
 %format ⌊_⌋₀ = ⌊ _ ⌋₀
 %format info↑ = "\FCT{info\!\!↑}"
 %format ⌋ = "\FCT{⌋}"
-
+%format ⌊_⌋ = ⌊ _ ⌋
 %format forget = "\FCT{forget}"
 
 %format inv = "\DATA{inv}"
@@ -207,7 +207,7 @@
 %format get = "\FCT{get}"
 %format type = "\DATA{type}"
 %format `base = "\CON{`base}"
-%format `⇒ = "\CON{`⇒}"
+%format `⇒ = "\CON{`\!\!⇒}"
 %format _`⇒_ = _ `⇒ _
 %format dir = "\DATA{dir}"
 %format chk = "\CON{chk}"
