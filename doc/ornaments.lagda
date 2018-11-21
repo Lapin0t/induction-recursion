@@ -314,7 +314,7 @@ predicate |info : poly γ X → Set| representing the information contained in t
 final datatype, underapproximating the information contained in a subnode by
 the output index |X i| it delivers.
 
-%\ExecuteMetaData[ornaments/iir.tex]{codes}
+\ExecuteMetaData[ornaments/iir.tex]{codes}
 
 Lets give some intuition for these constructors.
 \begin{itemize}
