@@ -2,7 +2,7 @@ Ornamenting Inductive-Recursive Definitions
 ===========================================
 
 This repository holds the Agda development of my internship in the MSP_ group
-with Conor McBride.
+with Conor McBride. `Report <doc/latex/ornaments.pdf>`_
 
 References:
 
