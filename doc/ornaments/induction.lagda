@@ -119,7 +119,7 @@ open p-alg public
 
 %<*para-pre>
 \begin{code}
-para₀ : {-<-}∀ {α β β' γ δ}{X : ISet α β}{ρ : IIR γ X X}{->-}(Y : Code X → Set β')(φ : p-alg δ Y ρ) → μ ρ {-<-}{s}{->-}⇒ μ ρ {-<-}{s}{->-}& obj φ
+para₀ : {-<-}∀ {α β β' γ δ}{X : ISet α β}{ρ : IIR γ X X}{->-}(Y : Code X → Set β')(φ : p-alg δ Y ρ) → μ ρ {-<-}{s}{->-}⇒ (μ ρ {s} & obj φ)
 π₀ (para₀ {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = ⟨ x ⟩ , π₀ $ mor φ i (π₀ $ ⟦ ρ ⟧[ para₀ Y φ ] i x)
 π₁ (para₀ {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = refl
 
@@ -128,9 +128,11 @@ para₀ : {-<-}∀ {α β β' γ δ}{X : ISet α β}{ρ : IIR γ X X}{->-}(Y : C
 
 %<*para>
 \begin{code}
-para : {-<-}∀ {α β β' γ δ}{X : ISet α β}{ρ : IIR γ X X}{->-}(Y : Code X → Set β')(φ : p-alg δ Y ρ) → (down φ !< μ ρ {-<-}{s}{->-})⇒ obj φ
-π₀ (para {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = π₀ $ mor φ i (π₀ $ ⟦ ρ ⟧[ para₀ Y φ ] i x)
-π₁ (para {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = trans (π₁ $ mor φ i _) (cong (down φ i) (π₁ $ ⟦ ρ ⟧[ _ ] i x))
+--para : {-<-}∀ {α β β' γ δ}{X : ISet α β}{ρ : IIR γ X X}{->-}(Y : Code X → Set β')(φ : p-alg δ Y ρ) → (down φ !< μ ρ {-<-}{s}{->-})⇒ obj φ
+--π₀ (para {-<-}{ρ = ρ}{->-}Y φ i x) = π₀ $ para₀ Y φ i x
+--π₁ (para {-<-}{ρ = ρ}{->-}Y φ i x) = trans {!  π₁ $ mor φ i _ !} (cong (down φ i) (π₁ $ para₀ Y φ i x))
+--π₀ (para {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = π₀ $ mor φ i (π₀ $ ⟦ ρ ⟧[ para₀ Y φ ] i x)
+--π₁ (para {-<-}{ρ = ρ}{->-}Y φ i ⟨ x ⟩) = trans (π₁ $ mor φ i _) (cong (down φ i) (π₁ $ ⟦ ρ ⟧[ _ ] i x))
 \end{code}
 %</para>
 

@@ -107,17 +107,17 @@ PFold : {X : ISet α₀ β₀}(F : 𝔽 β₁ X) → PRef α₀ (β₀ ⊔ β₁
 PFold F = POut λ i x → Σ (Code (F i)) λ c → decode (F i) c ≡ x
 
 lem : ∀ {α₀ β₀ β₁ γ₀ γ₁}{X : ISet α₀ β₀}{F : 𝔽 β₁ X}{ρ : poly γ₀ X}(o : orn₀ γ₁ (PFold F) ρ) → (info ⌊ o ⌋₀ , info↓) ⟶̃ ⟦ ρ ⟧₀ F
-lem (ι j)      (lift (_ , (c , p))) = lift c , cong lift p
-lem κ          x                    = _ , refl
-lem (σ {V = V} A B)    (a , b)      =
-  let a' , p = lem A a in
-  let b' , q = lem (B _) b in
-  (a' , subst (λ x → Code (⟦ V x ⟧₀ _)) (sym p) b') ,
-  cong-Σ p (trans (cong₂ (λ x → decode (⟦ V x ⟧₀ _)) p (subst-elim _ $ sym p)) q)
-lem (π B)      x                    = π→ (λ a → lem (B a)) (x ∘ lift)
-lem (add₀ A B) (a , x)              = lem (B a) x
-lem (add₁ A B) (x , _)              = lem A x
-lem (del-κ a)  x                    = _ , refl
+lem (ι j)      (lift (_ , c , p))  = lift c , cong lift p
+lem κ          x                   = _ , refl
+lem (σ A B)    x                   = σ→ _ _ (lem A) (lem ∘ B) x
+  --let a' , p = lem A a in
+  --let b' , q = lem (B _) b in
+  --(a' , subst (λ x → Code (⟦ V x ⟧₀ _)) (sym p) b') ,
+  --cong-Σ p (trans (cong₂ (λ x → decode (⟦ V x ⟧₀ _)) p (subst-elim _ $ sym p)) q)
+lem (π B)      x                   = π→ (lem ∘ B) (x ∘ lift)
+lem (add₀ A B) (a , x)             = lem (B a) x
+lem (add₁ A B) (x , _)             = lem A x
+lem (del-κ a)  x                   = _ , refl
 
 o-fold₀ : ∀ {α₀ β₀ β₁ γ₀}{X : ISet α₀ β₀}(F : 𝔽 β₁ X)(ρ : poly γ₀ X) → orn₀ γ₀ (PFold F) ρ
 o-fold₀ F (ι i) = ι i

@@ -39,6 +39,9 @@ record Σ {-<-}{α β}{->-} (A : Set α) (B : A → Set β) : Set (α ⊔ β) wh
 \begin{code}
 infixr 4 _,_
 open Σ public
+
+infixl 15 Σ
+syntax Σ A (λ x → B) = Σ[ x ∈ A ] B
 \end{code}
 
 %<*prod>
