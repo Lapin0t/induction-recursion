@@ -87,12 +87,8 @@ dec ((F / R) .(↓-in R j)) (ok j , c) = ↓-out R j (dec (F j) c)
 _⇒_[_] : ∀ {X₀ X₁} → ifam X₁ → ifam X₀ → X₀ ⊇ X₁ → Set
 F ⇒ G [ R ] = (↓-out R <<ᵢ F) ⇒ (G ∘ ↓-in R)
 
---_⟶_[_] : ∀ {X₀ X₁} → fam X₁ → fam X₀ → X₀ ⊇ X₁ → Set
---F ⟶ G [ R ] = ?
+aux₀ : ∀ {X Y} {R : X ⊇ Y} {F G} → F ⇒ G [ R ] → (F / R) ⇒ G
+aux₀ m _ (ok j , x) = m j x
 
-_⊗_ : ∀ {X} → ifam X → ifam X → ifam X
-code ((F ⊗ G) i) = code (F i) × code (G i)
-dec ((F ⊗ G) i) (x , _) = dec (F i) x
-
---_⊗_ : ∀ {I : Set} {X : I → Set₁} {Y : I → Set₁} → ifam (I , X) → ifam (I , Y) → ifam (I , λ i → X i × Y i)
---(F ⊗ G) i = F i & G i
+aux₁ : ∀ {X Y} {R : X ⊇ Y} {F G} → (F / R) ⇒ G → F ⇒ G [ R ]
+aux₁ {R = R} m i x = m (↓-in R i) (ok i , x)
