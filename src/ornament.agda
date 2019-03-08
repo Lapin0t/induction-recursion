@@ -11,59 +11,58 @@ open import induction
 -- case right. Indeed, `info (ι i)` should not be attainable out of the blue, we
 -- really want to ensure that there is a matching subnode in the ornamented version,
 -- not just that we can extract some `OUT Y j` from somewhere (possibly a constant!).
-data orn₀ {X Y} (R : X ⊇ Y) : poly X → poly Y → Set₁
-info↓ : ∀ {X Y} {R : X ⊇ Y} {ρ₀ ρ₁} → orn₀ R ρ₀ ρ₁ → info ρ₁ → info ρ₀
+data orn₀ {X Y} (R : X ⊇ Y) : poly X → (ρ₁ : poly Y) → info ρ₁ → Set₁
+info↓ : ∀ {X Y} {R : X ⊇ Y} {ρ₀ ρ₁ x} → orn₀ R ρ₀ ρ₁ x → info ρ₀
 
 data orn₀ {X} {Y} R where
-  -- a subnode must be matched in the fancy version
-  ι : ∀ {i j} → i ≡ ↓-in R j                                            → orn₀ R (ι i)   (ι j)
-  -- or it could be on the right of a function, at some particular input (a : A)
-  ι-π : ∀ {i A B} (a : A) → orn₀ R (ι i) (B a)                          → orn₀ R (ι i)   (π A B)
-  -- left of a sigma
-  ι-σ₀ : ∀ {i A B} → orn₀ R (ι i) A                                     → orn₀ R (ι i)   (σ A B)
-  -- right of a sigma
-  ι-σ₁ : ∀ {i A B} → ((a : info A) → orn₀ R (ι i) (B a))                → orn₀ R (ι i)   (σ A B)
+  ι : ∀ {i j x} → i ≡ ↓-in R j                                            → orn₀ R (ι i)   (ι j)   x
+  σ : ∀ {A B ρ₁ x} (f : orn₀ R A ρ₁ x) (g : orn₀ R (B $ info↓ f) ρ₁ x)    → orn₀ R (σ A B) ρ₁      x
+  κ : ∀ {A ρ₁ x} → A                                                      → orn₀ R (κ A)   ρ₁      x
+  π : ∀ {A B ρ₁ x} (f : (a : A) → orn₀ R (B a) ρ₁ x)                      → orn₀ R (π A B) ρ₁      x
 
-  -- ornamenting a constant is simply being able to extract it from the info
-  κ : ∀ {A ρ₁} (f : info ρ₁ → A)                                        → orn₀ R (κ A)   ρ₁
-  -- ornamenting a sigma is ornamenting both its components
-  σ : ∀ {A B ρ₁} (f : orn₀ R A ρ₁) (g : (a : info A) → orn₀ R (B a) ρ₁) → orn₀ R (σ A B) ρ₁
-  -- ornamenting a pi is ornamenting it pointwise
-  π : ∀ {A B ρ₁} (f : (a : A) → orn₀ R (B a) ρ₁)                        → orn₀ R (π A B) ρ₁
+  -- weakenings
+  x-π : ∀ {ρ₀ A B x} (a : A) (f : orn₀ R ρ₀ (B a) (x a))                  → orn₀ R ρ₀      (π A B) x
+  x-σ₀ : ∀ {ρ₀ A B x} (f : orn₀ R ρ₀ A (π₀ x))                            → orn₀ R ρ₀      (σ A B) x
+  x-σ₁ : ∀ {ρ₀ A B x} (g : orn₀ R ρ₀ (B $ π₀ x) (π₁ x))                   → orn₀ R ρ₀      (σ A B) x
 
-info↓ {R = R} (ι refl) x = ↓-out R _ x
-info↓ (ι-π a f) x = info↓ f (x a)
-info↓ (ι-σ₀ f)  x = info↓ f (π₀ x)
-info↓ (ι-σ₁ g)  x = info↓ (g $ π₀ x) (π₁ x)
-info↓ (κ f)     x = ↑ (f x)
-info↓ (σ f g)   x = info↓ f x , info↓ (g _) x
-info↓ (π f)     x = λ a → info↓ (f a) x
+info↓ {R = R} {x = x} (ι refl)  = ↓-out R _ x
+info↓ {x = x} (σ f g)   = info↓ f , info↓ g
+info↓ {x = x} (κ a)     = ↑ a
+info↓ {x = x} (π f)     = λ a → info↓ (f a)
+info↓ {x = x} (x-π a f) = info↓ f
+info↓ {x = x} (x-σ₀ f)  = info↓ f
+info↓ {x = x} (x-σ₁ g)  = info↓ g
+
+σ-ptw : ∀ {X Y} {R : X ⊇ Y} {A A' B B' x} (f : orn₀ R A A' (π₀ x)) (g : orn₀ R (B $ info↓ f) (B' (π₀ x)) (π₁ x)) → orn₀ R (σ A B) (σ A' B') x
+σ-ptw f g = σ (x-σ₀ f) (x-σ₁ g)
+
+π-ptw : ∀ {X Y} {R : X ⊇ Y} {A A' B B' x} (f : A → A') (g : (a : A) → orn₀ R (B a) (B' $ f a) (x $ f a)) → orn₀ R (π A B) (π A' B') x
+π-ptw f g = π λ a → x-π (f a) (g a)
 
 -- Compute a natural transformation between ⟦ ρ₁ ⟧₀ and ⟦ ρ₀ ⟧₀. More precisely, on the left
 -- we postcompose with `info↓` and on the right we precompose with the action of the reindexing,
 -- yielding two functors [ifam Y, fam (info ρ₀)].
-erase₀ : ∀ {X Y} {R : X ⊇ Y} {ρ₀ ρ₁} (α : orn₀ R ρ₀ ρ₁) (F : ifam Y) → (info↓ α << ⟦ ρ₁ ⟧₀ F) ⟶ ⟦ ρ₀ ⟧₀ (F / R)
-erase₀ (ι refl)  F x = _ , refl
-erase₀ (ι-π a f) F x = erase₀ f F (x a)
-erase₀ (ι-σ₀ f)  F x = erase₀ f F (π₀ x)
-erase₀ (ι-σ₁ {A = A} g)  F x = erase₀ (g $ dec (⟦ A ⟧₀ F) (π₀ x)) F (π₁ x)
-erase₀ (κ f)     F x = _ , refl
-erase₀ (σ {B = B} {ρ₁ = ρ₁} f g)   F x =
-  let nfo = dec (⟦ ρ₁ ⟧₀ F) x in
+erase₀ : ∀ {X Y} {R : X ⊇ Y} {ρ₀ ρ₁} {y} (α : orn₀ R ρ₀ ρ₁ y) (F : ifam Y) → dec (⟦ ρ₁ ⟧₀ F) ⁻¹ y → Σ (code (⟦ ρ₀ ⟧₀ (F / R))) λ x → info↓ α ≡ dec (⟦ ρ₀ ⟧₀ (F / R)) x
+erase₀ (ι refl)  F (ok x) = _ , x , refl
+erase₀ (σ {B = B} f g)   F x =
   let a , m = erase₀ f F x in
-  let b , p = erase₀ (g (info↓ f nfo)) F x in
+  let b , p = erase₀ g F x in
   a , subst (λ x → code (⟦ B x ⟧₀ (F / _))) m b ,
   Σ-ext m (trans p (cong₂ (λ u v → dec (⟦ B u ⟧₀ (F / _)) v) m (sym $ coerce-coh _)))
+erase₀ (κ a)     F (ok x) = a , refl
 erase₀ (π f)     F x =
-  let m = λ a → erase₀ (f a) F x in
-  π₀ ∘ m , Π-ext (π₁ ∘ m)
+  let f a = erase₀ (f a) F x in
+  π₀ ∘ f , Π-ext (π₁ ∘ f)
+erase₀ (x-π a f) F (ok x) = erase₀ f F (ok $ x a)
+erase₀ (x-σ₀ f)  F (ok x) = erase₀ f F (ok $ π₀ x)
+erase₀ (x-σ₁ g)  F (ok x) = erase₀ g F (ok $ π₁ x)
 
 -- Full ornaments: we pre-ornament the node at every index and give a coherence equation
 -- for the decoding.
 record orn {X Y} (R : X ⊇ Y) (ρ₀ : IR X) (ρ₁ : IR Y) : Set₁ where
   field
-    node-o : (j : IN Y) → orn₀ R (node ρ₀ (↓-in R j)) (node ρ₁ j)
-    emit-o : (j : IN Y) (x : info (node ρ₁ j)) → ↓-out R j (emit ρ₁ j x) ≡ emit ρ₀ (↓-in R j) (info↓ (node-o j) x)
+    node-o : (j : IN Y) (x : info (node ρ₁ j)) → orn₀ R (node ρ₀ (↓-in R j)) (node ρ₁ j) x
+    emit-o : (j : IN Y) (x : info (node ρ₁ j)) → ↓-out R j (emit ρ₁ j x) ≡ emit ρ₀ (↓-in R j) (info↓ (node-o j x))
 open orn public
 
 -- Natural transformation between ⟦ ρ₁ ⟧ and ⟦ ρ₀ ⟧. Again, on the left we postcompose with the action
@@ -71,7 +70,7 @@ open orn public
 -- into place.
 erase : ∀ {X Y} {R : X ⊇ Y} {ρ₀ ρ₁} (α : orn R ρ₀ ρ₁) (F : ifam Y) → (⟦ ρ₁ ⟧ F / R) ⇒ ⟦ ρ₀ ⟧ (F / R)
 erase {R = R} {ρ₀ = ρ₀} α F _ (ok j , x) =
-  let y , p = erase₀ (node-o α j) F x in
+  let y , p = erase₀ (node-o α j _) F (ok x) in
   y , trans (emit-o α j _) (cong (emit ρ₀ (↓-in R j)) p)
 
 -- With containers, now we would define the ornamental algebra, but it doesn't seem like there is a
@@ -93,63 +92,3 @@ erase {R = R} {ρ₀ = ρ₀} α F _ (ok j , x) =
 
 forget : ∀ {X Y} {R : X ⊇ Y} {ρ₀ ρ₁} (α : orn R ρ₀ ρ₁) ..{s : Size} → (μ ρ₁ {s} / R) ⇒ μ ρ₀ {s}
 forget {ρ₀ = ρ₀} {ρ₁ = ρ₁} α _ (ok j , ⟨ x ⟩) = (μ-in ⊙ ⟦ ρ₀ ⟧[ forget α ] ⊙ erase α (μ ρ₁)) _ (ok j , x)
-
--------
-
-aux₀ : ∀ {X Y} {R : X ⊇ Y} {F G} → F ⇒ G [ R ] → (F / R) ⇒ G
-aux₀ m _ (ok j , x) = m j x
-
-aux₁ : ∀ {X Y} {R : X ⊇ Y} {F G} → (F / R) ⇒ G → F ⇒ G [ R ]
-aux₁ {R = R} m i x = m (↓-in R i) (ok i , x)
-
-  --erase : (F : ifam Y) → (⟦ ρ₁ ⟧ F / R) ⇒ ⟦ ρ₀ ⟧ (F / R)
-  --π₀ (erase F _ (ok i , x)) = π₀ $ act (node-o α i) F x
-  --π₁ (erase F _ (ok i , x)) = trans (emit-o α i _) (cong (emit ρ₀ _) (π₁ $ act (node-o α i) F x))
-
-  --ornalg : ..{s : Size} ..{t : Size< s} → (⟦ ρ₁ ⟧ (μ ρ₁ {t}) / R) ⇒ μ ρ₀ {s}
-  --forget : ..{s : Size} → (μ ρ₁ {s} / R) ⇒ μ ρ₀ {s}
-
-  --ornalg = μ-in ⊙ ⟦ ρ₀ ⟧[ forget ] ⊙ erase (μ ρ₁)
-  --forget _ (ok i , ⟨ x ⟩) = ornalg _ (ok i , x)
-
---cata₁ : ∀ {X Y} {R : X ⊇ Y} {ρ} {A : ifam X} {F : ifam Y} (inj : ⟦ ρ ⟧ F ⇒ A [ R ]) (φ : ⟦ ρ ⟧ F ⇒ A [ R ]) ..{s} → μ ρ {s} ⇒ A [ R ]
---cata₁-aux : ∀ {X Y} {R : X ⊇ Y} {ρ} {A : ifam X} {F : ifam Y} (inj : ⟦ ρ ⟧ F ⇒ A [ R ]) (φ : ⟦ ρ ⟧ F ⇒ A [ R ]) ..{s} → μ ρ {s} ⇒ ⟦ ρ ⟧ F
-
---π₀ (cata₁ inj φ i x) = π₀ $ inj i $ π₀ $ cata₁-aux inj φ i x --π₀ $ inj i $ π₀ $ cata₁-aux inj φ i x
---π₁ (cata₁ inj φ i x) = {!π₁ $ cata₁-aux inj φ i x !}
-
---cata₁-aux {ρ = ρ} inj φ {s} i ⟨ x ⟩ = ⟦ ρ ⟧[ cata₁ inj φ ] i x
---π₀ (cata' {ρ = ρ} inj φ i ⟨ x ⟩) = π₀ $ φ i $ π₀ $ ⟦ ρ ⟧[ cata-aux inj φ ] i x
---π₁ (cata' {ρ = ρ} inj φ i ⟨ x ⟩) = {!   !}
-
---π₀ (forget o {s} i ⟨ x ⟩) = ⟨ {!   !} ⟩
---π₁ (forget o {s} i ⟨ x ⟩) = {!   !}
-
---record orn {X Y} (R : X ⊇ Y) (ρ₀ : IR X) (ρ₁ : IR Y) : Set₁ where
---  field
---    ↓-nfo : (j : _) → info (node ρ₁ j) → info (node ρ₀ (↓-in R j))
---    coh : (j : _) (x : info (node ρ₁ j)) → ↓-out R j (emit ρ₁ j x) ≡ emit ρ₀ (↓-in R j) (↓-nfo j x)
---open orn public
-
---erase₀ : ∀ {X Y} {R : X ⊇ Y} {ρ₀ ρ₁} (dwn : info ρ₁ → info ρ₀) (coh : ?) (F : ifam Y) → (dwn << ⟦ ρ₁ ⟧₀ F) ⟶ ⟦ ρ₀ ⟧₀ (⌊ F ⌋ R)
---erase₀ {ρ₁ = ρ₁} dwn coh₁ F x = {!   !}
-
-
---module comb {X₀ X₁} {R : X₀ ⊇ X₁} where
---  ιι : ∀ {i j} → i ≡ ↓-in R j → orn₀ R (ι i) (ι j)
---  ιι refl x = ↓-out R _ x
---
---  ππ : ∀ {A₀ A₁ B₀ B₁} (f : A₀ → A₁) → ((x : _) → orn₀ R (B₀ x) (B₁ (f x))) → orn₀ R (π A₀ B₀) (π A₁ B₁)
---  ππ f g x = λ a → g a (x $ f a)
---
---  σσ : ∀ {A₀ A₁ B₀ B₁} (f : orn₀ R A₀ A₁) → ((x : _) → orn₀ R (B₀ (f x)) (B₁ x)) → orn₀ R (σ A₀ B₀) (σ A₁ B₁)
---  σσ f g (x , y) = f x , g x y
---
---  xσ₀ : ∀ {ρ₀ A₁ B₁} → orn₀ R ρ₀ A₁ → orn₀ R ρ₀ (σ A₁ B₁)
---  xσ₀ f (x , _) = f x
---
---  xσ₁ : ∀ {ρ₀ A₁ B₁} → ((x : _) → orn₀ R ρ₀ (B₁ x)) → orn₀ R ρ₀ (σ A₁ B₁)
---  xσ₁ g (x , y) = g x y
---
---  σx : ∀ {A₀ B₀ ρ₁} (f : orn₀ R A₀ ρ₁) → ((x : _) → info (B₀ (f x))) → orn₀ R (σ A₀ B₀) ρ₁
---  σx f g x = f x , g x
