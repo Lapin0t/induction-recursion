@@ -84,11 +84,3 @@ uoip refl refl = refl
 
 data _⁻¹_ {α β} {A : Set α} {B : Set β} (f : A → B) : B → Set α where
   ok : (a : A) → f ⁻¹ (f a)
-
-extract : ∀ {α β} {A : Set α} {B : Set β} {f : A → B} {y} → f ⁻¹ y → Σ[ x ∈ A ] (f x ≡ y)
-extract (ok a) = a , refl
-
-comp : ∀ {α β γ} {A : Set α} {B : Set β} {f : A → B} (P : A → Set γ) {b} → f ⁻¹ b → Set γ
-comp {f} P (ok a) = P a
-
-

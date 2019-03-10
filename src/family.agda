@@ -9,13 +9,12 @@ record fam (X : Set₁) : Set₁ where
     dec : code → X
 open fam public
 
-_&_ : ∀ {X Y} → fam X → fam Y → fam (X × Y)
-code (F & G) = code F × code G
-dec (F & G) (x , y) = dec F x , dec G y
+--_&_ : ∀ {X Y} → fam X → fam Y → fam (X × Y)
+--code (F & G) = code F × code G
+--dec (F & G) (x , y) = dec F x , dec G y
 
 _⟶_ : ∀ {X} → fam X → fam X → Set
 F ⟶ G = (x : code F) → Σ[ y ∈ code G ] (dec F x ≡ dec G y)
-
 
 _∘₀_ : ∀ {X} {F G H : fam X} → G ⟶ H → F ⟶ G → F ⟶ H
 (m ∘₀ n) x = π₀ $ m $ π₀ $ n x , trans (π₁ $ n x) (π₁ $ m _)
@@ -76,9 +75,9 @@ record _⊇_ (X₀ X₁ : idx) : Set₁ where
     ↓-out : (j : IN X₁) → OUT X₁ j → OUT X₀ (↓-in j)
 open _⊇_ public
 
-id⊇ : ∀ {X} → X ⊇ X
-↓-in id⊇ = λ i → i
-↓-out id⊇ _ = λ o → o
+--id⊇ : ∀ {X} → X ⊇ X
+--↓-in id⊇ = λ i → i
+--↓-out id⊇ _ = λ o → o
 
 _/_ : ∀ {X₀ X₁} → ifam X₁ → X₀ ⊇ X₁ → ifam X₀
 code ((F / R) i) = Σ (↓-in R ⁻¹ i) (λ { (ok j) → code (F j) })
@@ -87,8 +86,8 @@ dec ((F / R) .(↓-in R j)) (ok j , c) = ↓-out R j (dec (F j) c)
 _⇒_[_] : ∀ {X₀ X₁} → ifam X₁ → ifam X₀ → X₀ ⊇ X₁ → Set
 F ⇒ G [ R ] = (↓-out R <<ᵢ F) ⇒ (G ∘ ↓-in R)
 
-aux₀ : ∀ {X Y} {R : X ⊇ Y} {F G} → F ⇒ G [ R ] → (F / R) ⇒ G
-aux₀ m _ (ok j , x) = m j x
+--aux₀ : ∀ {X Y} {R : X ⊇ Y} {F G} → F ⇒ G [ R ] → (F / R) ⇒ G
+--aux₀ m _ (ok j , x) = m j x
 
 aux₁ : ∀ {X Y} {R : X ⊇ Y} {F G} → (F / R) ⇒ G → F ⇒ G [ R ]
 aux₁ {R = R} m i x = m (↓-in R i) (ok i , x)
